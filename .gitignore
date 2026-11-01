@@ -1,0 +1,17 @@
+# Local settings and state of the dev environment
+/.env
+/.local/
+
+# Maintainer-only files: notes on running the AI agent prompts, installation-specific information
+/USAGE.md
+/PRIVATE.md
+
+# Build and release output
+/dist/
+node_modules/
+
+# Test runs, browser artefacts (may contain data of the CRM copy)
+test-results/
+playwright-report/
+/.playwright-mcp/
+*.log

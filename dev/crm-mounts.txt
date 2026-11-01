@@ -1,0 +1,11 @@
+# Paths owned by ModernUI that dev/crm-link.sh connects to the CRM stand (task crm:link).
+# Each line is the same relative path in src/ and in the CRM root; shell globs are allowed.
+# A directory is bind-mounted read-only, a PHP file (language files) gets a require stub.
+# Only paths whose last component contains the module name are accepted.
+# The ZIP built by packaging/ must put the files at exactly these runtime paths.
+modules/ModernUI
+modules/Settings/ModernUI
+layouts/v7/modules/ModernUI
+layouts/v7/modules/Settings/ModernUI
+languages/*/ModernUI.php
+languages/*/Settings/ModernUI.php
