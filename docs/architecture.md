@@ -12,7 +12,7 @@
 |---|---|---|
 | A1 | Пакет — vtlib-модуль типа `extension` с именем `ModernUI`, без entity-таблиц, без поля `<parent>` (не появляется в меню приложений) | `PackageImport::import_Module()` (стр. 473–529): `type=extension` → `isentitytype=false` |
 | A2 | Два слоя оформления: **skin** — чистый CSS поверх неизменённой DOM v7, подключается в `<head>` через `HEADERCSS`; **shell** — Vue-острова в собственных контейнерах, подключаются классическим загрузчиком через `HEADERSCRIPT` | v7 перезагружает страницу при каждом переходе по меню: CSS только из JS давал бы мигание старого вида на каждой странице (§5.1) |
-| A3 | Обе глобальные ссылки регистрируются с `tabid = 0` и обработчиком ссылки `ModernUI_LinkHandler`; обработчик решает per-user и per-screen, подключать ли тему, и добавляет к URL идентификатор сборки | `Vtiger_Link::getAllByType()` вызывает `handler_class::handler()` до вывода ссылки (стр. 229–241); фильтр по разрешённым `tabid` для не-админов не зависит от устаревших файлов привилегий (§3.3) |
+| A3 | Обе глобальные ссылки регистрируются с `tabid = 0` и обработчиком ссылки `ModernUI_LinkHandler_Model::filter`; обработчик решает per-user и per-screen, подключать ли тему, и добавляет к URL идентификатор сборки | `Vtiger_Link::getAllByType()` вызывает `handler_class::handler()` до вывода ссылки (стр. 229–241); фильтр по разрешённым `tabid` для не-админов не зависит от устаревших файлов привилегий (§3.3) |
 | A4 | Ссылки создаются и удаляются кодом lifecycle (`vtlib_handler`), а не секцией `<customlinks>` manifest | В 8.4.0 `import_CustomLinks()` передаёт `handler_*` с числовыми ключами, а `Vtiger_Link::addLink()` читает `path/class/method` — обработчик теряется (стр. 853–873 и `Link.php` 118–123) |
 | A5 | Загрузчик — маленький ES5-скрипт `loader.js` (без сборки), он читает `dist/manifest.json` и вставляет `<script type="module">` | `Vtiger_JsScript_Model::DEFAULT_TYPE = 'text/javascript'`, у ссылки нет поля `type`; прототип проверен (§5.3) |
 | A6 | Vue монтируется только в контейнеры `[data-mu-root]`, созданные ModernUI; v7-DOM не пересоздаётся. Шапка v7 (`nav.app-fixed-navbar`, `#navbar`) **остаётся** и переоформляется CSS — кнопки расширений в ней сохраняются на своих местах | `COMMON.md`, реестр расширений (`compatibility.md`) |
@@ -55,7 +55,10 @@
 4. `getHeaderCss()`: `Vtiger_Header_View::getHeaderCss()` (стр. 188) — тема пользователя, затем все
    `HEADERCSS` (та же проверка `file_exists`); `Vtiger_Footer_View` добавляет timepicker/lazyYT.
 5. Вывод: `Header.tpl` — `<link>` ядра, тема v7 (`V7_THEME_PATH`), затем `STYLES` (HEADERCSS) —
-   **в `<head>`, после стилей ядра**; `Footer.tpl` → `JSResources.tpl` — библиотеки (jQuery,
+   в разметке внутри `<head>`, после стилей ядра. Фактически (этап 02, тег 8.4.0 и dev-стенд) перед темой v7
+   `Header.tpl` выводит `<input type="hidden" id="inventoryModules">`: парсер HTML закрывает `<head>` на нём,
+   и тема v7 вместе со всеми HEADERCSS оказывается в начале `<body>` — до любого содержимого страницы,
+   поэтому стили по-прежнему блокируют отрисовку контента (замер мигания — Q8, этап 04); `Footer.tpl` → `JSResources.tpl` — библиотеки (jQuery,
    Bootstrap, Select2, `helper.js`, `application.js`, `Vtiger.js`…), затем `SCRIPTS` как
    `<script type="{getType()}" src="{vresource_url(src)}">` — **в конце `<body>`**.
 6. `vresource_url()` (`includes/runtime/Viewer.php:255`) дописывает `?v=<версия Vtiger>` к любому
@@ -85,7 +88,7 @@ HEADERSCRIPT исполняется после jQuery/Bootstrap/`app`, но до
 запроса (`includes/runtime/cache/Connector.php`), то есть решение обработчика не утекает к другим
 пользователям.
 
-`ModernUI_LinkHandler::filter(Vtiger_LinkData $data)`:
+`ModernUI_LinkHandler_Model::filter(Vtiger_LinkData $data)` (`modules/ModernUI/models/LinkHandler.php`):
 
 1. всё тело — в `try { … } catch (\Throwable $e) { return false; }`: исключение в обработчике
    иначе сломало бы каждую страницу CRM;
@@ -196,9 +199,11 @@ HEADERSCRIPT исполняется после jQuery/Bootstrap/`app`, но до
 
 ### 3.6. Страница настроек
 
-- Пункт: `vtlib_addSettingsLink('LBL_MODERNUI', 'index.php?module=ModernUI&parent=Settings&view=Index',
+- Пункт: `vtlib_addSettingsLink('ModernUI', 'index.php?module=ModernUI&parent=Settings&view=Index',
   'LBL_OTHER_SETTINGS')` — функция сама проверяет дубликат по `name`, при отсутствии блока создаёт
-  `LBL_OTHER_SETTINGS`. Подпись переводится из `languages/<lang>/Settings/ModernUI.php`.
+  `LBL_OTHER_SETTINGS`. Имя пункта — название продукта, а не ключ перевода: боковое меню настроек
+  переводит подписи модулем **текущей** страницы (`vtranslate($MENU, $QUALIFIED_MODULE)`), на чужих
+  страницах ключ `LBL_*` показался бы как есть (проверено на этапе 02).
 - Маршрут: `module=ModernUI&parent=Settings&view=Index` → `Settings_ModernUI_Index_View`
   (`modules/Settings/ModernUI/views/Index.php`), шаблоны — `layouts/v7/modules/Settings/ModernUI/`
   (`Vtiger_Viewer::getTemplatePath()`, стр. 153: поиск `modules/Settings/ModernUI/<tpl>`, затем
@@ -267,21 +272,24 @@ Select2 для `ru_ru`). ModernUI не опирается ни на одно и�
 
 ## 4. Состав PHP
 
-| Класс / файл (`src/…`) | Назначение |
-|---|---|
-| `modules/ModernUI/ModernUI.php` — `class ModernUI` | `vtlib_handler($moduleName, $eventType)`; вызывает `ModernUI_Lifecycle_Model` |
-| `modules/ModernUI/models/Lifecycle.php` | синхронизация ссылок и пункта настроек, вызов миграций, политика uninstall |
-| `modules/ModernUI/models/LinkHandler.php` — `ModernUI_LinkHandler` | обработчик `HEADERCSS`/`HEADERSCRIPT` (§3.2) |
-| `modules/ModernUI/models/Schema.php`, `migrations/NNNN_*.php` | версия схемы, идемпотентные миграции (`settings.md` §5) |
-| `modules/ModernUI/models/Settings.php` | чтение/запись областей, слияние, валидация, ревизии |
-| `modules/ModernUI/models/Menu.php` | итоговое меню пользователя из разрешённых модулей |
-| `modules/ModernUI/models/Assets.php` | чтение `dist/manifest.json`, теги ресурсов для своих страниц, id сборки |
-| `modules/ModernUI/models/Locale.php` | сопоставление `ru_ru/en_us/de_de` ↔ `ru-RU/en-US/de-DE`, переводы PHP с fallback |
-| `modules/ModernUI/actions/Bootstrap.php` | данные для Vue на странице (§8) |
-| `modules/ModernUI/actions/Preferences.php` | сохранение личных настроек |
-| `modules/ModernUI/views/Preferences.php` | страница личных предпочтений |
-| `modules/Settings/ModernUI/views/Index.php` | страница настроек администратора |
-| `modules/Settings/ModernUI/actions/{Save,Export,Import,Logo,Reset,Toggle,Recovery,Uninstall}.php` | действия администратора (§8) |
+| Класс / файл (`src/…`) | Назначение | Этап |
+|---|---|---|
+| `modules/ModernUI/ModernUI.php` — `class ModernUI` | `vtlib_handler($moduleName, $eventType)`; вызывает `ModernUI_Lifecycle_Model` | 02 |
+| `modules/ModernUI/models/Lifecycle.php` | синхронизация ссылок и пункта настроек, вызов миграций, политика uninstall | 02 |
+| `modules/ModernUI/models/LinkHandler.php` — `ModernUI_LinkHandler_Model` | обработчик `HEADERCSS`/`HEADERSCRIPT` (§3.2) | 02 |
+| `modules/ModernUI/models/Activation.php` | решение «тема активна для пользователя и экрана» (режим, пилот, личный выбор, безопасный режим, исключения, версия, схема, сборка) | 02 |
+| `modules/ModernUI/models/Schema.php`, `migrations/NNNN_*.php` | версия схемы, идемпотентные миграции (`settings.md` §5) | 02 |
+| `modules/ModernUI/models/Settings.php` | спецификация ключей, валидация, слияние областей, чтение/запись с ревизиями | 02 (ключи меню/брендинга — 05) |
+| `modules/ModernUI/models/Db.php` | обёртка `PearDatabase` с чтением «сырых» значений (`fetch_array` кодирует HTML) | 02 |
+| `modules/ModernUI/models/Assets.php` | чтение `dist/manifest.json`, id сборки, URL skin, теги своих страниц | 02 |
+| `modules/ModernUI/models/Locale.php` | сопоставление `ru_ru/en_us/de_de` ↔ `ru-RU/en-US/de-DE`, переводы PHP с fallback | 02 |
+| `modules/ModernUI/models/Client.php`, `actions/Bootstrap.php` | данные для Vue (§8, `settings.md` §7) | 02 |
+| `modules/ModernUI/models/Page.php` | общие части своих страниц: язык темы, плагин Smarty `{mu_t}`, сообщения форм, JSON-ответ | 02 |
+| `modules/ModernUI/actions/Preferences.php`, `views/Preferences.php` | личные настройки (`mode=save|clear`) и страница предпочтений без JS | 02 (редактор — 05) |
+| `modules/Settings/ModernUI/views/Index.php` | страница настроек администратора: состояние, включение, восстановление, проверка frontend | 02 (редактор — 05) |
+| `modules/Settings/ModernUI/actions/{Toggle,Recovery}.php` | включение для себя/выключение, повтор миграций и ссылок (HTML-формы) | 02 |
+| `modules/Settings/ModernUI/actions/{Save,Export,Import,Logo,Reset,Uninstall}.php` | редактор настроек и меню, перенос, логотип, удаление из интерфейса | 05, 10 |
+| `modules/ModernUI/models/Menu.php` | итоговое меню пользователя из разрешённых модулей | 05–06 |
 
 Совместимость PHP 8.1–8.5: без `readonly`-классов, `enum` допускаются только если используются
 одинаково в 8.1 (8.1 их поддерживает), без синтаксиса 8.2+ (`readonly class`, DNF-типы, константы в
@@ -321,9 +329,12 @@ max-age=31536000, immutable`. Решение — на этапе 04 по зам�
 ### 5.2. Сборка (этап 02)
 
 - `frontend/` — Vite 8 + Vue 3.5, TypeScript в строгом режиме (`dependencies.md` §5), `@vitejs/plugin-vue`; entries: `shell` (`src/shell/main.ts`),
-  `settings` (`src/settings/main.ts`), `preferences` (`src/preferences/main.ts`), `skin`
-  (`src/skin/skin.scss`). Общий код Vue выделяется в общий chunk; все приложения одной страницы
-  получают один экземпляр Vue (один URL модуля), `window.Vue` не создаётся.
+  `settings` (`src/settings/main.ts`), `skin` (`src/skin/skin.scss`); `preferences` — с редактором этапа 05
+  (на этапе 02 страница предпочтений — серверная форма). Код нескольких entries (Vue, vue-i18n, базовые
+  стили) — в одном chunk `common` (`codeSplitting.groups`, `minShareCount: 2`); все приложения одной
+  страницы получают один экземпляр Vue (один URL модуля), `window.Vue` не создаётся. Загрузчик и PHP
+  (`ModernUI_Assets_Model::entryTags`) подключают CSS entry **и всех импортируемых им chunk'ов**
+  (контракт backend integration Vite).
 - `base: './'`: импорты chunk'ов и предзагрузка зависимостей разрешаются относительно
   `import.meta.url` — работает в корне и подкаталоге без знания базового URL CRM (проверено, §5.3).
 - Выход — `src/layouts/v7/modules/ModernUI/resources/dist/` (в `.gitignore`), внутри подключённого
@@ -387,10 +398,13 @@ Entry `shell` ждёт `jQuery(ready)`, монтирует острова, за�
 которые не перерисовываются тем же jQuery-кодом, либо переустанавливаются адаптером после
 перерисовки (§7.3).
 
-Слои z-index (порядок как в облаке, числа — под Bootstrap 3 v7): полоса избранного 1031 (закреплена
-над шапкой v7 `.navbar-fixed-top` 1030, которая под `mu-shell-ready`/`mu-pending` сдвигается на её
-высоту), мега-меню и выпадающие элементы темы 1035 (ниже модалок 1040/1050), оверлеи темы вне модалок
-1060, внутри модалки — в её DOM. Select2 3.x (`.select2-drop` 9999) и qtip не трогаются.
+Слои z-index (исправлено на этапе 02 по CSS skin v7 тега 8.4.0): шапка v7 `.navbar-fixed-top` —
+**1095 !important** (не 1030 Bootstrap), `.module-nav` 1093, `#overlayPage` 1099, `.modal` 1100,
+qtip 1082, Select2 10000+. Оверлеи темы (выпадающие меню, мега-меню) рендерятся в `#mu-overlay-root`,
+у которого `position: relative; z-index: 1097`: обёртки popper'ов — `position: fixed`, то есть
+собственные контексты наложения, и без слоя у корня они оказываются под шапкой (проверено e2e:
+`elementFromPoint` в подписи меню). Полоса избранного (этап 04) — между шапкой и оверлеями
+(1096); внутри модалки оверлей — в её DOM. Select2 3.x и qtip не трогаются.
 
 ## 7. Сохранение элементов расширений
 
@@ -445,7 +459,7 @@ Entry `shell` ждёт `jQuery(ready)`, монтирует острова, за�
 |---|---|---|---|---|
 | `module=ModernUI&action=Bootstrap` | GET | любой вошедший | Referer, ETag | действующие настройки пользователя, меню, локаль, флаги |
 | `module=ModernUI&action=Preferences&mode=save` | POST | любой вошедший | CSRF, ревизия, разрешённые ключи | личные настройки |
-| `module=ModernUI&action=Preferences&mode=reset` | POST | любой вошедший | CSRF | сброс личных настроек |
+| `module=ModernUI&action=Preferences&mode=clear` | POST | любой вошедший | CSRF | сброс личных настроек (не `mode=reset`: `WebUI.php` для `mode=reset`, `mode=fromMig` и `action=Login` не подключает csrf-magic — запрос падает на проверке CSRF; найдено на этапе 02, проверяется `tests/php/RoutesTest.php`) |
 | `module=ModernUI&view=Preferences` | GET | любой вошедший | — | страница личных предпочтений |
 | `module=ModernUI&parent=Settings&view=Index` | GET | админ | `Settings_Vtiger_Index_View` | страница настроек (+ HTML-форма без JS: вкл/выкл темы, безопасный режим) |
 | `module=ModernUI&parent=Settings&action=Save` | POST | админ | CSRF, ревизия, валидация | общие и ролевые настройки, меню |
@@ -526,18 +540,24 @@ Entry `shell` ждёт `jQuery(ready)`, монтирует острова, за�
 ```
 src/                                   раскладка путей CRM (dev/crm-mounts.txt, без изменений)
   modules/ModernUI/                    ModernUI.php, actions/, views/, models/, migrations/
-  modules/Settings/ModernUI/           actions/, views/, models/            → ZIP settings/{actions,views,models}/
+  modules/Settings/ModernUI/           actions/, views/ (models/ — по мере надобности) → ZIP settings/{actions,views,models}/
   layouts/v7/modules/ModernUI/         *.tpl, resources/loader.js, resources/dist/ (сборка, .gitignore)
   layouts/v7/modules/Settings/ModernUI/ *.tpl
   languages/{en_us,ru_ru,de_de}/ModernUI.php, Settings/ModernUI.php
-frontend/                              package.json, package-lock.json, vite.config.ts, src/{shell,settings,preferences,skin,i18n,adapters,components,api}
-packaging/                             manifest.xml.tpl, build-zip.sh, allowlist путей пакета
-dev/                                   crm-link.sh, crm-mounts.txt, crm-info.php, crm-vtlib.php (этап 02), check-private.sh
-tests/                                 php/ (модели, миграции, валидация), package/ (состав ZIP), i18n/, e2e/ (Playwright)
-dist/                                  ModernUI-X.Y.Z.zip, .sha256 (не в git)
+frontend/                              package.json, package-lock.json, vite.config.ts, build/ (плагины сборки),
+                                       src/{shell,settings,skin,styles,i18n,api,adapters,boot}, tests/ (vitest), e2e/ (Playwright)
+packaging/                             manifest.xml.tpl, build-zip.py, allowlist.txt
+dev/                                   crm-link.sh, crm-mounts.txt, crm-info.php, crm-vtlib.php, crm-links-for.php, check-private.sh
+tests/                                 php/ (модели, i18n, маршруты; db/ — миграции на временной MySQL), package/ (состав ZIP,
+                                       распаковка импортёром 8.4.0), fixtures/ (общие для PHP и TypeScript)
+dist/                                  ModernUI-X.Y.Z.zip, .zip.sha256, .files.txt (не в git)
+VERSION                                версия модуля для manifest.xml (или MU_VERSION при сборке)
 ```
 
-Отображение `src/` → ZIP (`packaging/build-zip.sh`), сверено с `initImport()`/`initUpdate()` 8.4.0:
+Unit-тесты TypeScript и e2e лежат в `frontend/`, потому что им нужны `node_modules` и конфигурация TypeScript
+этого пакета; общие ожидания (карта локалей, общие тексты PHP/Vue) — в `tests/fixtures/`.
+
+Отображение `src/` → ZIP (`packaging/build-zip.py`), сверено с `initImport()`/`initUpdate()` 8.4.0:
 
 | `src/` | ZIP |
 |---|---|
@@ -548,10 +568,13 @@ dist/                                  ModernUI-X.Y.Z.zip, .sha256 (не в git)
 | `languages/<lang>/ModernUI.php`, `languages/<lang>/Settings/ModernUI.php` | то же |
 | `packaging/manifest.xml.tpl` | `manifest.xml` |
 
-Сборка ZIP проверяет: только пути из allowlist, нет `.map`, `node_modules`, dev-URL (`localhost`,
-`:5173`), абсолютных путей, `*.php` вне `modules/` и `languages/`, других `manifest?xml`; `php -l`
-под 8.1/8.4/8.5; размер; SHA-256 рядом. Повторная сборка из того же коммита даёт тот же набор
-файлов (время в ZIP фиксируется).
+Сборка ZIP проверяет: только пути из allowlist, из `dist/assets` — только файлы текущего manifest, нет
+`.map`, `node_modules`, dev-URL (`localhost`, `:5173`), абсолютных путей, `*.php` вне `modules/` и
+`languages/`, других `manifest?xml`; путь каждого файла после `initImport()`/`initUpdate()` (те же
+префиксы и порядок переименования, что в 8.4.0) равен его пути в `src/`; `php -l` под 8.1/8.4/8.5
+(`task lint` перед сборкой); SHA-256 и список файлов рядом. Время в ZIP — `SOURCE_DATE_EPOCH` или время
+последнего коммита: повторная сборка того же дерева даёт байт-в-байт тот же архив (`task test:package`,
+там же распаковка настоящим кодом `PackageImport`/`PackageUpdate`/`Unzip` тега 8.4.0).
 
 `dev/crm-mounts.txt` совпадает со структурой — изменений карты не требуется (проверено
 `task crm:status` 2026-11-01).
@@ -560,28 +583,32 @@ dist/                                  ModernUI-X.Y.Z.zip, .sha256 (не в git)
 
 | Команда | Что делает |
 |---|---|
-| `task fe:install` | `npm ci` в `frontend/` |
+| `task fe:install` | `npm ci --ignore-scripts` в `frontend/` |
 | `task build` | production-сборка frontend в `src/layouts/v7/modules/ModernUI/resources/dist/` |
 | `task dev` | `vite build --watch` (тот же выход, атомарная смена manifest) |
-| `task package` | `lint` (включая типы) → `build` → ZIP в `dist/` + SHA-256 + проверки состава |
-| `task crm:install` | `package` → `crm:unlink` → `dev/crm-vtlib.php import dist/…zip` (тот же `Vtiger_Package::import()`, что менеджер модулей) → распакованные файлы ModernUI в `.local/crm-replaced/` → `crm:link` |
+| `task package` | `lint` → `build` → `packaging/build-zip.py`: ZIP в `dist/` + SHA-256 + список файлов (версия — `VERSION` или `MU_VERSION`) |
+| `task crm:install` | `package` → `crm:unlink` → `dev/crm-vtlib.php import` (тот же `Vtiger_Package::import()`, что менеджер модулей) → `crm:link --force` (распакованные файлы — в `.local/crm-replaced/`) |
 | `task crm:update` | то же через `Vtiger_Package::update()` |
-| `task crm:uninstall` | `Vtiger_Module::delete()` по политике модуля; файлы не трогает |
-| `task lint` | `php -l` под 8.5, 8.4 и 8.1 (Docker-образ `php:8.1-cli` с закреплённым digest); `vue-tsc --noEmit` и `eslint --max-warnings 0` (strict TypeScript) |
-| `task test` | PHP-тесты моделей/миграций, `vitest`, i18n-паритет, состав пакета |
-| `task test:e2e` | Playwright на dev-стенде (`CRM_URL`) или чистом стенде |
+| `task crm:uninstall` | `Vtiger_Module::delete()`; таблицы остаются, `-- --purge` — удалить и их; файлы не трогает |
+| `task crm:enable` / `task crm:disable` | `vtlib_toggleModuleAccess()` — как переключатель менеджера модулей |
+| `task lint` | `php -l` под 8.5, 8.4 и 8.1 (Docker `php:8.1-cli` с закреплённым digest); `vue-tsc`, `eslint --max-warnings 0`, ES5-синтаксис `loader.js` (acorn) |
+| `task test` | сборка, PHP-тесты под 8.5/8.4/8.1, миграции на временной MySQL 8.4 (utf8mb4 и utf8), `vitest`, тесты пакета |
+| `task test:e2e` | Playwright на dev-стенде (`CRM_URL`, вход из `.env`) |
+
+`dev/crm-links-for.php <CRM root> <user id>` — только чтение: какие ссылки ModernUI ядро выведет данному
+пользователю (проверка «другой пользователь не затронут» без входа под ним).
 
 ## 14. Неопределённости → проверки этапов 02–03
 
 | № | Проверка | Этап |
 |---|---|---|
-| Q1 | изменение `linkurl` в обработчике действует в `Header.php` чистой 8.4.0 и dev-стенда; при отказе — тема не подключается | 02 (dev), 03 (чистый) |
+| Q1 | изменение `linkurl` в обработчике действует в `Header.php` чистой 8.4.0 и dev-стенда; при отказе — тема не подключается | 02: dev-стенд — да (e2e, CLI); 03 (чистый) |
 | Q2 | не-админ с ограниченным профилем получает ссылки `tabid=0` сразу после импорта, без пересоздания привилегий | 03 |
-| Q3 | `module.disabled`/`enabled` из менеджера модулей удаляет/восстанавливает ссылки; у админа на чистой 8.4.0 тема пропадает сразу после disable | 02, 03 |
-| Q4 | `Vtiger_Package::update()` с ZIP новой версии: миграции в `postupdate`, настройки сохранены, окно «новый код/старая схема» не ломает страницы | 02 (dev), 03 |
+| Q3 | `module.disabled`/`enabled` из менеджера модулей удаляет/восстанавливает ссылки; у админа на чистой 8.4.0 тема пропадает сразу после disable | 02: dev-стенд — да (`vtlib_toggleModuleAccess`, CLI); 03 |
+| Q4 | `Vtiger_Package::update()` с ZIP новой версии: миграции в `postupdate`, настройки сохранены, окно «новый код/старая схема» не ломает страницы | 02: dev-стенд 0.1.0 → 0.1.1 — версия и настройки сохранены, дубликатов нет; новой миграции ещё нет (раннер проверен на временной MySQL); 03 |
 | Q5 | `vtlib_addSettingsLink` на чистой 8.4.0: блок `LBL_OTHER_SETTINGS` существует, пункт виден и подсвечивается | 03 |
-| Q6 | кодировка/collation собственных таблиц совпадает с базой чистого стенда (установщик 8.4.0) и dev-стенда | 03 |
-| Q7 | загрузчик на реальной странице 8.4.0: `?b=…&z=?v=8.4.0`, подкаталог `/vtigercrm/`, порядок относительно `app.controller()` | 02, 03 |
+| Q6 | кодировка/collation собственных таблиц совпадает с базой чистого стенда (установщик 8.4.0) и dev-стенда | 02: dev-стенд `utf8mb4_general_ci`; временная MySQL — utf8mb4 и utf8 (utf8mb3) — да; 03 (чистый) |
+| Q7 | загрузчик на реальной странице 8.4.0: `?b=…&z=?v=8.4.0`, подкаталог `/vtigercrm/`, порядок относительно `app.controller()` | 02: dev-стенд в корне — да (e2e: URL, монтирование после `jQuery(ready)`); подкаталог — 03 |
 | Q8 | skin в `<head>` не даёт мигания v7 при переходах; CLS полосы избранного при `mu-pending` ≤ 0.1 | 04 |
 | Q9 | `Bootstrap` < 50 мс на сервере dev-стенда, ETag/304 | 04 |
 | Q10 | Vue-оверлей внутри модалки Bootstrap 3 не конфликтует с `enforceFocus` | 07 |

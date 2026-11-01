@@ -41,10 +41,10 @@
 
 | | Путь | Запись |
 |---|---|---|
-| Исходники модуля (раскладка как в CRM после импорта ZIP) | `src/` (появится на этапе 02) | да |
-| Vue/Vite, словари frontend | `frontend/` | да |
+| Исходники модуля (раскладка как в CRM после импорта ZIP) | `src/` (сборка — `src/…/resources/dist/`, не в git) | да |
+| Vue/Vite, словари, unit- и e2e-тесты frontend | `frontend/` (`tests/`, `e2e/`) | да |
 | Сборка ZIP | `packaging/`, результат — `dist/` (не в git) | да |
-| Окружение | `dev/` (`crm-link.sh`, `crm-mounts.txt`, `crm-info.php`, `check-private.sh`) | да |
+| Окружение | `dev/` (`crm-link.sh`, `crm-mounts.txt`, `crm-info.php`, `crm-vtlib.php`, `crm-links-for.php`, `check-private.sh`) | да |
 | Тесты | `tests/` | да |
 | Документы | `docs/` | да, обезличенно |
 | Локальные настройки и состояние | `.env` (`.env.example`), `.local/` — не в git | да |
@@ -58,7 +58,14 @@ task crm:link      # src/ → dev-стенд: каталоги bind mount read-o
 task crm:status    # стенд, версия, git HEAD CRM, состояние путей (ro в namespace PHP-FPM), регистрация в БД
 task crm:unlink    # отключить; база стенда и регистрация модуля остаются
 task crm:smoke     # smoke-тест стенда, если у CRM есть `task smoke`
-task lint          # php -l под 8.5 и 8.4
+task build         # production-сборка Vue/CSS в src/…/resources/dist (не в git); task dev — watch
+task package       # lint → build → dist/ModernUI-<VERSION>.zip + .sha256 + .files.txt
+task crm:install   # регистрация в базе стенда: Vtiger_Package::import() того же ZIP, затем снова link
+task crm:update    # то же через Vtiger_Package::update() (миграции); MU_VERSION=X.Y.Z — другая версия
+task crm:uninstall # Vtiger_Module::delete(); таблицы остаются, -- --purge удаляет; crm:enable/crm:disable
+task lint          # php -l под 8.5, 8.4, 8.1 (Docker); vue-tsc, ESLint 0 предупреждений, ES5 loader.js
+task test          # PHP 8.5/8.4/8.1, миграции на временной MySQL, vitest, пакет (VTIGER_SRC_REPO в .env)
+task test:e2e      # Playwright на dev-стенде (вход из .env); оставляет тему включённой у администратора
 task privacy       # нет ли частной информации в публикуемых файлах
 ```
 
@@ -108,6 +115,8 @@ task privacy       # нет ли частной информации в публ
 - Не коммитить, не переключать ветки, не делать reset/stash/merge в репозитории CRM dev-стенда;
   не править его отслеживаемые файлы и не создавать там миграций для темы.
 - Не подключать модуль к установке, где Vtiger не 8.4.
+- Не использовать в своих запросах `mode=reset`, `mode=fromMig`, `action=Login`: для них `WebUI.php`
+  не подключает csrf-magic, и POST падает (`tests/php/RoutesTest.php`).
 - Не включать коммерческий `app.css` облака и другие чужие коммерческие исходники.
 - Не объявлять этап завершённым без реальных проверок.
 - Не писать в общую память агента — решения и журнал ведутся в `docs/PLAN.md` и `PRIVATE.md`.

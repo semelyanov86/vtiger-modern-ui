@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.strict.json",
+  "compilerOptions": {
+    "composite": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.loader.tsbuildinfo",
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "target": "ES2015",
+    "lib": ["ES5", "DOM"],
+    "types": [],
+    "verbatimModuleSyntax": false,
+    "isolatedModules": false,
+    "moduleDetection": "legacy"
+  },
+  "include": ["../src/layouts/v7/modules/ModernUI/resources/loader.js"]
+}

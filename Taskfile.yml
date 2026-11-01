@@ -2,10 +2,111 @@ version: '3'
 
 # ModernUI: installable extension module with a new interface for Vtiger 8.4 (Vue 3 + Vite).
 # DEV: the sources of src/ are bind-mounted read-only into a local Vtiger 8.4 instance chosen in .env
-# (.env.example, docs/DEVELOPMENT.md).
-# Stage 02 adds build, watch, package and tests here.
+# (.env.example, docs/DEVELOPMENT.md). PACKAGE: the ZIP of `task package`, imported by the Module Manager.
+
+dotenv: ['.env']
+
+vars:
+  VERSION:
+    sh: cat VERSION
+  ZIP: 'dist/ModernUI-{{if .MU_VERSION}}{{.MU_VERSION}}{{else}}{{.VERSION}}{{end}}.zip'
+  # Lower bound of PHP for the module (composer.json of Vtiger 8.4.0), pinned by digest.
+  PHP81_IMAGE: php:8.1-cli@sha256:76e563191d1ade120313a8736df24154d21da5155c0756f147c0b01bd19d9087
+  ESLINT: npx eslint --flag unstable_native_nodejs_ts_config
 
 tasks:
+  fe:install:
+    desc: Install the frontend dependencies exactly as locked (npm ci, no install scripts)
+    dir: frontend
+    sources: [package.json, package-lock.json]
+    generates: [node_modules/.package-lock.json]
+    cmd: npm ci --ignore-scripts
+
+  build:
+    desc: Production build of the frontend into src/layouts/v7/modules/ModernUI/resources/dist (atomic manifest switch)
+    deps: [fe:install]
+    dir: frontend
+    cmd: npx vite build
+
+  dev:
+    desc: Watch mode for the dev instance - rebuilds on every change, the manifest is switched last; reload the page
+    deps: [fe:install]
+    dir: frontend
+    cmd: npx vite build --watch
+
+  package:
+    desc: lint, build, then the installable ZIP in dist/ with its SHA-256 and file list (version from VERSION or MU_VERSION)
+    cmds:
+      - task: lint
+      - task: build
+      - python3 packaging/build-zip.py {{if .MU_VERSION}}--version {{.MU_VERSION}}{{end}}
+
+  lint:
+    desc: php -l under PHP 8.5, 8.4 and 8.1 (Docker); vue-tsc, ESLint with zero warnings, ES5 syntax of loader.js
+    cmds:
+      - task: lint:php
+      - task: lint:frontend
+
+  lint:php:
+    silent: true
+    cmds:
+      - for: [php8.5, php8.4]
+        cmd: |
+          files=$(git ls-files --cached --others --exclude-standard '*.php')
+          [ -n "$files" ] || { echo "no PHP files"; exit 0; }
+          errors=$(echo "$files" | xargs -n1 -P4 {{.ITEM}} -l 2>&1 | grep -v '^No syntax errors' || true)
+          [ -z "$errors" ] || { echo "$errors"; exit 1; }
+          echo "{{.ITEM}}: $(echo "$files" | wc -l) file(s) ok"
+      - |
+        files=$(git ls-files --cached --others --exclude-standard '*.php')
+        errors=$(echo "$files" | docker run --rm -i -v "$PWD":/app:ro -w /app {{.PHP81_IMAGE}} xargs -n1 php -l 2>&1 | grep -v '^No syntax errors' || true)
+        [ -z "$errors" ] || { echo "$errors"; exit 1; }
+        echo "php 8.1 (Docker): $(echo "$files" | wc -l) file(s) ok"
+
+  lint:frontend:
+    deps: [fe:install]
+    dir: frontend
+    cmds:
+      - npx vue-tsc --build --force
+      - '{{.ESLINT}} --max-warnings 0 .'
+      - npx acorn --ecma5 --silent ../src/layouts/v7/modules/ModernUI/resources/loader.js
+      - echo "frontend - types, ESLint, ES5 loader ok"
+
+  test:
+    desc: All automated checks without a browser - PHP models, migrations on a throwaway MySQL, i18n, frontend unit tests, package
+    cmds:
+      - task: build
+      - task: test:php
+      - task: test:db
+      - task: test:frontend
+      - task: test:package
+
+  test:php:
+    desc: PHP unit tests (settings, locales, activation, assets, i18n parity) under PHP 8.5, 8.4 and 8.1
+    cmds:
+      - php8.5 tests/php/run.php
+      - php8.4 tests/php/run.php
+      - docker run --rm -v "$PWD":/app:ro -w /app {{.PHP81_IMAGE}} php tests/php/run.php
+
+  test:db:
+    desc: Migrations and settings storage against a throwaway MySQL 8.4 container (not the dev instance DB)
+    cmd: tests/php/db/run.sh
+
+  test:frontend:
+    deps: [fe:install]
+    dir: frontend
+    cmd: npx vitest run
+
+  test:package:
+    desc: Builds the package twice in a temporary directory - reproducibility, content, unpacking by the vtlib importer of Vtiger 8.4.0 (VTIGER_SRC_REPO)
+    cmd: python3 tests/package/test_package.py
+
+  test:e2e:
+    desc: Browser checks on the dev instance (CRM_URL) - loader, settings, switching on and off; run task crm:install first
+    deps: [fe:install]
+    dir: frontend
+    cmd: npx playwright test --config e2e/playwright.config.ts {{.CLI_ARGS}}
+
   crm:link:
     desc: 'Connect src/ to the CRM stand (read-only bind mounts, language stubs, git excludes); task crm:link -- --force moves a ZIP-installed copy aside'
     cmd: dev/crm-link.sh link {{.CLI_ARGS}}
@@ -22,17 +123,38 @@ tasks:
     desc: Smoke test of the CRM stand itself (its own task smoke - admin login, a few pages, PHP-FPM log)
     cmd: dev/crm-link.sh smoke
 
-  lint:
-    silent: true
-    desc: php -l of every PHP file of the repository under PHP 8.5 and 8.4 (the lower bound 8.1 is added at stage 02)
+  crm:install:
+    desc: First registration in the stand DB through the Module Manager code (Vtiger_Package::import of the ZIP), then link src/ again
     cmds:
-      - for: [php8.5, php8.4]
-        cmd: |
-          files=$(git ls-files --cached --others --exclude-standard '*.php')
-          [ -n "$files" ] || { echo "no PHP files"; exit 0; }
-          errors=$(echo "$files" | xargs -n1 -P4 {{.ITEM}} -l 2>&1 | grep -v '^No syntax errors' || true)
-          [ -z "$errors" ] || { echo "$errors"; exit 1; }
-          echo "{{.ITEM}}: $(echo "$files" | wc -l) file(s) ok"
+      - task: package
+      - task: crm:vtlib
+        vars: { ACTION: 'import {{.ZIP}}' }
+
+  crm:update:
+    desc: Update of the registration through Vtiger_Package::update of a fresh ZIP (runs the settings migrations), then link src/ again
+    cmds:
+      - task: package
+      - task: crm:vtlib
+        vars: { ACTION: 'update {{.ZIP}}' }
+
+  crm:vtlib:
+    internal: true
+    cmds:
+      - dev/crm-link.sh unlink
+      - defer: dev/crm-link.sh link --force
+      - '{{.CRM_PHP}} dev/crm-vtlib.php "{{.CRM_ROOT}}" {{.ACTION}}'
+
+  crm:uninstall:
+    desc: Vtiger_Module::delete() of ModernUI - links and the settings item go, settings tables stay; task crm:uninstall -- --purge drops them
+    cmd: '{{.CRM_PHP}} dev/crm-vtlib.php "{{.CRM_ROOT}}" remove {{.CLI_ARGS}}'
+
+  crm:enable:
+    desc: Enable ModernUI as the Module Manager does (module.enabled event)
+    cmd: '{{.CRM_PHP}} dev/crm-vtlib.php "{{.CRM_ROOT}}" toggle on'
+
+  crm:disable:
+    desc: Disable ModernUI as the Module Manager does (module.disabled event)
+    cmd: '{{.CRM_PHP}} dev/crm-vtlib.php "{{.CRM_ROOT}}" toggle off'
 
   privacy:
     desc: Check that files to be published contain no installation-specific information (patterns in the untracked PRIVATE.md)

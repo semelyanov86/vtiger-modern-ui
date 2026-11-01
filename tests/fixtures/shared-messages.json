@@ -1,0 +1,22 @@
+{
+  "comment": "Texts that exist both in the Vue dictionaries and in the PHP dictionaries must stay identical per language. vue: dotted key in frontend/src/i18n/locales/<locale>.json; php: [module, key] in src/languages/<lang>/.",
+  "pairs": [
+    { "vue": "errors.MU_FORBIDDEN_KEY", "php": ["ModernUI", "LBL_RESULT_ERROR_FORBIDDEN_KEY"] },
+    { "vue": "errors.MU_INVALID_VALUE", "php": ["ModernUI", "LBL_RESULT_ERROR_INVALID_VALUE"] },
+    { "vue": "errors.MU_BAD_REQUEST", "php": ["ModernUI", "LBL_RESULT_ERROR_BAD_REQUEST"] },
+    { "vue": "errors.MU_MODULE_INACTIVE", "php": ["ModernUI", "LBL_RESULT_ERROR_MODULE_INACTIVE"] },
+    { "vue": "errors.MU_SCHEMA_OUTDATED", "php": ["ModernUI", "LBL_RESULT_ERROR_SCHEMA_OUTDATED"] },
+    { "vue": "errors.MU_SCHEMA_NEWER", "php": ["ModernUI", "LBL_RESULT_ERROR_SCHEMA_NEWER"] },
+    { "vue": "languages.ru-RU", "php": ["ModernUI", "LBL_LOCALE_ru-RU"] },
+    { "vue": "languages.en-US", "php": ["ModernUI", "LBL_LOCALE_en-US"] },
+    { "vue": "languages.de-DE", "php": ["ModernUI", "LBL_LOCALE_de-DE"] }
+  ],
+  "sameInAllLanguages": {
+    "comment": "Keys whose text is legitimately identical in English and German (names, codes). Everything else must differ.",
+    "vue": ["languages.ru-RU", "languages.en-US", "languages.de-DE", "diagnostics.build"],
+    "php": [
+      "ModernUI.ModernUI", "ModernUI.LBL_LOCALE_ru-RU", "ModernUI.LBL_LOCALE_en-US", "ModernUI.LBL_LOCALE_de-DE",
+      "Settings/ModernUI.ModernUI", "Settings/ModernUI.LBL_SECTION_STATUS"
+    ]
+  }
+}

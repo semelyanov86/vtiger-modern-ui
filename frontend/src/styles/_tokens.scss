@@ -1,0 +1,42 @@
+// Design tokens of ModernUI (docs/design.md §3). Components read them as var(--mu-*, default): the defaults
+// apply on the module's own pages where the skin is not loaded, the user's values come from <html>.
+@use 'sass:map';
+
+$defaults: (
+  primary: #3978fe,
+  primary-strong: #315dff,
+  primary-hover: #2a50db,
+  primary-soft: #e7f1ff,
+  link: #0065ff,
+  bg: #eff0f2,
+  surface: #ffffff,
+  surface-subtle: #f9f9fa,
+  text: #1c2121,
+  text-body: #212529,
+  text-heading: #2c3e50,
+  text-2: #595d5d,
+  text-label: #6b6f75,
+  divider: #f0f1f3,
+  border-input: #8c95a5,
+  focus-ring: rgba(0, 123, 255, 0.8),
+  danger: #d70a2a,
+  success: #1d7a43,
+  font-scale: 1,
+  row-height: 40px,
+  input-height: 36px,
+  button-height: 34px,
+  cell-padding: 12px,
+  menu-item-height: 36px,
+  icon-button: 36px,
+  font-family: var(--mu-font-inter),
+);
+
+@function tok($name) {
+  @if not map.has-key($defaults, $name) {
+    @error 'Unknown ModernUI token: #{$name}';
+  }
+  @return var(--mu-#{$name}, #{map.get($defaults, $name)});
+}
+
+$font-inter: "'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif";
+$font-system: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif";

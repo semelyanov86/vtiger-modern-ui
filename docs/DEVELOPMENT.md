@@ -69,12 +69,24 @@ PACKAGE): на **чистом стенде** (свежая официальна�
 | `task crm:unlink` | отключить (размонтировать, удалить заглушки); база стенда и регистрация модуля остаются |
 | `task crm:status` | версия и git HEAD стенда, состояние каждого пути (ro в каждом namespace PHP-FPM), регистрация модуля в БД |
 | `task crm:smoke` | smoke-тест самого стенда, если у CRM есть `task smoke` |
-| `task lint` | `php -l` под PHP 8.5 и 8.4 |
+| `task fe:install` | `npm ci --ignore-scripts` в `frontend/` (по lockfile) |
+| `task build` | production-сборка Vue/CSS в `src/layouts/v7/modules/ModernUI/resources/dist/` (не в git) |
+| `task dev` | то же в режиме watch: пересборка при каждой правке `frontend/`, manifest меняется последним |
+| `task package` | `lint` → `build` → ZIP `dist/ModernUI-<VERSION>.zip` + `.zip.sha256` + `.files.txt`; версия — файл `VERSION` или `MU_VERSION=X.Y.Z` |
+| `task crm:install` | первая регистрация модуля в базе стенда штатным импортом (ниже) |
+| `task crm:update` | обновление регистрации штатным `Vtiger_Package::update()` (миграции схемы настроек) |
+| `task crm:uninstall` | `Vtiger_Module::delete()`: ссылки и пункт настроек удаляются, таблицы настроек остаются; `-- --purge` удаляет и их |
+| `task crm:enable` / `task crm:disable` | включить/выключить модуль, как менеджер модулей (`vtlib_toggleModuleAccess`) |
+| `task lint` | `php -l` под PHP 8.5, 8.4 и 8.1 (Docker-образ с закреплённым digest); `vue-tsc`, ESLint без предупреждений, ES5-синтаксис `loader.js` |
+| `task test` | сборка; PHP-тесты под 8.5/8.4/8.1; миграции на временной MySQL 8.4 в Docker (не база стенда); vitest; тесты пакета |
+| `task test:e2e` | Playwright на dev-стенде: настройки, включение для себя, загрузчик, меню, языки, безопасный режим, сбои, стандартный вид |
 | `task privacy` | частная информация (шаблоны из `PRIVATE.md`) в публикуемых файлах |
 
-Этап 02 добавляет: сборку frontend, watch, сборку ZIP, `task crm:install`, `task crm:update`,
-`task crm:uninstall`, нижнюю границу PHP 8.1 в `lint`, тесты (спроектировано в `architecture.md` §13).
-Этап 03 — команды чистого стенда 8.4 (`environments.md` §2).
+`task test:package` распаковывает ZIP кодом импортёра официального тега `8.4.0` — укажите в `.env`
+`VTIGER_SRC_REPO` (git-клон официального репозитория Vtiger); без него проверка считается пропущенной
+и тест падает. `dev/crm-links-for.php <CRM_ROOT> <id пользователя>` (только чтение) показывает, какие
+ссылки ModernUI ядро выведет этому пользователю — так проверяется «другой пользователь не затронут» без
+входа под ним. Этап 03 — команды чистого стенда 8.4 (`environments.md` §2).
 Новые команды описываются здесь, в `README.md` и `AGENTS.md`.
 
 Стенд выбирается в `.env` (`.env.example`): `CRM_ROOT`, `CRM_URL`, `CRM_PHP`, `CRM_FPM_LOG`,
@@ -93,25 +105,33 @@ PACKAGE): на **чистом стенде** (свежая официальна�
 | `manifest.xml`, ссылки, таблицы, версия схемы настроек | не через подключение: `task crm:update` (штатный lifecycle) |
 | Новый путь карты (например, новый язык) | повторный `task crm:link` |
 
-Требования к сборке frontend (этап 02): результат пишется внутрь подключённого каталога
-(`src/layouts/v7/modules/ModernUI/resources/dist/`, исключён из git; устройство — `architecture.md` §5), без ссылок на dev server в
-production-сборке. Пересборка атомарна: сначала новые chunks, последним — manifest; смесь старого
-manifest и удалённых chunks недопустима. Ошибка компиляции не оставляет пустой или битый результат.
-HMR — только как улучшение, только на localhost, с проверенной совместимостью с legacy-загрузчиком;
-без него достаточно `vite build --watch`. Режим разработки определяется окружением сборки, а не
-URL-параметром обычного пользователя.
+Сборка frontend (реализовано на этапе 02): результат пишется внутрь подключённого каталога
+(`src/layouts/v7/modules/ModernUI/resources/dist/`, исключён из git; устройство — `architecture.md` §5), без
+ссылок на dev server. Пересборка атомарна: Vite пишет manifest под временным именем, плагин
+`frontend/build/atomic-manifest.ts` после записи всех файлов переименовывает его в `manifest.json`;
+файлы, на которые не ссылаются два последних manifest и которые старше 10 минут, удаляются — открытые
+страницы не теряют chunks. Ошибка компиляции ничего не пишет, прежний manifest остаётся. HMR не
+используется: `task dev` — это `vite build --watch`; проверено, что правка словаря даёт новый manifest
+с новым id сборки, а откат — прежний id (сборка детерминирована). Режим разработки определяется
+командой сборки, а не URL-параметром пользователя.
 
 ## Регистрация модуля в базе стенда
 
 Подключение даёт только файлы. Чтобы Vtiger знал модуль (`vtiger_tab`, ссылки HEADERSCRIPT/HEADERCSS,
-пункт настроек, собственные таблицы), нужен штатный lifecycle. Этап 02 реализует:
+пункт настроек, собственные таблицы), нужен штатный lifecycle (реализовано на этапе 02):
 
-- `task crm:install`: собрать ZIP → `crm:unlink` → импорт тем же кодом, что и менеджер модулей
-  (`Vtiger_Package::import`, CLI-обвязка в `dev/`) → перенести распакованные файлы ModernUI
-  в `.local/crm-replaced/` → `crm:link`.
-- `task crm:update`: то же через штатное обновление пакета; миграции собственных настроек выполняет
-  lifecycle-обработчик модуля.
-- Удаление — штатно (менеджер модулей или vtlib), по политике модуля из `settings.md`.
+- `task crm:install`: `task package` → `crm:unlink` → `dev/crm-vtlib.php import` (тот же
+  `Vtiger_Package::import()`, что вызывает менеджер модулей; CLI работает от имени активного
+  администратора) → `crm:link --force`: распакованные импортом файлы ModernUI уходят в
+  `.local/crm-replaced/<время>/`, на их место снова подключается `src/`. Если модуль уже
+  зарегистрирован — отказ с подсказкой `task crm:update`.
+- `task crm:update`: то же через `Vtiger_Package::update()`; миграции собственных настроек выполняет
+  lifecycle-обработчик модуля в `module.postupdate`. `MU_VERSION=X.Y.Z task crm:update` — обновление
+  на другую версию пакета.
+- `task crm:uninstall` (`Vtiger_Module::delete()`, политика `settings.md` §10: таблицы остаются;
+  `task crm:uninstall -- --purge` — удалить и их), `task crm:enable` / `task crm:disable`.
+  Файлы подключения эти команды не трогают.
+- Если импорт или обновление упали, `crm:link --force` всё равно выполняется (Taskfile `defer`).
 
 Ручной SQL вместо lifecycle запрещён. `task crm:status` показывает регистрацию: tabid, включён ли
 модуль, версию, ссылки, пункты настроек, собственные таблицы. Перед первой регистрацией зафиксируй

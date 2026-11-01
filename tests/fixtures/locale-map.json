@@ -1,0 +1,29 @@
+{
+  "comment": "Shared expectations for ModernUI_Locale_Model::normalize() (PHP) and normalizeLocale() (TypeScript).",
+  "map": {
+    "ru_ru": "ru-RU",
+    "ru": "ru-RU",
+    "ru_RU": "ru-RU",
+    "ru-RU": "ru-RU",
+    "RU": "ru-RU",
+    "en_us": "en-US",
+    "en_gb": "en-US",
+    "en": "en-US",
+    "en-US": "en-US",
+    "de_de": "de-DE",
+    "de": "de-DE",
+    "de_DE": "de-DE",
+    "de-DE": "de-DE",
+    "fr_fr": null,
+    "pt_br": null,
+    "": null,
+    "ru-UA": null
+  },
+  "effective": [
+    { "personal": "de-DE", "crm": "ru_ru", "default": "auto", "expect": ["de-DE", "personal"] },
+    { "personal": "auto", "crm": "ru_ru", "default": "de-DE", "expect": ["ru-RU", "crm"] },
+    { "personal": null, "crm": "fr_fr", "default": "de-DE", "expect": ["de-DE", "global"] },
+    { "personal": null, "crm": "fr_fr", "default": "auto", "expect": ["en-US", "fallback"] },
+    { "personal": "xx", "crm": "en_gb", "default": "auto", "expect": ["en-US", "crm"] }
+  ]
+}

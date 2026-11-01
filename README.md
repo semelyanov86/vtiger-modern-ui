@@ -9,9 +9,11 @@ The module installs as a regular Vtiger extension ZIP through *Settings → Modu
 Import*. It does not patch the Vtiger core, does not replace global libraries (jQuery, Bootstrap,
 Select2) and keeps the standard v7 interface available as a fallback.
 
-> **Status:** early development. The repository currently contains the design documents (architecture
-> and specifications) and the development environment; the module itself is not implemented yet and
-> there is no release.
+> **Status:** early development, no release yet. The installable foundation is in place: the extension
+> module with its lifecycle, versioned settings storage and migrations, the classic loader and the Vue 3
+> shell, the settings page (*Settings → Other settings → ModernUI*: switch the new interface on for
+> yourself, standard view, safe mode, repair), personal preferences and the RU/EN/DE dictionaries. The
+> redesign of the CRM screens comes with the next stages (see `docs/PLAN.md`).
 
 ## Goals
 
@@ -39,24 +41,27 @@ For development additionally:
 
 - Linux with `sudo` (the development link uses bind mounts and `nsenter`);
 - a local Vtiger 8.4 instance served by Apache + PHP-FPM;
-- [go-task](https://taskfile.dev/) 3.x, Node.js 24 with npm, Docker (for the clean test instance);
-- PHP CLI 8.5 (and 8.4 / 8.1 for compatibility checks).
+- [go-task](https://taskfile.dev/) 3.x, Node.js 24 with npm, Python 3.10+, Docker (PHP 8.1 lint, the
+  throwaway MySQL of the tests, later the clean test instance);
+- PHP CLI 8.5 and 8.4 with mysqli (PHP 8.1 runs in Docker);
+- Chromium for Playwright 1.63 (`npx playwright install chromium` in `frontend/`) for `task test:e2e`.
 
 ## Repository layout
 
 ```
 src/            module files laid out exactly as they end up in a Vtiger installation:
                 modules/ModernUI, modules/Settings/ModernUI, layouts/v7/modules/{,Settings/}ModernUI,
-                languages/<lang>/ModernUI.php, languages/<lang>/Settings/ModernUI.php
-frontend/       Vue 3 + Vite sources and frontend dictionaries
-packaging/      builds the installable ZIP from src/ and the frontend build
-tests/          automated checks (package, migrations, browser scenarios)
-dev/            development environment (link to a local CRM, helper scripts)
+                languages/<lang>/ModernUI.php, languages/<lang>/Settings/ModernUI.php;
+                layouts/v7/modules/ModernUI/resources/dist/ is the frontend build (not committed)
+frontend/       Vue 3 + Vite + TypeScript sources, dictionaries, build plugins (build/),
+                unit tests (tests/, Vitest) and browser tests (e2e/, Playwright)
+packaging/      manifest template, allowlist and build-zip.py: the installable ZIP from src/
+tests/          PHP tests (php/, php/db/ on a throwaway MySQL), package tests (package/), shared fixtures
+dev/            development environment (link to a local CRM, vtlib lifecycle helper, checks)
 docs/           design documents, plan and requirements (currently in Russian)
-dist/           build output, not committed
+dist/           ZIP, SHA-256 and file list, not committed
+VERSION         version of the module written into manifest.xml
 ```
-
-`src/`, `frontend/`, `packaging/` and `tests/` appear as the implementation progresses.
 
 ## Development setup
 
@@ -78,7 +83,16 @@ dist/           build output, not committed
    task crm:status
    ```
 
-3. Edit files in `src/` and reload the page in the browser.
+3. Build the frontend, register the module in the instance database and switch the theme on for yourself:
+
+   ```bash
+   task build
+   task crm:install      # once; later task crm:update after changes of links, tables or the schema
+   ```
+
+   Open *Settings → Other settings → ModernUI* and press *Enable for me*.
+
+4. Edit files in `src/` and reload the page in the browser; keep `task dev` running for frontend changes.
 
 ### Commands
 
@@ -88,13 +102,22 @@ dist/           build output, not committed
 | `task crm:unlink` | Disconnect `src/`; the database of the instance, including the module registration, stays as it is |
 | `task crm:status` | Instance version and git commit, state of every linked path, registration of the module in the instance database |
 | `task crm:smoke` | Run the instance's own smoke test (only for instances that provide `task smoke`) |
-| `task lint` | `php -l` of all PHP files under PHP 8.5 and 8.4 |
+| `task fe:install` | Install the frontend dependencies from the lockfile (`npm ci --ignore-scripts`) |
+| `task build` | Production build of the frontend into `src/layouts/v7/modules/ModernUI/resources/dist/` |
+| `task dev` | Watch mode: rebuilds on every change of `frontend/`, switches the manifest last; reload the page |
+| `task package` | Lint, build, then `dist/ModernUI-<version>.zip` with `.sha256` and `.files.txt` (version from `VERSION` or `MU_VERSION`) |
+| `task crm:install` | Register the module in the instance database with the Module Manager code (`Vtiger_Package::import()` of the ZIP), then link `src/` again |
+| `task crm:update` | Same through `Vtiger_Package::update()`; runs the settings migrations |
+| `task crm:uninstall` | `Vtiger_Module::delete()`; settings tables are kept, `task crm:uninstall -- --purge` drops them |
+| `task crm:enable` / `task crm:disable` | Enable or disable the module like the Module Manager does |
+| `task lint` | `php -l` under PHP 8.5, 8.4 and 8.1 (Docker), `vue-tsc`, ESLint with zero warnings, ES5 syntax of the loader |
+| `task test` | Build, PHP tests (8.5/8.4/8.1), migrations on a throwaway MySQL 8.4 container, Vitest, package tests |
+| `task test:e2e` | Playwright scenarios on the instance from `.env` (signs in with `CRM_ADMIN_USER`/`CRM_ADMIN_PASS[_FILE]`) |
 | `task privacy` | Check that files to be published contain no installation-specific information (see below) |
 
-Planned with the first implementation stage: `build` (production frontend build), `dev` (watch
-mode), `package` (installable ZIP in `dist/` with SHA-256), `crm:install` / `crm:update` /
-`crm:uninstall` (register, update or remove the module in the instance database through the standard
-vtlib package import and module API), a PHP 8.1 lint target and the test suites.
+`task test:package` unpacks the ZIP with the vtlib importer of the official `8.4.0` tag: set
+`VTIGER_SRC_REPO` in `.env` to a git clone of the official Vtiger repository. The tests never write
+to the instance database except through the ModernUI settings pages and the lifecycle commands.
 
 ### How the development link works
 

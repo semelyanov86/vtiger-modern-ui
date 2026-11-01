@@ -1,0 +1,51 @@
+{
+  "system": {
+    "button": "Menü der neuen Oberfläche",
+    "title": "Neue Oberfläche",
+    "preferences": "Einstellungen",
+    "standardView": "Zur Standardansicht wechseln",
+    "safeMode": "Standardansicht für diese Sitzung",
+    "moduleSettings": "ModernUI-Konfiguration",
+    "crmSettings": "CRM-Einstellungen"
+  },
+  "notify": {
+    "standardViewOn": "Die Standardansicht ist aktiv. Um die neue Oberfläche wieder einzuschalten, öffnen Sie Ihre ModernUI-Einstellungen.",
+    "actionFailed": "Die Aktion ist fehlgeschlagen: {reason}"
+  },
+  "errors": {
+    "MU_BAD_RESPONSE": "Der Server hat eine unerwartete Antwort gesendet.",
+    "MU_NETWORK": "Der Server ist nicht erreichbar.",
+    "MU_SESSION_EXPIRED": "Ihre Sitzung ist abgelaufen. Melden Sie sich erneut an.",
+    "MU_FORBIDDEN_KEY": "Diese Einstellung steht Ihnen nicht zur Verfügung.",
+    "MU_INVALID_VALUE": "Der Wert ist ungültig.",
+    "MU_CONFLICT": "Die Einstellungen wurden in einem anderen Fenster geändert. Laden Sie die Seite neu und versuchen Sie es erneut.",
+    "MU_BAD_REQUEST": "Die Anfrage konnte nicht verarbeitet werden.",
+    "MU_MODULE_INACTIVE": "Das Modul ModernUI ist deaktiviert.",
+    "MU_SCHEMA_OUTDATED": "Die Einstellungen müssen von einem Administrator aktualisiert werden.",
+    "MU_SCHEMA_NEWER": "Die Einstellungen gehören zu einer neueren Version des Moduls.",
+    "MU_UNKNOWN": "Unbekannter Fehler."
+  },
+  "diagnostics": {
+    "checking": "Prüfung läuft …",
+    "ok": "Die Oberflächendateien werden in diesem Browser geladen.",
+    "failed": "Die Prüfung ist fehlgeschlagen: {reason}",
+    "build": "Build {build}",
+    "buildMismatch": "Die Seite wurde mit Build {page} geladen, auf dem Server ist bereits {server}. Laden Sie die Seite neu.",
+    "language": "Sprache der neuen Oberfläche: {language} ({source}).",
+    "source": {
+      "personal": "persönliche Wahl",
+      "crm": "Sprache des CRM-Profils",
+      "global": "Vorgabe des Themes",
+      "fallback": "Ersatzsprache"
+    },
+    "themeActive": "Die neue Oberfläche ist für Sie eingeschaltet.",
+    "themeInactive": "Die neue Oberfläche ist für Sie ausgeschaltet.",
+    "systemItems": "Keine Menüpunkte | {n} Eintrag in Ihrem Menü | {n} Einträge in Ihrem Menü",
+    "recheck": "Erneut prüfen"
+  },
+  "languages": {
+    "ru-RU": "Русский",
+    "en-US": "English",
+    "de-DE": "Deutsch"
+  }
+}

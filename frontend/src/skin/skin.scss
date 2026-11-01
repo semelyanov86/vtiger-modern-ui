@@ -1,0 +1,18 @@
+// Skin layer (docs/architecture.md §5.1): CSS over the unchanged v7 DOM, printed in <head> by the HEADERCSS
+// link only when the theme is active for the user and the screen. Every rule lives under
+// :root:not(.mu-off) so "switch to the standard view" can turn the skin off without a reload.
+//
+// Stage 02 ships the foundation only: the default tokens and the reserved classes. The visual redesign of the
+// v7 screens (header, lists, records, forms) is implemented from stage 04 on.
+@use '../styles/tokens' as *;
+
+:root:not(.mu-off) {
+  @each $name, $value in $defaults {
+    @if $name != font-family {
+      --mu-#{$name}: #{$value};
+    }
+  }
+  --mu-font-inter: #{$font-inter};
+  --mu-font-system: #{$font-system};
+  --mu-font-family: var(--mu-font-inter);
+}

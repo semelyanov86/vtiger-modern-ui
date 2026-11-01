@@ -87,6 +87,19 @@ rem; нужен `v-app`), Quasar 2.35.2 (глобальные `html,body`, эт�
 
 ## 3. Список зависимостей
 
+Состояние этапа 02 (2026-11-01): версии ниже закреплены точно в `frontend/package.json`, дерево — в
+`frontend/package-lock.json`; установка — `npm ci --ignore-scripts` (`task fe:install`). Ещё **не
+установлены** (появятся с использующим их кодом): `vue-draggable-plus`/`sortablejs` (редактор меню,
+этап 05), `axe-core` (проверки доступности, этап 09). Добавлены: `@types/node` 24.19.2 (типы конфигурации
+сборки, тестов и e2e). `THIRD_PARTY_LICENSES.txt` генерирует плагин сборки по модулям chunk'ов
+(+ шрифт и пакет `vue`, чей код приходит через `@vue/*`); лицензия вне списка MIT/ISC/Apache-2.0/OFL-1.1/
+BSD-2/3-Clause или пакет без файла лицензии останавливает сборку. В сборку этапа 02 входят: `vue`/`@vue/*`
+3.5.44, `vue-i18n`/`@intlify/*` 11.4.x, `reka-ui` 2.11.0 (+ `@floating-ui/*`, `@vueuse/*`, `aria-hidden`,
+`defu`), `@lucide/vue` 1.66.0, `@fontsource-variable/inter` 5.3.0 (подмножества latin, latin-ext, cyrillic,
+cyrillic-ext). Lint PHP 8.1 — `php:8.1-cli@sha256:76e563191d1ade120313a8736df24154d21da5155c0756f147c0b01bd19d9087`
+(PHP 8.1.34). ESLint 10 читает `eslint.config.ts` встроенным в Node 24 удалением типов
+(`--flag unstable_native_nodejs_ts_config`), без `jiti`.
+
 ### 3.1. Попадают в сборку
 
 | Пакет | Версия | Лицензия | Назначение |
@@ -115,10 +128,10 @@ rem; нужен `v-app`), Quasar 2.35.2 (глобальные `html,body`, эт�
 | `sass-embedded` | 1.107.1 | MIT | SCSS для skin |
 | `vitest` | 5.0.5 | MIT | unit-тесты (локали, слияние настроек на клиенте, адаптеры) |
 | `@playwright/test` / `playwright` | 1.63.0 | Apache-2.0 | e2e; 1.63.0 использует Chromium build 1243 (1.64.x требует 1248) |
-| `axe-core` | версия на этапе 02 | MPL-2.0 (только тесты, в ZIP не попадает) | проверки доступности в e2e |
+| `axe-core` | версия на этапе 09 | MPL-2.0 (только тесты, в ZIP не попадает) | проверки доступности в e2e |
 
 PHP: собственных composer-зависимостей у пакета нет (используются только классы ядра Vtiger 8.4).
-Lint PHP 8.1 — официальный Docker-образ `php:8.1-cli` с закреплённым digest (этап 02).
+Lint PHP 8.1 — официальный Docker-образ `php:8.1-cli` с закреплённым digest (см. начало §3).
 
 ## 4. i18n
 

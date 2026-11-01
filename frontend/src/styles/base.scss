@@ -1,0 +1,45 @@
+// Base of every ModernUI container (docs/architecture.md §9): no reset, no rules on html/body/a/button/input
+// outside .mu-root. Inherited properties are set on .mu-root so the body styles of v7 do not leak into the
+// components; Bootstrap 3 element rules (label, button, input) are neutralised only inside .mu-root.
+// Units are px: Bootstrap 3 sets html { font-size: 10px }.
+@use 'tokens' as *;
+@use 'fonts';
+
+:root {
+  --mu-font-inter: #{$font-inter};
+  --mu-font-system: #{$font-system};
+}
+
+.mu-root {
+  box-sizing: border-box;
+  font-family: tok(font-family);
+  font-size: calc(13px * #{tok(font-scale)});
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: normal;
+  color: tok(text);
+  text-align: left;
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: inherit;
+  }
+
+  label {
+    font-weight: inherit;
+  }
+
+  button {
+    font: inherit;
+  }
+}
+
+// Overlays of the islands (dropdowns, dialogs) render into #mu-overlay-root. Popper wrappers are
+// position: fixed, i.e. stacking contexts of their own; the root puts all of them above the fixed v7 header
+// (the v7 skin sets .navbar-fixed-top to 1095 !important) and below #overlayPage (1099) and .modal (1100)
+// of v7 - docs/architecture.md §6.
+.mu-root.mu-overlay-root {
+  position: relative;
+  z-index: 1097;
+}

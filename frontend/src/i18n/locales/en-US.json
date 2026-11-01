@@ -1,0 +1,51 @@
+{
+  "system": {
+    "button": "New interface menu",
+    "title": "New interface",
+    "preferences": "Preferences",
+    "standardView": "Switch to the standard view",
+    "safeMode": "Standard view for this session",
+    "moduleSettings": "ModernUI settings",
+    "crmSettings": "CRM settings"
+  },
+  "notify": {
+    "standardViewOn": "The standard view is on. To switch the new interface back on, open your ModernUI preferences.",
+    "actionFailed": "The action failed: {reason}"
+  },
+  "errors": {
+    "MU_BAD_RESPONSE": "The server sent an unexpected answer.",
+    "MU_NETWORK": "The server cannot be reached.",
+    "MU_SESSION_EXPIRED": "Your session has expired. Sign in again.",
+    "MU_FORBIDDEN_KEY": "This preference is not available to you.",
+    "MU_INVALID_VALUE": "The value is not valid.",
+    "MU_CONFLICT": "The settings were changed in another window. Reload the page and try again.",
+    "MU_BAD_REQUEST": "The request could not be processed.",
+    "MU_MODULE_INACTIVE": "The ModernUI module is disabled.",
+    "MU_SCHEMA_OUTDATED": "The settings need to be upgraded by an administrator.",
+    "MU_SCHEMA_NEWER": "The settings belong to a newer version of the module.",
+    "MU_UNKNOWN": "Unknown error."
+  },
+  "diagnostics": {
+    "checking": "Checking…",
+    "ok": "The interface files load in this browser.",
+    "failed": "The check failed: {reason}",
+    "build": "Build {build}",
+    "buildMismatch": "The page was loaded with build {page}, the server now has {server}. Reload the page.",
+    "language": "Language of the new interface: {language} ({source}).",
+    "source": {
+      "personal": "personal choice",
+      "crm": "language of the CRM profile",
+      "global": "default of the theme",
+      "fallback": "fallback"
+    },
+    "themeActive": "The new interface is on for you.",
+    "themeInactive": "The new interface is off for you.",
+    "systemItems": "No menu items | {n} item in your menu | {n} items in your menu",
+    "recheck": "Check again"
+  },
+  "languages": {
+    "ru-RU": "Русский",
+    "en-US": "English",
+    "de-DE": "Deutsch"
+  }
+}

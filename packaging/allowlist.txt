@@ -1,0 +1,26 @@
+# Paths of src/ that go into the ModernUI ZIP (packaging/build-zip.py), relative to src/.
+# Glob syntax of Python's PurePath.full_match: ** matches any depth. Everything else is rejected.
+# The ZIP path of a file is its src/ path, except modules/Settings/ModernUI/{actions,views,models}/…
+# which go to settings/{actions,views,models}/… (vtlib PackageImport::initImport() of Vtiger 8.4.0).
+modules/ModernUI/ModernUI.php
+modules/ModernUI/models/*.php
+modules/ModernUI/actions/*.php
+modules/ModernUI/views/*.php
+modules/ModernUI/migrations/[0-9][0-9][0-9][0-9]_*.php
+modules/Settings/ModernUI/actions/*.php
+modules/Settings/ModernUI/views/*.php
+modules/Settings/ModernUI/models/*.php
+layouts/v7/modules/ModernUI/*.tpl
+layouts/v7/modules/ModernUI/resources/loader.js
+layouts/v7/modules/ModernUI/resources/dist/manifest.json
+layouts/v7/modules/ModernUI/resources/dist/THIRD_PARTY_LICENSES.txt
+layouts/v7/modules/ModernUI/resources/dist/assets/*.js
+layouts/v7/modules/ModernUI/resources/dist/assets/*.css
+layouts/v7/modules/ModernUI/resources/dist/assets/*.woff2
+layouts/v7/modules/Settings/ModernUI/*.tpl
+languages/en_us/ModernUI.php
+languages/ru_ru/ModernUI.php
+languages/de_de/ModernUI.php
+languages/en_us/Settings/ModernUI.php
+languages/ru_ru/Settings/ModernUI.php
+languages/de_de/Settings/ModernUI.php
