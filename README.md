@@ -9,8 +9,9 @@ The module installs as a regular Vtiger extension ZIP through *Settings → Modu
 Import*. It does not patch the Vtiger core, does not replace global libraries (jQuery, Bootstrap,
 Select2) and keeps the standard v7 interface available as a fallback.
 
-> **Status:** early development. The repository currently contains the design documents and the
-> development environment; the module itself is not implemented yet and there is no release.
+> **Status:** early development. The repository currently contains the design documents (architecture
+> and specifications) and the development environment; the module itself is not implemented yet and
+> there is no release.
 
 ## Goals
 
@@ -91,9 +92,9 @@ dist/           build output, not committed
 | `task privacy` | Check that files to be published contain no installation-specific information (see below) |
 
 Planned with the first implementation stage: `build` (production frontend build), `dev` (watch
-mode), `package` (installable ZIP in `dist/` with SHA-256), `crm:install` / `crm:update` (register
-or update the module in the instance database through the standard vtlib package import), a PHP 8.1
-lint target and the test suites.
+mode), `package` (installable ZIP in `dist/` with SHA-256), `crm:install` / `crm:update` /
+`crm:uninstall` (register, update or remove the module in the instance database through the standard
+vtlib package import and module API), a PHP 8.1 lint target and the test suites.
 
 ### How the development link works
 
@@ -169,6 +170,15 @@ The design documents in `docs/` are currently written in Russian:
 - [docs/COMMON.md](docs/COMMON.md) — requirements for architecture, settings, i18n, design, compatibility;
 - [docs/I18N.md](docs/I18N.md) — language rules (en-US, de-DE, ru-RU, fallback, menu labels);
 - [docs/RESEARCH.md](docs/RESEARCH.md) — verified extension points of Vtiger 8.4;
+- [docs/architecture.md](docs/architecture.md) — extension points, call order, asset loading, DOM boundaries,
+  lifecycle, package layout;
+- [docs/settings.md](docs/settings.md) — settings scopes and precedence, JSON schema, migrations, menu rules,
+  import/export, uninstall policy;
+- [docs/design.md](docs/design.md) — visual language, tokens, screen acceptance criteria;
+- [docs/dependencies.md](docs/dependencies.md) — frontend dependencies, versions, licences;
+- [docs/compatibility.md](docs/compatibility.md) — platform matrix, core v7 events, third-party extensions;
+- [docs/environments.md](docs/environments.md) — clean Vtiger 8.4 instance and package runs;
+- [docs/verification.md](docs/verification.md) — acceptance matrix and results;
 - [docs/PLAN.md](docs/PLAN.md) — requirements, decisions, stage status and log.
 
 [AGENTS.md](AGENTS.md) contains the rules for AI coding agents working on this repository.
