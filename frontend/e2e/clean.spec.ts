@@ -48,11 +48,12 @@ async function themeActive(page: Page, url = HOME): Promise<boolean> {
   const state = await themeOnPage(page)
   if (state.loader === 0) {
     expect(state.skin, `${url}: skin without loader`).toBe(0)
+    expect(state.tokens, `${url}: tokens without loader`).toBe(0)
     return false
   }
   await waitForShell(page)
   const after = await themeOnPage(page)
-  expect(after, url).toEqual({ skin: 1, loader: 1, ready: true, failed: null })
+  expect(after, url).toEqual({ skin: 1, tokens: 1, loader: 1, ready: true, failed: null })
   return true
 }
 

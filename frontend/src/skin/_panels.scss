@@ -1,0 +1,146 @@
+// Blocks, widgets and panels of v7 (docs/design.md §5.3–5.4): white cards with a radius on the light page.
+// Never through display: blocks collapsed by v7 or shown by extensions (SPDynamicBlocks) keep their state.
+// Completeness of the record and form screens is stage 07; here only the shared surfaces.
+@use '../styles/tokens' as *;
+
+:root:not(.mu-off) {
+  // Edit view and quick create blocks.
+  .fieldBlockContainer {
+    border: 1px solid tok(divider);
+    border-radius: tok(radius-md);
+    background-color: tok(surface);
+    box-shadow: tok(shadow-block);
+  }
+
+  .fieldBlockHeader,
+  h4.fieldBlockHeader {
+    color: tok(text);
+    font-family: tok(font-family);
+    font-size: fs(16);
+    font-weight: 500;
+  }
+
+  .editViewHeader .editHeader,
+  .editViewPageDiv .editViewHeader h4,
+  .editViewContents > h4 {
+    color: tok(text);
+    font-weight: 500;
+  }
+
+  // Detail view blocks and summary widgets.
+  .detailViewContainer .block,
+  .summaryView,
+  .summaryWidgetContainer,
+  .detailview-content .block {
+    border-color: tok(divider);
+    border-radius: tok(radius-md);
+    background-color: tok(surface);
+  }
+
+  .block > .blockHeader,
+  .blockHeader {
+    border-bottom-color: tok(divider);
+    color: tok(text);
+  }
+
+  .blockHeader h4,
+  .summaryView .summaryViewHeader h4,
+  .summaryWidgetContainer .widget_header h4,
+  .widget_header h4,
+  .widgetContainer_comments h4 {
+    color: tok(text);
+    font-family: tok(font-family);
+    font-size: fs(15);
+    font-weight: 500;
+  }
+
+  .detailview-header,
+  .detailview-header-block {
+    background-color: tok(surface);
+  }
+
+  .detailview-header .recordBasicInfo h4,
+  .detailview-header .recordLabel {
+    color: tok(text);
+    font-family: tok(font-family);
+    font-weight: 400;
+  }
+
+  .detailview-header .recordImage {
+    border-radius: tok(radius-md);
+    overflow: hidden;
+  }
+
+  // Values of the record view: the label colour of the theme, values in the main text colour.
+  .detailview-table .fieldLabel,
+  .summaryViewFields .fieldLabel,
+  .summaryViewEntries .fieldLabel {
+    color: tok(text-label);
+  }
+
+  .detailview-table .fieldValue,
+  .summaryViewFields .fieldValue,
+  .summaryViewEntries .fieldValue {
+    color: tok(text);
+  }
+
+  // Bootstrap panels (settings pages, dashboards).
+  .panel {
+    border-color: tok(border);
+    border-radius: tok(radius-md);
+    box-shadow: none;
+  }
+
+  .panel-default > .panel-heading,
+  .panel > .panel-heading {
+    border-color: tok(divider);
+    background-color: tok(surface-subtle);
+    background-image: none;
+    color: tok(text);
+  }
+
+  .panel-heading {
+    border-top-left-radius: tok(radius-md);
+    border-top-right-radius: tok(radius-md);
+  }
+
+  // Dashboard widgets of the home page.
+  .dashboardWidget,
+  .dashBoardContainer .dashboardWidget {
+    border-color: tok(divider);
+    border-radius: tok(radius-md);
+    background-color: tok(surface);
+    box-shadow: tok(shadow-block);
+  }
+
+  .dashboardWidgetHeader {
+    border-bottom-color: tok(divider);
+    background-color: tok(surface);
+
+    .dashboardTitle {
+      color: tok(text);
+      font-family: tok(font-family);
+      font-weight: 600;
+    }
+  }
+
+  // Comments, updates, recent activities.
+  .commentContainer .commentTextArea,
+  .commentcontent,
+  .recentActivitiesContainer .updateInfoContainer {
+    border-color: tok(border-value);
+  }
+
+  .commentDetails .commentorName,
+  .updates_timeline .update-name {
+    font-family: tok(font-family);
+    font-weight: 600;
+  }
+
+  // Footer of the full edit form: the sticky bar stays where v7 puts it.
+  .modal-overlay-footer {
+    border-top-color: tok(border);
+    background-color: tok(surface);
+    box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.06);
+  }
+}

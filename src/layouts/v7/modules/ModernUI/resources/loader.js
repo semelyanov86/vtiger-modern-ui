@@ -7,7 +7,9 @@
  * <script type="module"> for it. ES5 on purpose and without a build step: it must run in any browser and
  * never break the page. Whatever goes wrong, the standard v7 interface stays as it is.
  *
- * The link handler prints this file as loader.js?b=<build id>&r=<settings cache key>&z=?v=<vtiger version>.
+ * The link handler prints this file as loader.js?b=<build id>&z=?v=<vtiger version>. The design tokens of the user
+ * come with their own render-blocking stylesheet (action=Tokens), so nothing has to be restored here before the
+ * first paint.
  */
 (function () {
 	'use strict';
@@ -43,8 +45,7 @@
 	var query = queryStart >= 0 ? src.substring(queryStart) : '';
 	var base = (queryStart >= 0 ? src.substring(0, queryStart) : src).replace(/[^/]*$/, '') + 'dist/';
 	var build = param(query, 'b');
-	var cacheKey = param(query, 'r');
-	if (!build || !cacheKey) {
+	if (!build) {
 		return;
 	}
 	if (!('noModule' in document.createElement('script'))) {
@@ -56,7 +57,6 @@
 	}
 
 	root.setAttribute('data-mu-build', build);
-	root.setAttribute('data-mu-cache', cacheKey);
 	root.className += (root.className ? ' ' : '') + 'mu-pending';
 
 	var finished = false;
@@ -74,22 +74,6 @@
 		removePending();
 		root.setAttribute('data-mu-failed', code);
 		warn('the new interface did not start (' + code + '), the standard interface stays');
-	}
-
-	// Tokens of the last successful start of this user and settings revision: set before the first paint.
-	try {
-		var cached = window.localStorage ? window.localStorage.getItem('modernui:tokens:' + cacheKey) : null;
-		var tokens = cached ? JSON.parse(cached) : null;
-		if (tokens && typeof tokens === 'object') {
-			for (var name in tokens) {
-				if (Object.prototype.hasOwnProperty.call(tokens, name) && /^--mu-[a-z0-9-]+$/.test(name)
-					&& typeof tokens[name] === 'string' && /^[#a-zA-Z0-9.,%() -]{1,64}$/.test(tokens[name])) {
-					root.style.setProperty(name, tokens[name]);
-				}
-			}
-		}
-	} catch (error) {
-		// Storage blocked or damaged: the defaults of the skin apply until the shell sets the tokens.
 	}
 
 	var watchdog = window.setTimeout(function () {

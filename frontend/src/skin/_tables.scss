@@ -1,0 +1,144 @@
+// Tables of v7 (docs/design.md §4, §5.2): lists, related lists, detail tables, popups. The DOM, the column
+// order and the events on tr.listViewEntries stay. Rows and cells coloured inline by extensions (Listview
+// Colors, VGS Listview Colors) keep their colours: the hover of the theme paints only rows without an inline
+// background and marks the others with an inset stripe instead. The full list screen is stage 06.
+@use '../styles/tokens' as *;
+
+:root:not(.mu-off) {
+  .table {
+    color: tok(text-body);
+
+    > thead > tr > th,
+    > tbody > tr > th,
+    > tfoot > tr > th,
+    > thead > tr > td,
+    > tbody > tr > td,
+    > tfoot > tr > td {
+      border-top-color: tok(divider);
+    }
+
+    > thead > tr > th {
+      border-bottom: 1px solid tok(border);
+      color: tok(text-heading);
+      font-weight: 600;
+    }
+  }
+
+  .table-bordered {
+    border-color: tok(border);
+
+    > thead > tr > th,
+    > tbody > tr > th,
+    > tfoot > tr > th,
+    > thead > tr > td,
+    > tbody > tr > td,
+    > tfoot > tr > td {
+      border-color: tok(divider);
+    }
+  }
+
+  .table-striped > tbody > tr:nth-of-type(odd):not([style*='background']) {
+    background-color: tok(surface-subtle);
+  }
+
+  // List of records (also related lists and popups use .listview-table).
+  .listview-table,
+  .listview-table-norecords {
+    background-color: tok(surface);
+
+    > thead > tr > th,
+    tr.listViewContentHeader th {
+      height: tok(table-head-height);
+      border-bottom: 1px solid tok(divider);
+      background-color: tok(surface);
+      color: tok(text-heading);
+      font-size: fs(13);
+      font-weight: 600;
+      vertical-align: middle;
+
+      a,
+      .listViewContentHeaderValues {
+        color: tok(text-heading);
+      }
+    }
+
+    > tbody > tr > td {
+      border-top-color: tok(divider);
+      color: tok(text-body);
+    }
+
+    tr.listViewEntries > td {
+      height: tok(row-height);
+    }
+
+    // Search row of the list: fields of the theme, height of the density.
+    tr.searchRow th {
+      background-color: tok(surface);
+      border-bottom-color: tok(divider);
+    }
+  }
+
+  .listview-table tr.listViewEntries:not([style*='background']):hover > td:not([style*='background']) {
+    background-color: tok(primary-soft);
+  }
+
+  .listview-table tr.listViewEntries[style*='background']:hover > td:first-child {
+    box-shadow: inset 3px 0 0 tok(primary);
+  }
+
+  // Selected rows (v7 adds .highlightBackgroundColor to checked rows): a soft accent without hiding colours.
+  .listview-table tr.listViewEntries.highlightBackgroundColor:not([style*='background']) > td:not([style*='background']) {
+    background-color: tok(primary-soft);
+  }
+
+  .listview-table .table-actions,
+  .listview-table-norecords .table-actions {
+    color: tok(text-heading);
+
+    .fa,
+    [class^='vicon-'] {
+      color: tok(text-heading);
+    }
+
+    .fa:hover,
+    [class^='vicon-']:hover {
+      color: tok(primary-strong);
+    }
+  }
+
+  // Empty list: the message of v7, readable and centred as v7 has it.
+  .emptyRecordsDiv,
+  .listview-table-norecords .emptyRecordsContent {
+    color: tok(text-2);
+    font-size: fs(14);
+  }
+
+  // Containers of the list: a white card on the light page (only borders, radius and background).
+  .listViewContentDiv .table-container,
+  .listViewEntriesDiv .table-container,
+  #table-content.table-container {
+    border: 1px solid tok(divider);
+    border-radius: tok(radius-md);
+    background-color: tok(surface);
+  }
+
+  // Detail tables of the record view keep table-layout and widths of v7.
+  .detailview-table > tbody > tr > td {
+    border-color: tok(divider);
+  }
+
+  // Line items of inventory records.
+  .lineItemsTable,
+  #lineItemTab {
+    > thead > tr > th,
+    > tbody > tr > th {
+      background-color: tok(surface-subtle);
+      color: tok(text-heading);
+      font-weight: 600;
+    }
+
+    > tbody > tr > td {
+      border-color: tok(divider);
+    }
+  }
+}

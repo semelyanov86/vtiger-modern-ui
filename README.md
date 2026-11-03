@@ -118,6 +118,8 @@ VERSION         version of the module written into manifest.xml
 | `task test:devcycle` | Proof of the edit → result loop on the linked instance: temporary edits of PHP, Smarty, a dictionary, CSS and Vue, all undone |
 | `task test:devrecord -- create` / `-- delete:<id>` | A synthetic record through the standard form with the theme on, then its deletion |
 | `task baseline` | Metrics of the CRM screens without the theme (`MU_E2E_TARGET`: `dev`, `c81` or `c85`), into `.local/e2e-reports/` |
+| `task shots` | Screenshots of the main screens at 1440/1024/768/412 px with and without the theme (`MU_SHOTS_DIR` is required for `dev`: the images may show customer data; clean stand: `.local/shots/`; `MU_SHOTS_ZOOM=2` for 200 %, `MU_SHOTS_LOCAL_BUILD=1` serves the local build to the browser of the scenario) |
+| `task measure` | Cost of the theme against safe mode: FCP/DCL/load, shell ready, CLS, requests and bytes, size of every theme resource, Bootstrap time and 304 (`.local/e2e-reports/<target>/measure-<label>.json`) |
 | `task privacy` | Check that files to be published contain no installation-specific information (see below) |
 
 `task test:package` unpacks the ZIP with the vtlib importer of the official `8.4.0` tag: set

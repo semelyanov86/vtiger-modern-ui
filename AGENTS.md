@@ -67,6 +67,8 @@ task lint          # php -l под 8.5, 8.4, 8.1 (Docker); vue-tsc, ESLint 0 п�
 task test          # PHP 8.5/8.4/8.1, миграции на временной MySQL, vitest, пакет (VTIGER_SRC_REPO в .env)
 task test:e2e      # Playwright на dev-стенде (вход из .env); оставляет тему включённой у администратора
 task test:devcycle # правка → результат на dev-стенде (PHP, Smarty, словарь, CSS, Vue), всё откатывает
+task shots         # снимки экранов 1440/1024/768/412 с темой и без (dev-стенд — только MU_SHOTS_DIR из PRIVATE.md)
+task measure       # стоимость темы относительно безопасного режима (время, CLS, байты, Bootstrap/304)
 task crm:import-zip # PACKAGE на dev-стенде: unlink + ZIP через менеджер модулей; назад — crm:link -- --force
 task clean:up      # чистый стенд 8.4.0 (dev/clean): архив релиза, PHP 8.1 в корне и 8.5 в /vtigercrm/
 task clean:install # штатный установщик; clean:seed — синтетические роли, пользователи, записи, модуль Gadgets

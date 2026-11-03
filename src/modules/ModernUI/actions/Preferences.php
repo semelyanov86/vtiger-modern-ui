@@ -110,7 +110,8 @@ class ModernUI_Preferences_Action extends Vtiger_Action_Controller {
 	}
 
 	/**
-	 * Fields of the server form: locale, standardView, selfEnabled (only the allowed ones are on the form).
+	 * Fields of the server form: locale, density, fontScale, standardView, selfEnabled (only the allowed ones are
+	 * on the form). An empty density or text size removes the personal value: the administrator's value applies.
 	 * @param Vtiger_Request $request
 	 * @param array $allowed
 	 * @return array
@@ -119,6 +120,12 @@ class ModernUI_Preferences_Action extends Vtiger_Action_Controller {
 		$changes = array();
 		if (in_array('locale', $allowed, true) && $request->has('locale')) {
 			$changes['locale'] = (string) $request->get('locale');
+		}
+		foreach (array('density' => 'appearance.density', 'fontScale' => 'appearance.fontScale') as $field => $key) {
+			if (in_array($key, $allowed, true) && $request->has($field)) {
+				$value = (string) $request->get($field);
+				$changes[$key] = $value === '' ? null : $value;
+			}
 		}
 		if (in_array('user.standardView', $allowed, true)) {
 			$changes['user.standardView'] = $request->get('standardView') === '1';

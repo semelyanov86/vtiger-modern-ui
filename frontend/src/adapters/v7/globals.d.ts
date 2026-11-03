@@ -13,5 +13,7 @@ declare global {
     jQuery?: unknown
     /** `app` of layouts/v7/resources/application.js. */
     app?: unknown
+    /** Page metadata printed by Header.tpl ({module, view, parent, …}). */
+    _META?: unknown
   }
 }

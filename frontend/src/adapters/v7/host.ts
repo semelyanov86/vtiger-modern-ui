@@ -62,3 +62,43 @@ export function notify(kind: 'success' | 'error', message: string): void {
     console.info(`[ModernUI] ${message}`)
   }
 }
+
+/**
+ * Subscribes to app.event of v7 (a jQuery event bus, layouts/v7/resources/application.js) with this handler only;
+ * returns the function that removes exactly this handler. Without the bus (unknown page) nothing happens.
+ */
+export function subscribeAppEvent(name: string, handler: (...args: unknown[]) => void): () => void {
+  const app = window.app
+  const bus = isRecord(app) ? app['event'] : undefined
+  const on = isRecord(bus) ? bus['on'] : undefined
+  const off = isRecord(bus) ? bus['off'] : undefined
+  if (typeof on !== 'function' || typeof off !== 'function') {
+    return () => undefined
+  }
+  // jQuery passes the event object first, then the arguments of trigger().
+  const listener = (_event: unknown, ...args: unknown[]): void => {
+    handler(...args)
+  }
+  Reflect.apply(on, bus, [name, listener])
+  return () => {
+    Reflect.apply(off, bus, [name, listener])
+  }
+}
+
+/** Kind of page the shell runs on (docs/architecture.md §7.3, levels of stage 04). */
+export type PageLevel = 'islands' | 'skin'
+
+/**
+ * Capability check of the page: the islands need the v7 layout (page container, fixed header with #navbar, the
+ * page metadata and the v7 application object). Anything else — an extension with its own page shell, an
+ * unknown layout — gets the skin only: the theme never breaks a screen it does not know.
+ */
+export function detectPageLevel(): PageLevel {
+  const navbar = document.getElementById('navbar')
+  const known = document.getElementById('page') !== null
+    && navbar !== null
+    && navbar.closest('nav.app-fixed-navbar') !== null
+    && isRecord(window._META)
+    && isRecord(window.app)
+  return known ? 'islands' : 'skin'
+}

@@ -1,0 +1,173 @@
+// Fields, labels and input groups of v7 (docs/design.md §4, §5.4). Only appearance: the structure of the
+// tables of the forms (td.fieldLabel / td.fieldValue), names, ids, values and the order of the fields stay.
+// Validation of v7 (jquery.validate + qtip, .input-error) keeps working; its states are only restyled.
+@use '../styles/tokens' as *;
+
+@mixin field-box {
+  border: 1px solid tok(border-input);
+  border-radius: tok(radius-sm);
+  background-color: tok(surface);
+  color: tok(text);
+  font-family: tok(font-family);
+  font-size: fs(13);
+  box-shadow: none;
+  @include transition(border-color, box-shadow);
+
+  &::placeholder {
+    color: tok(text-muted);
+    opacity: 1;
+  }
+
+  &:hover {
+    border-color: #6e7889;
+  }
+
+  &:focus {
+    border-color: tok(focus-border);
+    outline: none;
+    @include focus-ring;
+  }
+
+  &[readonly],
+  &[disabled] {
+    background-color: tok(surface-readonly);
+    color: tok(text-2);
+  }
+
+  &[disabled] {
+    cursor: not-allowed;
+  }
+}
+
+:root:not(.mu-off) {
+  // Single-line fields: the v7 class .inputElement and Bootstrap's .form-control. Wrappers that carry the class
+  // (.input-group.inputElement, the Select2 container) are styled through their inner parts instead.
+  .inputElement:not(.input-group):not(.select2-container):not(.select2):not([type='checkbox']):not([type='radio']):not([type='file']),
+  .form-control:not(.select2-container):not(.select2):not([type='checkbox']):not([type='radio']):not([type='file']),
+  .listSearchContributor:not(.select2-container):not(.select2) {
+    @include field-box;
+  }
+
+  .inputElement:not(textarea):not(select[multiple]):not(.input-group):not(.select2-container):not(.select2):not([type='checkbox']):not([type='radio']):not([type='file']),
+  .form-control:not(textarea):not(select[multiple]):not(.select2-container):not(.select2):not([type='checkbox']):not([type='radio']):not([type='file']) {
+    height: tok(input-height);
+    padding: 6px 10px;
+  }
+
+  textarea.inputElement,
+  textarea.form-control {
+    min-height: tok(input-height);
+    padding: 6px 10px;
+    line-height: 1.5;
+  }
+
+  // Input groups: currency/percent/date addons and the reference field buttons (select / create).
+  .input-group-addon {
+    border-color: tok(border-input);
+    background-color: tok(surface-subtle);
+    color: tok(text-2);
+    font-size: fs(13);
+  }
+
+  .input-group > .form-control:first-child,
+  .input-group > .inputElement:first-child,
+  .input-group-addon:first-child {
+    border-top-left-radius: tok(radius-sm);
+    border-bottom-left-radius: tok(radius-sm);
+  }
+
+  .input-group > .form-control:last-child,
+  .input-group > .inputElement:last-child,
+  .input-group-addon:last-child {
+    border-top-right-radius: tok(radius-sm);
+    border-bottom-right-radius: tok(radius-sm);
+  }
+
+  .input-group > .form-control:not(:first-child),
+  .input-group > .inputElement:not(:first-child) {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  .input-group > .form-control:not(:last-child),
+  .input-group > .inputElement:not(:last-child) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .input-group-addon:not(:first-child) {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  .input-group-addon:not(:last-child) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .input-group-addon.cursorPointer:hover,
+  .input-group-addon.relatedPopup:hover,
+  .input-group-addon.createReferenceRecord:hover,
+  .input-group-addon.clearReferenceSelection:hover {
+    background-color: tok(btn-secondary);
+    color: tok(primary-strong);
+  }
+
+  // A reference field of v7 keeps its border on the inner input (.input-group.inputElement input {border:none}).
+  .input-group.inputElement {
+    border-radius: tok(radius-sm);
+  }
+
+  select.inputElement:not(.select2),
+  select.form-control:not(.select2) {
+    padding-right: 28px;
+  }
+
+  // Labels of the forms and the record view (docs/design.md §5.3–5.4).
+  .fieldLabel,
+  td.fieldLabel,
+  .fieldLabel label,
+  label.muted {
+    color: tok(text-label);
+    font-size: fs(13);
+    font-weight: 400;
+  }
+
+  .control-label {
+    color: tok(text-label);
+    font-weight: 500;
+  }
+
+  // Error state of the validator of v7: the class and the message stay, the colours follow the design.
+  .input-error,
+  .inputElement.input-error,
+  .input-error .select2-choice,
+  .input-error .select2-choices {
+    border-color: tok(danger) !important;
+    background-color: tok(surface) !important;
+    box-shadow: 0 0 0 1px tok(danger-ring);
+  }
+
+  .has-error .form-control,
+  .has-error .input-group-addon {
+    border-color: tok(danger);
+  }
+
+  .has-error .help-block,
+  .has-error .control-label {
+    color: tok(danger);
+  }
+
+  // File inputs keep the browser's control; only the text follows the theme.
+  input[type='file'] {
+    font-family: tok(font-family);
+    font-size: fs(13);
+  }
+
+  // Checkboxes inside v7 forms keep their size (15 px in edit views); 18 px where v7 leaves the default.
+  .editViewContents input[type='checkbox'],
+  .listViewEntriesCheckBox,
+  .listViewEntriesMainCheckBox {
+    accent-color: tok(primary-strong);
+  }
+}

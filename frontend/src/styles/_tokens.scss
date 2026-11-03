@@ -1,34 +1,91 @@
-// Design tokens of ModernUI (docs/design.md §3). Components read them as var(--mu-*, default): the defaults
-// apply on the module's own pages where the skin is not loaded, the user's values come from <html>.
+// Design tokens of ModernUI (docs/design.md §3). Components and the skin read them as var(--mu-*, default):
+// the defaults apply on the module's own pages where the skin is not loaded; the user's values come from the
+// tokens stylesheet of the server (action=Tokens) and from the inline style the shell sets on <html>.
+//
+// Runtime tokens (changed by the settings, validated by ModernUI_Tokens_Model and the Bootstrap guard):
+// primary, primary-strong, primary-hover, primary-soft, bg, surface, font-scale, font-family and the density
+// sizes. Everything else is fixed by the design.
 @use 'sass:map';
 
 $defaults: (
+  // Accent (runtime)
   primary: #3978fe,
   primary-strong: #315dff,
-  primary-hover: #2a50db,
+  primary-hover: #2d56eb,
   primary-soft: #e7f1ff,
   link: #0065ff,
+  // Surfaces (bg and surface are runtime)
   bg: #eff0f2,
   surface: #ffffff,
   surface-subtle: #f9f9fa,
+  surface-block: #f6f7f8,
+  surface-readonly: #eff0f2,
+  btn-secondary: #f0f1f3,
+  btn-secondary-hover: #dfe1e6,
+  nav-dark: #2c3e50,
+  nav-dark-2: #465f79,
+  nav-dark-text: #fafbfc,
+  menu-bg: #f1f3f6,
+  // Text
   text: #1c2121,
   text-body: #212529,
   text-heading: #2c3e50,
   text-2: #595d5d,
   text-label: #6b6f75,
+  text-muted: #6b6f75,
+  // Borders and focus
   divider: #f0f1f3,
+  border: #dfe1e6,
+  border-value: #ebecf0,
   border-input: #8c95a5,
+  focus-border: #237afe,
   focus-ring: rgba(0, 123, 255, 0.8),
+  // Meaning (texts ≥ 4.5:1 on white)
+  required: #c94c05,
   danger: #d70a2a,
+  danger-ring: #f85c75,
+  danger-soft: #fdecef,
   success: #1d7a43,
+  success-border: #2e9a5e,
+  success-soft: #e8f5ee,
+  warning: #b45309,
+  warning-soft: #fdf3e6,
+  info: #1f5fbf,
+  info-soft: #e7f1ff,
+  // Typography (runtime: font-scale, font-family)
   font-scale: 1,
+  font-family: var(--mu-font-inter),
+  // Density (runtime)
   row-height: 40px,
+  table-head-height: 50px,
   input-height: 36px,
   button-height: 34px,
   cell-padding: 12px,
   menu-item-height: 36px,
   icon-button: 36px,
-  font-family: var(--mu-font-inter),
+  // Spacing (4/8 px grid)
+  space-1: 4px,
+  space-2: 8px,
+  space-3: 12px,
+  space-4: 16px,
+  space-5: 24px,
+  space-6: 32px,
+  // Radii
+  radius-sm: 4px,
+  radius-md: 6px,
+  radius-pill: 8px,
+  radius-lg: 12px,
+  // Shadows
+  shadow-header: 0 3px 6px #eeeeee,
+  shadow-dropdown: 0 2px 10px rgba(39, 49, 58, 0.2),
+  shadow-menu: 0 0 16px rgba(0, 0, 0, 0.14),
+  shadow-modal: 0 0 16px rgba(0, 0, 0, 0.2),
+  shadow-block: 0 2px 4px rgba(0, 0, 0, 0.075),
+  // Layers (docs/architecture.md §6: v7 header 1095 !important, #overlayPage 1099, .modal 1100)
+  z-favorites: 1096,
+  z-overlay: 1097,
+  // Motion
+  duration: 0.15s,
 );
 
 @function tok($name) {
@@ -38,5 +95,29 @@ $defaults: (
   @return var(--mu-#{$name}, #{map.get($defaults, $name)});
 }
 
+/// A font size of the type scale (docs/design.md §3.2) multiplied by the user's font scale; px only
+/// (Bootstrap 3 sets html { font-size: 10px }, rem is not used).
+@function fs($px) {
+  @return calc(#{$px}px * #{tok(font-scale)});
+}
+
 $font-inter: "'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif";
 $font-system: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif";
+
+/// Focus ring of the theme: v7 removes outlines (*:focus { outline: none }), so the ring is a box-shadow.
+@mixin focus-ring($inset: false) {
+  @if $inset {
+    box-shadow: inset 0 0 0 2px tok(focus-ring);
+  } @else {
+    box-shadow: 0 0 0 2px tok(focus-ring);
+  }
+}
+
+/// Transitions only for users who did not ask for reduced motion.
+@mixin transition($properties...) {
+  @media (prefers-reduced-motion: no-preference) {
+    transition-property: $properties;
+    transition-duration: tok(duration);
+    transition-timing-function: ease-in-out;
+  }
+}

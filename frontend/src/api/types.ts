@@ -16,13 +16,39 @@ export type Density = 'comfortable' | 'standard' | 'compact'
 export type FontScale = 90 | 100 | 110 | 125
 export type FontChoice = 'inter' | 'system'
 
-export interface Appearance {
+/** Settings values of the appearance (docs/settings.md §4). */
+export interface AppearanceSettings {
   readonly primaryColor: string
   readonly background: string
   readonly surface: string
   readonly density: Density
   readonly fontScale: FontScale
   readonly font: FontChoice
+}
+
+/** CSS variables of the design tokens (without "--mu-"), computed by the server (ModernUI_Tokens_Model). */
+export const TOKEN_NAMES = [
+  'primary',
+  'primary-strong',
+  'primary-hover',
+  'primary-soft',
+  'bg',
+  'surface',
+  'font-scale',
+  'font-family',
+  'row-height',
+  'table-head-height',
+  'input-height',
+  'button-height',
+  'cell-padding',
+  'menu-item-height',
+  'icon-button',
+] as const
+export type TokenName = (typeof TOKEN_NAMES)[number]
+export type TokenMap = Readonly<Record<TokenName, string>>
+
+export interface Appearance extends AppearanceSettings {
+  readonly tokens: TokenMap
 }
 
 export interface Bootstrap {

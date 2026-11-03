@@ -40,6 +40,9 @@ class ModernUI_Lifecycle_Model {
 			array('type' => 'HEADERCSS', 'label' => ModernUI_LinkHandler_Model::LABEL_SKIN,
 				// Not an existing file on purpose: only the handler points the link at the hashed skin.
 				'url' => ModernUI_Assets_Model::DIST . '/skin.css', 'handler' => $handler),
+			array('type' => 'HEADERCSS', 'label' => ModernUI_LinkHandler_Model::LABEL_TOKENS,
+				// Not an existing file either: the handler points it at action=Tokens with the settings revision.
+				'url' => ModernUI_Assets_Model::DIST . '/tokens.css', 'handler' => $handler),
 			array('type' => 'HEADERSCRIPT', 'label' => ModernUI_LinkHandler_Model::LABEL_SHELL,
 				'url' => ModernUI_Assets_Model::LOADER, 'handler' => $handler),
 		);

@@ -1,21 +1,27 @@
 /**
- * Controlled start of the shell (docs/architecture.md §5.3, §11):
- * host ready → authorised configuration (Bootstrap) → build and activity check → tokens → islands →
- * html.mu-shell-ready + "mu:ready" for the loader. Any failure unmounts what was mounted, removes the markers
- * and reports "mu:failed": the standard v7 interface stays usable.
+ * Controlled start of the shell (docs/architecture.md §5.3, §7.3, §11):
+ * host ready → authorised configuration (Bootstrap) → build and activity check → tokens → level of the page →
+ * islands → html.mu-shell-ready + "mu:ready" for the loader. Any failure stops the runtime, removes what was
+ * mounted and the markers, and reports "mu:failed": the standard v7 interface stays usable, with the skin.
+ *
+ * Levels of a page (html[data-mu-level]): "islands" — the v7 layout is recognised, the Vue islands mount into
+ * their own containers; "skin" — an unknown page shell, only the stylesheet applies. The standard view (no
+ * theme at all) is html.mu-off or a page the server printed without the theme links.
  */
 import { createApp } from 'vue'
 import { fetchBootstrap } from '../api/client'
 import { ApiError } from '../api/guards'
 import type { Bootstrap } from '../api/types'
-import { hostReady } from '../adapters/v7/host'
+import { detectPageLevel, hostReady } from '../adapters/v7/host'
 import { createThemeI18n } from '../i18n'
-import { createContainer, mountIsland, unmountAll } from '../boot/islands'
-import { applyTokens, cacheTokens, clearTokens, tokensFor } from '../boot/tokens'
+import { createContainer, IslandRuntime } from '../boot/runtime'
+import { applyTokens, clearTokens } from '../boot/tokens'
 import SystemMenu from './SystemMenu.vue'
 
 const READY_CLASS = 'mu-shell-ready'
 const OFF_CLASS = 'mu-off'
+/** Set once per page: a second copy of the entry (or a second loader) does not start a second shell. */
+const RUNTIME_ATTRIBUTE = 'data-mu-runtime'
 
 class BootError extends Error {
   readonly code: string
@@ -27,7 +33,7 @@ class BootError extends Error {
   }
 }
 
-let appliedTokens: Record<string, string> = {}
+const runtime = new IslandRuntime()
 
 function dispatch(name: 'mu:ready' | 'mu:failed', detail?: string): void {
   document.dispatchEvent(new CustomEvent(name, { detail }))
@@ -45,32 +51,42 @@ function overlayRoot(): HTMLElement {
   return root
 }
 
-function mountSystemMenu(data: Bootstrap, i18n: ReturnType<typeof createThemeI18n>): void {
-  // Our own container next to the v7 actions: never inside a foreign <ul> (extensions use #navbar li:eq(0)).
-  const navbar = document.getElementById('navbar')
-  if (navbar === null) {
-    return
-  }
-  const container = createContainer('system-menu', 'mu-system-menu')
-  navbar.insertBefore(container, navbar.firstChild)
-  overlayRoot()
-  mountIsland('system-menu', container, () => createApp(SystemMenu, { bootstrap: data, onStandardView: teardown }).use(i18n), true)
+function registerIslands(data: Bootstrap, i18n: ReturnType<typeof createThemeI18n>): void {
+  runtime.register({
+    id: 'system-menu',
+    // Our own container next to the v7 actions: never inside a foreign <ul> (extensions use #navbar li:eq(0)).
+    place: () => {
+      const navbar = document.getElementById('navbar')
+      if (navbar?.closest('nav.app-fixed-navbar') == null) {
+        return null
+      }
+      overlayRoot()
+      return { kind: 'insert', parent: navbar, before: navbar.firstChild, className: 'mu-system-menu' }
+    },
+    create: () => createApp(SystemMenu, { bootstrap: data, onStandardView: teardown }).use(i18n),
+  })
+}
+
+function removeMarkers(): void {
+  const html = document.documentElement
+  html.classList.remove(READY_CLASS, 'mu-pending')
+  html.removeAttribute('data-mu-level')
+  document.getElementById('mu-overlay-root')?.remove()
 }
 
 /**
  * Removes everything the theme added to this page: islands, overlay root, tokens, markers, our stylesheets.
- * Used after "switch to the standard view" and when the start fails.
+ * Used after "switch to the standard view".
  */
 export function teardown(): void {
-  const html = document.documentElement
-  unmountAll()
-  document.getElementById('mu-overlay-root')?.remove()
-  clearTokens(appliedTokens)
-  appliedTokens = {}
-  html.classList.remove(READY_CLASS, 'mu-pending')
-  html.classList.add(OFF_CLASS)
+  runtime.stop()
+  clearTokens()
+  removeMarkers()
+  document.documentElement.classList.add(OFF_CLASS)
   for (const link of document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]')) {
-    if (link.dataset['muAsset'] === 'shell' || link.href.includes('/modules/ModernUI/resources/dist/assets/skin-')) {
+    const href = link.getAttribute('href') ?? ''
+    if (link.dataset['muAsset'] === 'shell' || href.includes('/modules/ModernUI/resources/dist/assets/skin-')
+      || href.includes('module=ModernUI&action=Tokens')) {
       link.remove()
     }
   }
@@ -78,6 +94,10 @@ export function teardown(): void {
 
 export async function boot(): Promise<void> {
   const html = document.documentElement
+  if (html.hasAttribute(RUNTIME_ATTRIBUTE)) {
+    return
+  }
+  html.setAttribute(RUNTIME_ATTRIBUTE, '1')
   const expectedBuild = html.dataset['muBuild'] ?? ''
   try {
     await hostReady()
@@ -88,18 +108,21 @@ export async function boot(): Promise<void> {
     if (!data.theme.active) {
       throw new BootError(`inactive:${data.theme.reason}`)
     }
-    appliedTokens = tokensFor(data.appearance)
-    applyTokens(appliedTokens)
-    cacheTokens(data.theme.cacheKey, appliedTokens)
+    // The tokens stylesheet already has these values; inline they also cover a failed or stale stylesheet.
+    applyTokens(data.appearance.tokens)
     html.setAttribute('data-mu-locale', data.locale.effective)
-    mountSystemMenu(data, createThemeI18n(data.locale.effective))
-    html.classList.add(READY_CLASS)
-    dispatch('mu:ready')
+    const level = detectPageLevel()
+    html.setAttribute('data-mu-level', level)
+    if (level === 'islands') {
+      registerIslands(data, createThemeI18n(data.locale.effective))
+      runtime.start()
+      html.classList.add(READY_CLASS)
+    }
+    dispatch('mu:ready', level)
   } catch (error) {
     const code = error instanceof BootError ? error.code : error instanceof ApiError ? error.code : 'shell-error'
-    unmountAll()
-    document.getElementById('mu-overlay-root')?.remove()
-    html.classList.remove(READY_CLASS)
+    runtime.stop()
+    removeMarkers()
     if (error instanceof BootError || error instanceof ApiError) {
       console.warn(`[ModernUI] ${error.message}`)
     } else {

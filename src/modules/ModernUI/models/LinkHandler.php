@@ -1,12 +1,14 @@
 <?php
 /*
- * Handler of the two global links of ModernUI (docs/architecture.md §3.2), called by Vtiger_Link::getAllByType()
- * for every full page: HEADERCSS (skin) and HEADERSCRIPT (loader of the Vue islands).
+ * Handler of the global links of ModernUI (docs/architecture.md §3.2), called by Vtiger_Link::getAllByType()
+ * for every full page: HEADERCSS (skin), HEADERCSS (design tokens of the user) and HEADERSCRIPT (loader of the
+ * Vue islands).
  *
  * Returns false (the link is not printed) unless the theme is active for the user and the screen. When it is,
- * the URL of the link is pointed at the current build: the hashed skin file, or the loader with the build id.
- * The registered URL of the skin names a file that does not exist, so if a core version ever passed a copy of
- * the link to the handler, Vtiger's file_exists() check would drop the link: the theme fails safe.
+ * the URL of the link is pointed at the current build: the hashed skin file, the tokens stylesheet of the user's
+ * settings revision, or the loader with the build id. The registered URLs of the stylesheets name files that do
+ * not exist, so if a core version ever passed a copy of the link to the handler, Vtiger's file_exists() check
+ * would drop the link: the theme fails safe.
  * Any exception means "no theme on this page" instead of a broken CRM.
  */
 
@@ -16,6 +18,10 @@ class ModernUI_LinkHandler_Model {
 
 	const LABEL_SKIN = 'ModernUISkin';
 	const LABEL_SHELL = 'ModernUIShell';
+	const LABEL_TOKENS = 'ModernUITokens';
+
+	/** Action that prints the tokens stylesheet; index.php exists, so the core prints the link. */
+	const TOKENS_URL = 'index.php?module=ModernUI&action=Tokens';
 
 	/** @var array|null decision cached for the request */
 	private static $decision = null;
@@ -41,9 +47,13 @@ class ModernUI_LinkHandler_Model {
 				$link->linkurl = ModernUI_Assets_Model::skinUrl() . '?b=' . $build . '&z=';
 				return true;
 			}
+			if ($link->linktype === 'HEADERCSS' && $link->linklabel === self::LABEL_TOKENS) {
+				$link->linkurl = self::TOKENS_URL . '&r=' . self::$decision['context']['cacheKey'] . '&z=';
+				return true;
+			}
 			if ($link->linktype === 'HEADERSCRIPT' && $link->linklabel === self::LABEL_SHELL) {
 				// The core appends "?v=<version>" to every URL: "&z=" swallows it.
-				$link->linkurl = ModernUI_Assets_Model::LOADER . '?b=' . $build . '&r=' . self::$decision['context']['cacheKey'] . '&z=';
+				$link->linkurl = ModernUI_Assets_Model::LOADER . '?b=' . $build . '&z=';
 				return true;
 			}
 			return false;

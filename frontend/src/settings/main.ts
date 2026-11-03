@@ -9,7 +9,7 @@ import { fetchBootstrap } from '../api/client'
 import { ApiError } from '../api/guards'
 import { createThemeI18n } from '../i18n'
 import { FALLBACK_LOCALE, normalizeLocale, isThemeLocale } from '../i18n/locale'
-import { mountIsland } from '../boot/islands'
+import { IslandRuntime } from '../boot/runtime'
 import DiagnosticsPanel, { type DiagnosticsResult } from './DiagnosticsPanel.vue'
 
 async function check(): Promise<DiagnosticsResult> {
@@ -30,7 +30,14 @@ async function start(): Promise<void> {
   const first = await check()
   const locale = first.ok ? first.data.locale.effective : (pageLocale !== null && isThemeLocale(pageLocale) ? pageLocale : FALLBACK_LOCALE)
   container.classList.add('mu-root')
-  mountIsland('settings-diagnostics', container, () => createApp(DiagnosticsPanel, { initial: first, pageBuild, check }).use(createThemeI18n(locale)), false)
+  const runtime = new IslandRuntime()
+  runtime.register({
+    id: 'settings-diagnostics',
+    place: () => ({ kind: 'existing', container }),
+    create: () => createApp(DiagnosticsPanel, { initial: first, pageBuild, check }).use(createThemeI18n(locale)),
+  })
+  // A server-rendered page of the module: nothing re-renders the container, no watching needed.
+  runtime.start({ watch: false })
 }
 
 void start()

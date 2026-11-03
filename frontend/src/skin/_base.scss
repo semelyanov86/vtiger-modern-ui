@@ -1,0 +1,154 @@
+// Typography and surfaces of the page (docs/design.md §3.2, §5.1).
+//
+// Rules on bare elements (body, a, strong, headings) are wrapped in :where(): they replace the element defaults
+// of Bootstrap/v7 (same specificity, later in the cascade) but never beat a class of v7 or of an extension —
+// icon fonts (.fa, .vicon-*) on <strong>/<b>/<i>, coloured links of menus, inline-styled elements keep theirs.
+@use '../styles/tokens' as *;
+
+:where(:root:not(.mu-off)) {
+  body {
+    font-family: tok(font-family);
+    font-size: fs(13);
+    line-height: 1.5;
+    color: tok(text-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  // v7 sets OpenSans-Semibold with font-weight: normal on these; same size, the theme's font and weight.
+  strong,
+  b,
+  th {
+    font-family: tok(font-family);
+    font-weight: 600;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .h1,
+  .h2,
+  .h3,
+  .h4,
+  .h5,
+  .h6 {
+    font-family: tok(font-family);
+    color: tok(text);
+  }
+
+  h4,
+  .h4 {
+    font-size: fs(16);
+    font-weight: 500;
+  }
+
+  h5,
+  .h5 {
+    font-size: fs(14);
+    font-weight: 600;
+  }
+
+  a {
+    color: tok(link);
+
+    &:hover,
+    &:focus {
+      color: tok(primary-strong);
+    }
+
+    &:focus-visible {
+      border-radius: 2px;
+      @include focus-ring;
+    }
+  }
+
+  hr {
+    border-top-color: tok(divider);
+  }
+
+  ::selection {
+    background: tok(primary-soft);
+    color: tok(text);
+  }
+}
+
+// Fallback focus ring for every other focusable element of v7 and of extensions (scroll boxes with tabindex,
+// inputs without a field class, custom widgets). Zero specificity: any rule of the element itself wins.
+:where(:root:not(.mu-off) :focus-visible) {
+  @include focus-ring;
+}
+
+:root:not(.mu-off) {
+  // Muted texts of v7 (".muted", help blocks, "Not set"): readable grey (5.05:1).
+  .muted,
+  .text-muted,
+  .help-block,
+  .textOverflowEllipsis.muted {
+    color: tok(text-muted);
+  }
+
+  // Required marker of v7 forms: <span class="redColor">*</span>.
+  .redColor {
+    color: tok(required);
+  }
+
+  // Page and content areas: light background, white cards on it (docs/design.md §5.1).
+  .main-container,
+  .content-area,
+  .detailViewContainer .content-area,
+  .editViewPageDiv .content-area,
+  .editViewPageDiv.content-area,
+  .settingsPageDiv.content-area,
+  .listViewPageDiv {
+    background-color: tok(bg);
+  }
+
+  .sidebar-essentials,
+  .module-nav .sidebar-menu {
+    background-color: tok(surface);
+    border-right-color: tok(border);
+  }
+
+  // Footer of the page ("Powered by vtiger").
+  .app-footer,
+  footer.app-footer {
+    background-color: tok(surface-subtle);
+    border-top: 1px solid tok(border);
+    color: tok(text-2);
+    font-size: fs(12);
+  }
+
+  // Badges and labels keep the colour of their meaning, only the shape follows the theme.
+  .badge,
+  .label {
+    font-family: tok(font-family);
+    font-weight: 600;
+    border-radius: tok(radius-pill);
+  }
+
+  .well {
+    background-color: tok(surface-subtle);
+    border-color: tok(border);
+    border-radius: tok(radius-md);
+    box-shadow: none;
+  }
+
+  // Native checkboxes and radios: the accent of the theme, size and behaviour of v7.
+  input[type='checkbox'],
+  input[type='radio'] {
+    accent-color: tok(primary-strong);
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+
+  @media print {
+    body {
+      color: #000;
+    }
+  }
+}

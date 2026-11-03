@@ -1,0 +1,113 @@
+// Modal windows of v7 (Bootstrap 3 .modal, bootbox, quick create, popups; docs/design.md §4, §5.5): radius 12,
+// modal shadow, a light header with a 16/600 title instead of the dark bar of v7, the footer as a light bar.
+// Widths, positions, focus handling (enforceFocus of v7), backdrop and the markup of the forms stay.
+@use '../styles/tokens' as *;
+
+:root:not(.mu-off) {
+  // v7 sizes the body of quick create and other modals for its own header (≈ 51 px) and fields (30 px), and the
+  // scroll container inside is positioned: taller parts would push the form over the footer. Inside modals the
+  // theme keeps that geometry — fields and buttons of v7 height, a header of v7 height — and no overflow clipping
+  // (the corners are rounded on the header and the footer instead).
+  .modal-content {
+    --mu-input-height: 30px;
+    --mu-button-height: 30px;
+    border: 0;
+    border-radius: tok(radius-lg);
+    background-color: tok(surface);
+    box-shadow: tok(shadow-modal);
+  }
+
+  .modal-content > .modal-header:first-child,
+  .modal-content > form > .modal-header:first-child,
+  .modal-content > :first-child > .modal-header:first-child {
+    border-top-left-radius: tok(radius-lg);
+    border-top-right-radius: tok(radius-lg);
+  }
+
+  .modal-content .modal-footer:last-child {
+    border-bottom-left-radius: tok(radius-lg);
+    border-bottom-right-radius: tok(radius-lg);
+  }
+
+  .modal-header {
+    padding: 10px 24px;
+    border-bottom: 1px solid tok(divider);
+    background: tok(surface);
+    color: tok(text);
+
+    h4,
+    h3,
+    .modal-title,
+    .pageTitle {
+      color: tok(text);
+      font-family: tok(font-family);
+      margin-top: 0;
+      margin-bottom: 0;
+      font-size: fs(16);
+      font-weight: 600;
+      line-height: 30px;
+    }
+
+    .close,
+    button.close {
+      min-width: 32px;
+      min-height: 32px;
+      border-radius: tok(radius-sm);
+      color: tok(text-heading);
+      opacity: 0.8;
+      text-shadow: none;
+
+      &:hover,
+      &:focus {
+        background-color: tok(surface-readonly);
+        color: tok(text);
+        opacity: 1;
+      }
+
+      &:focus-visible {
+        @include focus-ring;
+      }
+    }
+  }
+
+  .modal-body {
+    background-color: tok(surface);
+    color: tok(text-body);
+  }
+
+  .modal-footer {
+    padding: 12px 24px;
+    border-top: 1px solid tok(divider);
+    background-color: tok(surface-subtle);
+  }
+
+  .modal-backdrop.in {
+    opacity: 0.5;
+  }
+
+  // Quick create and the overlay record views of v7 use the same parts.
+  .quickCreateContent {
+    background-color: tok(surface);
+  }
+
+  // The body of quick create can have a max-height without a scroll container (when mCustomScrollbar is not
+  // applied, as on modified builds): a longer form then runs over the footer with Save/Cancel. The body scrolls
+  // instead; Select2, date picker and autocomplete of v7 are appended to <body> and are not clipped by it.
+  form[name='QuickCreate'] .modal-body {
+    overflow-y: auto;
+  }
+
+  .overlayPageContent {
+    background-color: tok(surface);
+    box-shadow: tok(shadow-modal);
+  }
+
+  .overlayHeader .modal-header .close {
+    color: tok(text-heading);
+  }
+
+  // bootbox confirmations.
+  .bootbox .modal-body {
+    font-size: fs(14);
+  }
+}

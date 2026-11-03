@@ -121,6 +121,18 @@ tasks:
     dir: frontend
     cmd: MU_E2E_TARGET=${MU_E2E_TARGET:-dev} MU_BASELINE_SAFE_MODE=${MU_BASELINE_SAFE_MODE:-1} npx playwright test --config e2e/playwright.config.ts --project baseline {{.CLI_ARGS}}
 
+  shots:
+    desc: 'Screenshots of the main screens at 1440/1024/768/412 px with and without the theme into MU_SHOTS_DIR (required for dev: private directory; clean stand: .local/shots/<target>/)'
+    deps: [fe:install]
+    dir: frontend
+    cmd: MU_E2E_TARGET=${MU_E2E_TARGET:-dev} npx playwright test --config e2e/playwright.config.ts --project visual {{.CLI_ARGS}}
+
+  measure:
+    desc: 'Cost of the theme against safe mode (timings, CLS, bytes, Bootstrap time and 304) into .local/e2e-reports/<target>/measure-<label>.json'
+    deps: [fe:install]
+    dir: frontend
+    cmd: MU_E2E_TARGET=${MU_E2E_TARGET:-dev} npx playwright test --config e2e/playwright.config.ts --project measure {{.CLI_ARGS}}
+
   test:devcycle:
     desc: 'Edit → result on the dev instance: temporary edits of PHP, Smarty, a PHP dictionary, CSS and Vue (own watcher), a compile error; all undone'
     deps: [fe:install]

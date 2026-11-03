@@ -74,13 +74,21 @@ class ModernUI_Preferences_View extends Vtiger_Basic_View {
 			$viewer->assign('MU_REASON', $decision['reason']);
 			$viewer->assign('MU_MODE', $values['theme.mode']);
 			$viewer->assign('MU_CAN_LOCALE', in_array('locale', $allowed, true));
+			$viewer->assign('MU_CAN_DENSITY', in_array('appearance.density', $allowed, true));
+			$viewer->assign('MU_CAN_FONT_SCALE', in_array('appearance.fontScale', $allowed, true));
+			$personal = $context['settings']['user']['values'];
 			$viewer->assign('MU_CAN_OPT_OUT', in_array('user.standardView', $allowed, true) && $values['theme.mode'] !== 'off');
 			$viewer->assign('MU_CAN_SELF_ENABLE', in_array('user.selfEnabled', $allowed, true) && $values['theme.mode'] === 'pilot');
 			$viewer->assign('MU_VALUES', array(
 				'locale' => $values['locale'],
 				'standardView' => (bool) $values['user.standardView'],
 				'selfEnabled' => (bool) $values['user.selfEnabled'],
+				// Personal choice only ('' = as the administrator set it); the effective value is shown separately.
+				'density' => isset($personal['appearance.density']) ? (string) $personal['appearance.density'] : '',
+				'fontScale' => isset($personal['appearance.fontScale']) ? (string) $personal['appearance.fontScale'] : '',
 			));
+			$viewer->assign('MU_DENSITIES', array('compact', 'standard', 'comfortable'));
+			$viewer->assign('MU_FONT_SCALES', array('90', '100', '110', '125'));
 			$viewer->assign('MU_HAS_PERSONAL', $context['settings']['user']['revision'] > 0);
 		}
 		$viewer->assign('MU_LOCALES', array('auto', 'ru-RU', 'en-US', 'de-DE'));

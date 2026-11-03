@@ -197,7 +197,8 @@ $after = ModernUI_Settings_Model::decodeRow(ModernUI_Settings_Model::getRow('glo
 check($after['values']['theme.mode'] === 'off' && $after['values']['theme.pilot.users'] === array(1), 'reinstall: pilot kept, theme off');
 check(ModernUI_Schema_Model::getMeta('notice') === 'MU_REINSTALLED_THEME_OFF', 'reinstall notice');
 check(ModernUI_Schema_Model::getMeta('installed_version') === '0.1.0', 'installed version from vtiger_tab');
-check(count(MU_Fake::$links) === 4 && count(MU_Fake::$settingsLinks) === 1, 'reinstall: links and the settings item are created again');
+// Three global links (skin, tokens, loader): each is deleted and added again.
+check(count(MU_Fake::$links) === 6 && count(MU_Fake::$settingsLinks) === 1, 'reinstall: links and the settings item are created again');
 
 // 6. A schema newer than the code is never migrated down.
 ModernUI_Schema_Model::setMeta('schema_version', '9');

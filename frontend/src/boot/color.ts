@@ -32,6 +32,12 @@ export function darken(hex: string, amount: number): string {
   return toHex(channel(hex, 1) * keep, channel(hex, 3) * keep, channel(hex, 5) * keep)
 }
 
+/** Mixes a colour with white: `weight` is the share of the colour (0 … 1). */
+export function mixWithWhite(hex: string, weight: number): string {
+  const mix = (offset: number): number => channel(hex, offset) * weight + 255 * (1 - weight)
+  return toHex(mix(1), mix(3), mix(5))
+}
+
 /** The colour itself if white text on it reaches `ratio`, otherwise the nearest darker variant that does. */
 export function strongVariant(hex: string, ratio = 4.5): string {
   let candidate = hex

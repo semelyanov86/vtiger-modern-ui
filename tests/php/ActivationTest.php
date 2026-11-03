@@ -73,18 +73,23 @@ test('activation: evaluate() stops at module, version, schema and safe mode befo
 	assert_same('MU_SAFE_MODE', ModernUI_Activation_Model::evaluate(array('modernui' => 'off'))['reason']);
 });
 
-test('link handler: active theme rewrites both links to the current build; inactive theme hides them', function () {
+test('link handler: active theme rewrites the three links to the current build and settings; inactive theme hides them', function () {
 	if (!ModernUI_Assets_Model::isAvailable()) {
 		fail_test('no production build in src/: run task build');
 	}
 	mu_prepare(array('theme.mode' => 'pilot', 'theme.pilot.users' => array(5)));
 	$css = new MU_FakeLink('HEADERCSS', 'ModernUISkin', 'layouts/v7/modules/ModernUI/resources/dist/skin.css');
+	$tokens = new MU_FakeLink('HEADERCSS', 'ModernUITokens', 'layouts/v7/modules/ModernUI/resources/dist/tokens.css');
 	$js = new MU_FakeLink('HEADERSCRIPT', 'ModernUIShell', 'layouts/v7/modules/ModernUI/resources/loader.js');
 	assert_same(true, ModernUI_LinkHandler_Model::filter(new Vtiger_LinkData($css)));
+	assert_same(true, ModernUI_LinkHandler_Model::filter(new Vtiger_LinkData($tokens)));
 	assert_same(true, ModernUI_LinkHandler_Model::filter(new Vtiger_LinkData($js)));
 	$build = ModernUI_Assets_Model::buildId();
+	$context = ModernUI_Activation_Model::context();
+	assert_same('index.php?module=ModernUI&action=Tokens&r=' . $context['cacheKey'] . '&z=', $tokens->linkurl);
+	assert_true(preg_match('/^[0-9a-f]{12}$/', $context['cacheKey']) === 1, 'cache key');
 	assert_true(preg_match('#^layouts/v7/modules/ModernUI/resources/dist/assets/skin-[A-Za-z0-9_-]+\.css\?b=' . $build . '&z=$#', $css->linkurl) === 1, $css->linkurl);
-	assert_true(preg_match('#^layouts/v7/modules/ModernUI/resources/loader\.js\?b=' . $build . '&r=[0-9a-f]{12}&z=$#', $js->linkurl) === 1, $js->linkurl);
+	assert_true(preg_match('#^layouts/v7/modules/ModernUI/resources/loader\.js\?b=' . $build . '&z=$#', $js->linkurl) === 1, $js->linkurl);
 	assert_true(is_file($css->linkurl === '' ? '' : strstr($css->linkurl, '?', true)), 'the skin file exists (Header.php checks file_exists)');
 
 	MU_Fake::reset();
@@ -111,23 +116,26 @@ test('lifecycle: links are created with the handler, once, and removed on disabl
 	$added = array_values(array_filter(MU_Fake::$links, function ($entry) {
 		return $entry[0] === 'add';
 	}));
-	assert_same(2, count($added));
+	assert_same(3, count($added));
 	foreach ($added as $entry) {
 		assert_same(0, $entry[1], 'tabid 0');
 		assert_same(array('path' => 'modules/ModernUI/models/LinkHandler.php', 'class' => 'ModernUI_LinkHandler_Model', 'method' => 'filter'), $entry[5]);
 	}
 	assert_same('layouts/v7/modules/ModernUI/resources/dist/skin.css', $added[0][4]);
 	assert_true(!is_file($added[0][4]), 'the registered skin URL names no real file (fails safe without the handler)');
+	assert_same(array('HEADERCSS', 'ModernUITokens'), array($added[1][2], $added[1][3]));
+	assert_true(!is_file($added[1][4]), 'the registered tokens URL names no real file either');
 
 	MU_Fake::reset();
 	MU_Fake::answer('FROM vtiger_links', array(array('linkid' => 1, 'linkurl' => 'layouts/v7/modules/ModernUI/resources/dist/skin.css',
 		'handler_path' => 'modules/ModernUI/models/LinkHandler.php', 'handler_class' => 'ModernUI_LinkHandler_Model', 'handler' => 'filter')));
 	ModernUI_Lifecycle_Model::syncLinks();
-	assert_same(1, count(array_filter(MU_Fake::$links, function ($entry) {
+	assert_same(2, count(array_filter(MU_Fake::$links, function ($entry) {
 		return $entry[0] === 'add';
-	})), 'the up-to-date skin link is kept, the shell link (different URL in this answer) is replaced');
+	})), 'the up-to-date skin link is kept, the tokens and shell links (different URL in this answer) are replaced');
 
 	MU_Fake::reset();
 	ModernUI_Lifecycle_Model::handle('module.disabled');
-	assert_same(array(array('delete', 0, 'HEADERCSS', 'ModernUISkin'), array('delete', 0, 'HEADERSCRIPT', 'ModernUIShell')), MU_Fake::$links);
+	assert_same(array(array('delete', 0, 'HEADERCSS', 'ModernUISkin'), array('delete', 0, 'HEADERCSS', 'ModernUITokens'),
+		array('delete', 0, 'HEADERSCRIPT', 'ModernUIShell')), MU_Fake::$links);
 });

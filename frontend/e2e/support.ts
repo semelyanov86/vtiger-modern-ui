@@ -13,6 +13,7 @@ export const MODULE_IMPORT = 'index.php?module=ModuleManager&parent=Settings&vie
 
 export const SKIN = 'link[rel="stylesheet"][href*="modules/ModernUI/resources/dist/assets/skin-"]'
 export const LOADER = 'script[src*="modules/ModernUI/resources/loader.js"]'
+export const TOKENS = 'link[rel="stylesheet"][href*="module=ModernUI&action=Tokens"]'
 export const ISLAND = '#navbar > [data-mu-root="system-menu"]'
 
 /**
@@ -98,6 +99,7 @@ export function watchErrors(page: Page): { console: string[]; page: string[] } {
 
 export interface ThemeState {
   skin: number
+  tokens: number
   loader: number
   ready: boolean
   failed: string | null
@@ -106,16 +108,18 @@ export interface ThemeState {
 export async function themeOnPage(page: Page): Promise<ThemeState> {
   return {
     skin: await page.locator(SKIN).count(),
+    tokens: await page.locator(TOKENS).count(),
     loader: await page.locator(LOADER).count(),
     ready: await page.evaluate(() => document.documentElement.classList.contains('mu-shell-ready')),
     failed: await page.evaluate(() => document.documentElement.getAttribute('data-mu-failed')),
   }
 }
 
+/** Until the shell is ready, failed, or settled on a page it only skins (data-mu-level="skin"). */
 export async function waitForShell(page: Page): Promise<void> {
   await page.waitForFunction(() => {
     const html = document.documentElement
-    return html.classList.contains('mu-shell-ready') || html.hasAttribute('data-mu-failed')
+    return html.classList.contains('mu-shell-ready') || html.hasAttribute('data-mu-failed') || html.getAttribute('data-mu-level') === 'skin'
   })
 }
 

@@ -35,7 +35,7 @@ $links = Vtiger_Link_Model::getAllByType(Vtiger_Link::IGNORE_MODULE, array('HEAD
 $found = array();
 foreach ($links as $type => $list) {
 	foreach ($list as $link) {
-		if (strpos($link->linkurl, 'modules/ModernUI/') !== false) {
+		if (strpos($link->linkurl, 'modules/ModernUI/') !== false || strpos($link->linkurl, 'module=ModernUI') !== false) {
 			$found[] = "{$type} {$link->linkurl}";
 		}
 	}

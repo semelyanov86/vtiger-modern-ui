@@ -1,0 +1,113 @@
+// Header of v7 (nav.app-fixed-navbar, docs/design.md §5.1, docs/architecture.md §7.1): the header stays, with
+// every button of the core and of extensions in its place and order; the skin changes colours, the search
+// field and focus only. Geometry of the header and the module strip (heights, paddings of #page) stays until
+// the navigation of the theme replaces the app menu (stage 06).
+@use '../styles/tokens' as *;
+
+:root:not(.mu-off) {
+  .app-fixed-navbar {
+    background-color: tok(surface);
+    box-shadow: tok(shadow-header);
+  }
+
+  .global-nav {
+    font-family: tok(font-family);
+  }
+
+  // Buttons of the header (#navbar of the core and extensions): one colour, the accent on hover, a visible ring.
+  #navbar .navbar-nav > li > a,
+  #navbar .navbar-nav > li > div > a,
+  #navbar .navbar-nav > li .dropdown-toggle > a {
+    color: tok(text-heading);
+    @include transition(color);
+
+    &:hover,
+    &:focus {
+      color: tok(primary-strong);
+      background-color: transparent;
+    }
+
+    &:focus-visible {
+      border-radius: tok(radius-sm);
+      @include focus-ring(true);
+    }
+  }
+
+  // Global search of the header: the box of a field around the v7 input.
+  .global-nav .search-link {
+    border: 1px solid tok(border-input);
+    border-radius: tok(radius-sm);
+    background-color: tok(surface);
+    color: tok(text-2);
+    @include transition(border-color, box-shadow);
+
+    &:focus-within {
+      border-color: tok(focus-border);
+      @include focus-ring;
+    }
+
+    .keyword-input {
+      border: 0;
+      background: transparent;
+      color: tok(text);
+      font-family: tok(font-family);
+      font-size: fs(13);
+      box-shadow: none;
+      outline: none;
+
+      &::placeholder {
+        color: tok(text-muted);
+        opacity: 1;
+      }
+    }
+
+    .fa,
+    .adv-search {
+      color: tok(text-2);
+    }
+  }
+
+  // The search input without the .search-link box of the stock header (modified headers).
+  .keyword-input:focus-visible {
+    @include focus-ring(true);
+  }
+
+  .global-nav .search-link .keyword-input:focus-visible {
+    box-shadow: none;
+  }
+
+  // App switcher (hamburger) and the module strip on the left: the dark navigation colour of the design.
+  .global-nav .app-switcher-container .app-navigator:hover,
+  .modules-menu ul li:hover {
+    background-color: tok(nav-dark-2);
+  }
+
+  .main-container .module-nav,
+  .module-nav .modules-menu {
+    background-color: tok(nav-dark);
+  }
+
+  .modules-menu ul li a {
+    font-family: tok(font-family);
+  }
+
+  .modules-menu ul li a:focus-visible,
+  #appnavigator:focus-visible {
+    @include focus-ring(true);
+  }
+
+  // Menu of the apps (#app-menu) of v7: still the v7 menu, in the theme's font.
+  #app-menu {
+    font-family: tok(font-family);
+
+    .app-item .app-name,
+    .app-modules-dropdown a {
+      font-family: tok(font-family);
+    }
+  }
+
+  // Menu of the user (avatar) and the other dropdowns of the header.
+  .global-actions .dropdown-menu {
+    margin-top: 4px;
+  }
+}

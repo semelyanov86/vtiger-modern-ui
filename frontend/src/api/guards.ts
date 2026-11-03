@@ -6,6 +6,7 @@ import { isThemeLocale, type LocaleSource } from '../i18n/locale'
 import {
   ERROR_CODES,
   SYSTEM_ITEM_IDS,
+  TOKEN_NAMES,
   type Appearance,
   type Bootstrap,
   type Density,
@@ -15,6 +16,8 @@ import {
   type SystemItem,
   type SystemItemId,
   type ThemeMode,
+  type TokenMap,
+  type TokenName,
 } from './types'
 
 export class ApiError extends Error {
@@ -86,6 +89,52 @@ function systemItem(value: unknown, path: string): SystemItem {
   return { id, kind: 'link', url: string(item['url'], `${path}.url`, CRM_URL) }
 }
 
+/** Allowed value of each token: nothing else can reach the style of <html>. */
+const TOKEN_VALUE: Readonly<Record<TokenName, RegExp>> = {
+  primary: COLOR,
+  'primary-strong': COLOR,
+  'primary-hover': COLOR,
+  'primary-soft': COLOR,
+  bg: COLOR,
+  surface: COLOR,
+  'font-scale': /^(?:0\.9|1|1\.1|1\.25)$/,
+  'font-family': /^var\(--mu-font-(?:inter|system)\)$/,
+  'row-height': /^\d{2}px$/,
+  'table-head-height': /^\d{2}px$/,
+  'input-height': /^\d{2}px$/,
+  'button-height': /^\d{2}px$/,
+  'cell-padding': /^\d{1,2}px$/,
+  'menu-item-height': /^\d{2}px$/,
+  'icon-button': /^\d{2}px$/,
+}
+
+export function parseTokens(value: unknown, path: string): TokenMap {
+  const data = record(value, path)
+  for (const name of Object.keys(data)) {
+    if (!TOKEN_NAMES.some((known) => known === name)) {
+      return bad(`${path}.${name}`)
+    }
+  }
+  const token = (name: TokenName): string => string(data[name], `${path}.${name}`, TOKEN_VALUE[name])
+  return {
+    primary: token('primary'),
+    'primary-strong': token('primary-strong'),
+    'primary-hover': token('primary-hover'),
+    'primary-soft': token('primary-soft'),
+    bg: token('bg'),
+    surface: token('surface'),
+    'font-scale': token('font-scale'),
+    'font-family': token('font-family'),
+    'row-height': token('row-height'),
+    'table-head-height': token('table-head-height'),
+    'input-height': token('input-height'),
+    'button-height': token('button-height'),
+    'cell-padding': token('cell-padding'),
+    'menu-item-height': token('menu-item-height'),
+    'icon-button': token('icon-button'),
+  }
+}
+
 function appearance(value: unknown, path: string): Appearance {
   const data = record(value, path)
   return {
@@ -95,6 +144,7 @@ function appearance(value: unknown, path: string): Appearance {
     density: oneOf(data['density'], DENSITIES, `${path}.density`),
     fontScale: oneOf(data['fontScale'], FONT_SCALES, `${path}.fontScale`),
     font: oneOf(data['font'], FONTS, `${path}.font`),
+    tokens: parseTokens(data['tokens'], `${path}.tokens`),
   }
 }
 

@@ -114,8 +114,10 @@ class ModernUI_Activation_Model {
 				'ancestors' => $ancestors,
 				'crmLanguage' => (string) $user->get('language'),
 				'settings' => $settings,
-				'cacheKey' => substr(sha1($userId . '|' . json_encode($settings['revisions']) . '|' . ModernUI_Schema_Model::VERSION . '|'
-					. ModernUI_Assets_Model::buildId()), 0, 12),
+				// Changes with every saved settings document of the user, the role whose settings apply, the schema and
+				// the build: the URL of the tokens stylesheet (cached for good by the browser) and the ETag rely on it.
+				'cacheKey' => substr(sha1($userId . '|' . $roleId . '|' . (string) $settings['roleSource'] . '|' . json_encode($settings['revisions'])
+					. '|' . ModernUI_Schema_Model::VERSION . '|' . ModernUI_Assets_Model::buildId()), 0, 12),
 			);
 		}
 		return self::$contexts[$userId];

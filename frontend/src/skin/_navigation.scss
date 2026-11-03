@@ -1,0 +1,143 @@
+// Tabs and pills of v7 (docs/design.md §4): the active tab has a 3 px underline in the accent, inactive tabs
+// the label colour. Order, number and behaviour of the tabs (EMAIL Maker rewrites them by position) stay.
+@use '../styles/tokens' as *;
+
+:root:not(.mu-off) {
+  .nav-tabs {
+    border-bottom-color: tok(border);
+
+    > li > a {
+      border: 0;
+      border-radius: 0;
+      color: tok(text-label);
+      font-size: fs(14);
+      @include transition(color, box-shadow);
+
+      &:hover,
+      &:focus {
+        border: 0;
+        background-color: transparent;
+        color: tok(text);
+      }
+
+      &:focus-visible {
+        @include focus-ring(true);
+      }
+    }
+
+    > li.active > a,
+    > li.active > a:hover,
+    > li.active > a:focus {
+      border: 0;
+      background-color: transparent;
+      color: tok(text);
+      font-weight: 600;
+      box-shadow: inset 0 -3px 0 tok(primary);
+    }
+  }
+
+  // Related tabs of the record view: v7 draws the underline on the <li>.
+  .related-tabs .nav-tabs > li.active,
+  .related-tabs .nav-tabs > li:hover,
+  .dashBoardContainer .nav-tabs > li.active,
+  .contents.tabbable .nav-tabs > li.active {
+    border-bottom-color: tok(primary);
+  }
+
+  // Related tabs of v7 have a fixed width (90 px per tab): the size of v7 (13 px) keeps long labels such as
+  // "(Information)(View)" from running into the next tab.
+  .related-tabs .nav-tabs > li {
+    > a {
+      color: tok(text-label);
+      font-size: fs(13);
+    }
+
+    &.active > a {
+      color: tok(text);
+      box-shadow: none;
+    }
+  }
+
+  .related-tabs .tab-icon {
+    color: tok(text-heading);
+  }
+
+  // Counters next to the related tabs keep their colour (data), only the shape follows the theme.
+  .related-tabs .numberCircle {
+    border-radius: tok(radius-pill);
+    font-family: tok(font-family);
+  }
+
+  .nav-pills > li > a {
+    border-radius: tok(radius-sm);
+    color: tok(text-label);
+
+    &:hover,
+    &:focus {
+      background-color: tok(surface-readonly);
+      color: tok(text);
+    }
+  }
+
+  .nav-pills > li.active > a,
+  .nav-pills > li.active > a:hover,
+  .nav-pills > li.active > a:focus {
+    background-color: tok(primary-strong);
+    color: #ffffff;
+  }
+
+  // Breadcrumbs of the module action bar: the theme's font instead of Oswald, same size and clipping.
+  .module-action-bar .module-title {
+    font-family: tok(font-family);
+    font-weight: 500;
+    color: tok(text-heading);
+    text-transform: none;
+  }
+
+  .module-action-bar .module-breadcrumb,
+  .module-action-bar .module-breadcrumb a {
+    color: tok(text-heading);
+  }
+
+  .module-action-bar .module-breadcrumb .current-filter-name,
+  .module-action-bar .module-breadcrumb .detail-name,
+  .module-action-bar .module-breadcrumb .editing-name,
+  .module-action-bar .module-breadcrumb .list-name {
+    color: tok(text-2);
+  }
+
+  .app-nav .module-action-bar .module-action-content {
+    background-color: tok(surface);
+    border-bottom: 1px solid tok(border);
+  }
+
+  // Pagination of v7 lists.
+  .pagination > li > a,
+  .pagination > li > span {
+    border-color: tok(border);
+    color: tok(text);
+  }
+
+  .pagination > .active > a,
+  .pagination > .active > span,
+  .pagination > .active > a:hover,
+  .pagination > .active > span:hover {
+    border-color: tok(primary-strong);
+    background-color: tok(primary-strong);
+    color: #ffffff;
+  }
+
+  .listViewPagination .btn,
+  .listViewActions .btn {
+    min-width: 32px;
+  }
+
+  // Side menu of the settings (Settings → …): a dark panel of v7 with its own colours for groups, items and the
+  // selected item; the theme changes the font only (recolouring it gave dark text on the dark panel).
+  .settingsgroup .panel-heading,
+  .settingsgroup-panel .panel-heading,
+  .settingsNav .menuItemLabel,
+  .settingsgroup .panel-body a {
+    font-family: tok(font-family);
+  }
+}

@@ -1,0 +1,190 @@
+// Messages of v7 (docs/design.md §4): alerts, notifications of bootstrap-notify (.vt-notification) and
+// pnotify, validation tips (qtip). The mechanisms, positions and timers stay; success/error/warning/info keep
+// their meaning through a coloured stripe and icon, the text is dark on a light surface (≥ 4.5:1).
+@use '../styles/tokens' as *;
+
+@mixin message($color, $soft) {
+  border-color: $soft;
+  border-left-color: $color;
+  background-color: $soft;
+  color: tok(text);
+
+  a,
+  .alert-link {
+    color: tok(text);
+    text-decoration: underline;
+  }
+}
+
+:root:not(.mu-off) {
+  .alert {
+    border: 1px solid transparent;
+    border-left-width: 4px;
+    border-radius: tok(radius-sm);
+    font-size: fs(13);
+    text-shadow: none;
+    background-image: none;
+    box-shadow: none;
+  }
+
+  .alert-success {
+    @include message(tok(success-border), tok(success-soft));
+  }
+
+  .alert-danger,
+  .alert-error {
+    @include message(tok(danger), tok(danger-soft));
+  }
+
+  .alert-warning {
+    @include message(tok(warning), tok(warning-soft));
+  }
+
+  .alert-info {
+    @include message(tok(info), tok(info-soft));
+  }
+
+  // Notifications of app.helper.show*Notification (template of helper.js): dark box of v7 → light card.
+  .vt-notification {
+    max-width: 360px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-left: 4px solid tok(info);
+    border-radius: tok(radius-md);
+    background-color: tok(surface);
+    color: tok(text);
+    font-family: tok(font-family);
+    font-size: fs(13);
+    box-shadow: tok(shadow-dropdown);
+
+    .notificationHeader {
+      font-size: fs(14);
+      font-weight: 600;
+
+      [data-notify='title'] {
+        color: tok(text);
+      }
+
+      .close {
+        color: tok(text-2);
+        opacity: 1;
+        text-shadow: none;
+      }
+    }
+
+    [data-notify='message'] {
+      color: tok(text-body);
+      overflow-wrap: anywhere;
+    }
+
+    .fa-check-circle {
+      color: tok(success);
+    }
+
+    .fa-exclamation-circle {
+      color: tok(danger);
+    }
+
+    .fa-exclamation-triangle {
+      color: tok(warning);
+    }
+  }
+
+  // v7 sends every notification with the default type ("info"); the kind is told by the icon of helper.js.
+  .vt-notification-success,
+  .vt-notification:has([data-notify='icon'].fa-check-circle) {
+    border-left-color: tok(success-border);
+  }
+
+  .vt-notification-danger,
+  .vt-notification-error,
+  .vt-notification:has([data-notify='icon'].fa-exclamation-circle) {
+    border-left-color: tok(danger);
+  }
+
+  .vt-notification-warning,
+  .vt-notification:has([data-notify='icon'].fa-exclamation-triangle) {
+    border-left-color: tok(warning);
+  }
+
+  // pnotify (used by some builds and extensions).
+  .ui-pnotify .ui-pnotify-container {
+    border-radius: tok(radius-md);
+    font-family: tok(font-family);
+    box-shadow: tok(shadow-dropdown);
+  }
+
+  // Validation tips of v7 (qtip next to a field) and other qtips.
+  .qtip {
+    border-radius: tok(radius-sm);
+    font-family: tok(font-family);
+    font-size: fs(12);
+    box-shadow: tok(shadow-dropdown);
+  }
+
+  .qtip-red,
+  .qtip.qtip-red {
+    border-color: tok(danger);
+    background-color: tok(surface);
+    color: tok(danger);
+
+    .qtip-content {
+      color: tok(danger);
+    }
+  }
+
+  .qtip-default {
+    border-color: tok(border);
+    background-color: tok(surface);
+    color: tok(text);
+  }
+
+  // Bootstrap tooltips and popovers.
+  .tooltip {
+    font-family: tok(font-family);
+  }
+
+  .tooltip-inner {
+    padding: 4px 8px;
+    border-radius: tok(radius-sm);
+    background-color: tok(nav-dark);
+    color: #ffffff;
+    font-size: fs(12);
+  }
+
+  .tooltip.top .tooltip-arrow {
+    border-top-color: tok(nav-dark);
+  }
+
+  .tooltip.bottom .tooltip-arrow {
+    border-bottom-color: tok(nav-dark);
+  }
+
+  .tooltip.left .tooltip-arrow {
+    border-left-color: tok(nav-dark);
+  }
+
+  .tooltip.right .tooltip-arrow {
+    border-right-color: tok(nav-dark);
+  }
+
+  .popover {
+    border-color: rgba(0, 0, 0, 0.15);
+    border-radius: tok(radius-md);
+    font-family: tok(font-family);
+    box-shadow: tok(shadow-dropdown);
+  }
+
+  .popover-title {
+    border-bottom-color: tok(divider);
+    background-color: tok(surface-subtle);
+    color: tok(text);
+    font-size: fs(14);
+    font-weight: 600;
+  }
+
+  // Progress indicator of v7 (app.helper.showProgress): the overlay and the spinner stay.
+  // Coloured bars (.progress-bar-success …) keep their meaning.
+  .progress-bar:not([class*='progress-bar-']) {
+    background-color: tok(primary-strong);
+  }
+}

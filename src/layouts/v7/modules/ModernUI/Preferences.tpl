@@ -19,7 +19,7 @@
 					{mu_t key='LBL_STATUS_INACTIVE'}&nbsp;{mu_t key="LBL_REASON_`$MU_REASON`"}
 				{/if}
 			</p>
-			{if $MU_CAN_LOCALE || $MU_CAN_OPT_OUT || $MU_CAN_SELF_ENABLE}
+			{if $MU_CAN_LOCALE || $MU_CAN_DENSITY || $MU_CAN_FONT_SCALE || $MU_CAN_OPT_OUT || $MU_CAN_SELF_ENABLE}
 				<form method="post" action="index.php" class="form-horizontal modernui-preferences-form">
 					<input type="hidden" name="module" value="ModernUI">
 					<input type="hidden" name="action" value="Preferences">
@@ -35,6 +35,33 @@
 									{/foreach}
 								</select>
 								<p class="help-block">{mu_t key='LBL_LANGUAGE_HELP'}</p>
+							</div>
+						</div>
+					{/if}
+					{if $MU_CAN_DENSITY}
+						<div class="form-group">
+							<label class="col-sm-4 control-label" for="modernui-density">{mu_t key='LBL_DENSITY'}</label>
+							<div class="col-sm-6">
+								<select id="modernui-density" name="density" class="form-control">
+									<option value=""{if $MU_VALUES.density eq ''} selected{/if}>{mu_t key='LBL_AS_ADMIN_SET'}</option>
+									{foreach item=CODE from=$MU_DENSITIES}
+										<option value="{$CODE|escape}"{if $MU_VALUES.density eq $CODE} selected{/if}>{mu_t key="LBL_DENSITY_`$CODE`"}</option>
+									{/foreach}
+								</select>
+							</div>
+						</div>
+					{/if}
+					{if $MU_CAN_FONT_SCALE}
+						<div class="form-group">
+							<label class="col-sm-4 control-label" for="modernui-font-scale">{mu_t key='LBL_FONT_SCALE'}</label>
+							<div class="col-sm-6">
+								<select id="modernui-font-scale" name="fontScale" class="form-control">
+									<option value=""{if $MU_VALUES.fontScale eq ''} selected{/if}>{mu_t key='LBL_AS_ADMIN_SET'}</option>
+									{foreach item=CODE from=$MU_FONT_SCALES}
+										<option value="{$CODE|escape}"{if $MU_VALUES.fontScale eq $CODE} selected{/if}>{mu_t key="LBL_FONT_SCALE_`$CODE`"}</option>
+									{/foreach}
+								</select>
+								<p class="help-block">{mu_t key='LBL_APPEARANCE_HELP'}</p>
 							</div>
 						</div>
 					{/if}

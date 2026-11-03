@@ -7,6 +7,7 @@
 
 require_once 'modules/ModernUI/models/Activation.php';
 require_once 'modules/ModernUI/models/Lifecycle.php';
+require_once 'modules/ModernUI/models/Tokens.php';
 
 class ModernUI_Client_Model {
 
@@ -22,6 +23,7 @@ class ModernUI_Client_Model {
 			$context = ModernUI_Activation_Model::context();
 		}
 		$values = $context['settings']['values'];
+		$appearance = ModernUI_Tokens_Model::appearanceOf($values);
 		$allowed = ModernUI_Settings_Model::allowedUserKeys($values);
 		$personalLocale = in_array('locale', $allowed, true) ? $values['locale'] : null;
 		$locale = ModernUI_Locale_Model::effective($personalLocale, $context['crmLanguage'], $values['locale.default']);
@@ -62,14 +64,8 @@ class ModernUI_Client_Model {
 				'canSelfEnable' => (bool) $values['theme.allowSelfEnable'] && $values['theme.mode'] === 'pilot',
 				'cacheKey' => $context['cacheKey'],
 			),
-			'appearance' => array(
-				'primaryColor' => $values['appearance.primaryColor'],
-				'background' => $values['appearance.background'],
-				'surface' => $values['appearance.surface'],
-				'density' => $values['appearance.density'],
-				'fontScale' => $values['appearance.fontScale'],
-				'font' => $values['appearance.font'],
-			),
+			// The settings values and the CSS variables computed from them (the same map as action=Tokens).
+			'appearance' => array_merge($appearance, array('tokens' => (object) ModernUI_Tokens_Model::forAppearance($appearance))),
 			'menu' => array('system' => $system),
 			'personal' => array(
 				'values' => (object) $personal,

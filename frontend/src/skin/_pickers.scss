@@ -1,0 +1,114 @@
+// Pickers of v7 (docs/design.md §4): bootstrap-datepicker (eternicode), daterangepicker, jquery-timepicker.
+// They live in body, outside any island; positions, z-index (datepicker 1100 !important) and behaviour stay.
+@use '../styles/tokens' as *;
+
+:root:not(.mu-off) {
+  .datepicker.dropdown-menu,
+  .datepicker-dropdown {
+    padding: 8px;
+    border-radius: tok(radius-md);
+    font-family: tok(font-family);
+    font-size: fs(13);
+  }
+
+  .datepicker {
+    table tr td,
+    table tr th {
+      border-radius: tok(radius-sm);
+    }
+
+    table tr td.day:hover,
+    table tr td.day.focused,
+    table tr td span:hover,
+    thead tr:first-child th:hover,
+    tfoot tr th:hover {
+      background: tok(surface-readonly);
+    }
+
+    table tr td.today,
+    table tr td.today:hover {
+      background: tok(primary-soft);
+      background-image: none;
+      color: tok(text);
+    }
+
+    table tr td.active,
+    table tr td.active:hover,
+    table tr td.active.active,
+    table tr td span.active,
+    table tr td span.active:hover,
+    table tr td.range-start,
+    table tr td.range-end {
+      background: tok(primary-strong);
+      background-image: none;
+      border-color: tok(primary-strong);
+      color: #ffffff;
+      text-shadow: none;
+    }
+
+    table tr td.range {
+      background: tok(primary-soft);
+      color: tok(text);
+    }
+
+    table tr td.old,
+    table tr td.new,
+    table tr td.disabled {
+      color: tok(text-muted);
+    }
+
+    .dow {
+      color: tok(text-label);
+      font-weight: 600;
+    }
+  }
+
+  .daterangepicker {
+    border-radius: tok(radius-md);
+    font-family: tok(font-family);
+    font-size: fs(13);
+    box-shadow: tok(shadow-dropdown);
+
+    td.active,
+    td.active:hover {
+      background-color: tok(primary-strong);
+      color: #ffffff;
+    }
+
+    td.in-range {
+      background-color: tok(primary-soft);
+      color: tok(text);
+    }
+
+    td.available:hover,
+    th.available:hover {
+      background-color: tok(surface-readonly);
+    }
+
+    .ranges li.active,
+    .ranges li:hover {
+      border-color: tok(primary-strong);
+      background-color: tok(primary-strong);
+      color: #ffffff;
+    }
+  }
+
+  .ui-timepicker-wrapper {
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: tok(radius-sm);
+    font-family: tok(font-family);
+    font-size: fs(13);
+    box-shadow: tok(shadow-dropdown);
+
+    .ui-timepicker-list li {
+      padding: 4px 10px;
+      color: tok(text);
+    }
+
+    .ui-timepicker-list li:hover,
+    .ui-timepicker-list .ui-timepicker-selected {
+      background: tok(primary-soft);
+      color: tok(text);
+    }
+  }
+}

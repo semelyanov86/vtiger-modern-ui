@@ -11,10 +11,13 @@
  * - baseline — behaviour of the CRM without the theme: pages, errors, timings (task baseline);
  * - import   — Settings → Module Manager → Import of MU_IMPORT_ZIP (task clean:import-zip, PACKAGE run);
  * - devcycle — edit → result on the dev instance for PHP, Smarty, Vue/CSS and translations (task test:devcycle);
- * - devrecord — a synthetic record through the standard form with the theme on, then its deletion (task test:devrecord).
+ * - devrecord — a synthetic record through the standard form with the theme on, then its deletion (task test:devrecord);
+ * - visual   — screenshots of the main screens with and without the theme for the visual review (task shots); the
+ *              only project that writes images, into MU_SHOTS_DIR (private directory on the dev instance);
+ * - measure  — cost of the theme against the same CRM in safe mode: timings, layout shift, bytes, Bootstrap (task measure).
  *
  * The tests change the theme settings of the signed-in users, so they run one after another. No screenshots,
- * traces or videos: pages of a dev instance may show customer data.
+ * traces or videos (except the visual project): pages of a dev instance may show customer data.
  */
 import { defineConfig } from '@playwright/test'
 import { crmUrl, repoRoot, stateFile, target } from './env'
@@ -46,5 +49,7 @@ export default defineConfig({
     { name: 'import', testMatch: /tools\/module-import\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'devcycle', testMatch: /devcycle\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'devrecord', testMatch: /devrecord\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
+    { name: 'visual', testMatch: /visual\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
+    { name: 'measure', testMatch: /measure\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
   ],
 })
