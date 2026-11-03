@@ -41,8 +41,8 @@ For development additionally:
 
 - Linux with `sudo` (the development link uses bind mounts and `nsenter`);
 - a local Vtiger 8.4 instance served by Apache + PHP-FPM;
-- [go-task](https://taskfile.dev/) 3.x, Node.js 24 with npm, Python 3.10+, Docker (PHP 8.1 lint, the
-  throwaway MySQL of the tests, later the clean test instance);
+- [go-task](https://taskfile.dev/) 3.x, Node.js 24 with npm, Python 3.10+, Docker with Compose v2 (PHP 8.1
+  lint, the throwaway MySQL of the tests, the clean Vtiger 8.4.0 stand);
 - PHP CLI 8.5 and 8.4 with mysqli (PHP 8.1 runs in Docker);
 - Chromium for Playwright 1.63 (`npx playwright install chromium` in `frontend/`) for `task test:e2e`.
 
@@ -57,7 +57,8 @@ frontend/       Vue 3 + Vite + TypeScript sources, dictionaries, build plugins (
                 unit tests (tests/, Vitest) and browser tests (e2e/, Playwright)
 packaging/      manifest template, allowlist and build-zip.py: the installable ZIP from src/
 tests/          PHP tests (php/, php/db/ on a throwaway MySQL), package tests (package/), shared fixtures
-dev/            development environment (link to a local CRM, vtlib lifecycle helper, checks)
+dev/            development environment (link to a local CRM, vtlib lifecycle helper, checks);
+                dev/clean/ — Docker project of the clean Vtiger 8.4.0 stand (task clean:*)
 docs/           design documents, plan and requirements (currently in Russian)
 dist/           ZIP, SHA-256 and file list, not committed
 VERSION         version of the module written into manifest.xml
@@ -113,6 +114,10 @@ VERSION         version of the module written into manifest.xml
 | `task lint` | `php -l` under PHP 8.5, 8.4 and 8.1 (Docker), `vue-tsc`, ESLint with zero warnings, ES5 syntax of the loader |
 | `task test` | Build, PHP tests (8.5/8.4/8.1), migrations on a throwaway MySQL 8.4 container, Vitest, package tests |
 | `task test:e2e` | Playwright scenarios on the instance from `.env` (signs in with `CRM_ADMIN_USER`/`CRM_ADMIN_PASS[_FILE]`) |
+| `task test:e2e:clean` | The same plus pilot, restricted users, languages, Module Manager switch, on both clean instances |
+| `task test:devcycle` | Proof of the edit → result loop on the linked instance: temporary edits of PHP, Smarty, a dictionary, CSS and Vue, all undone |
+| `task test:devrecord -- create` / `-- delete:<id>` | A synthetic record through the standard form with the theme on, then its deletion |
+| `task baseline` | Metrics of the CRM screens without the theme (`MU_E2E_TARGET`: `dev`, `c81` or `c85`), into `.local/e2e-reports/` |
 | `task privacy` | Check that files to be published contain no installation-specific information (see below) |
 
 `task test:package` unpacks the ZIP with the vtlib importer of the official `8.4.0` tag: set
@@ -150,17 +155,45 @@ Bind mounts do not survive a reboot: run `task crm:link` again after restarting 
 | `manifest.xml`, links, tables, settings schema | through the module lifecycle (`task crm:update`), not through the link |
 | A new path in `dev/crm-mounts.txt` (e.g. a new language) | after `task crm:link` |
 
+Smarty and OPcache compare file times in whole seconds: a second save of the same file within the
+second in which a page compiled the first one is not noticed. If an edit does not show up, save the file
+again.
+
 ### Testing the installable package
 
 The development link is not a proof that the module installs. The ZIP is always verified in a
 separate *package* run:
 
-1. on a fresh official Vtiger 8.4 instance with a new database and no linked sources;
+1. on a fresh official Vtiger 8.4.0 instance with a new database and no linked sources — the clean
+   stand of `dev/clean/` (below);
 2. on the development instance after `task crm:unlink`, importing the ZIP through
    *Settings → Module Manager → Import*, then going back with `task crm:link -- --force`.
 
 Never import the ZIP while the sources are linked: the read-only mounts would make the import fail
 halfway.
+
+### Clean Vtiger 8.4.0 stand
+
+`dev/clean/` is a Docker Compose project with images pinned by digest: MySQL 8.4 (`sql_mode` the
+installer requires), two Apache + PHP instances built from the official release archive of Vtiger 8.4.0
+(SHA-256 checked) — `c81` on PHP 8.1 in the site root and `c85` on PHP 8.5 under `/vtigercrm/` — a mailpit
+mail trap and an nginx gateway. The web servers have no route to the internet; only the gateway listens,
+on `127.0.0.1` (ports `MU_CLEAN_PORT`, `MU_CLEAN85_PORT`, `MU_CLEAN_MAIL_PORT`, defaults 8481, 8485, 8425).
+Passwords are generated into `.local/clean/` on the first run.
+
+| Command | What it does |
+|---|---|
+| `task clean:up` | Build the images, start, unpack the release archive into new volumes |
+| `task clean:install` | Run the standard web installer of each instance (new empty database, `en_us`) |
+| `task clean:seed` | Synthetic roles, profiles, users and records; imports the test entity module `Gadgets` through the Module Manager |
+| `task clean:import-zip` | Import `dist/ModernUI-<version>.zip` through *Settings → Module Manager → Import* (Playwright) |
+| `task clean:uninstall` | vtlib console `--remove=ModernUI`, then the module files (settings tables stay) |
+| `task clean:verify` | **Deletes the stand's data**, then the whole package check of a ZIP: install, import, scenarios, update, uninstall, reinstall, file hashes, PHP log |
+| `task clean:status` / `clean:logs` | State and registration of each instance / PHP messages grouped, those of ModernUI files listed |
+| `task clean:hash -- <label>` / `clean:meta -- <label>` | SHA-256 of the CRM code files / metadata of the database, for before-after comparisons |
+| `task clean:down` / `clean:reset` | Stop (data kept) / stop and delete the volumes |
+
+Details: `docs/environments.md`.
 
 ## Contribution guidelines
 

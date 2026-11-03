@@ -17,6 +17,11 @@ if ($root === '' || !is_file($root . '/config.inc.php') || $userId <= 0) {
 	exit(2);
 }
 chdir($root);
+// Bootstrap of index.php of Vtiger 8.4.0: the logger needs the composer autoloader (vendor/ of the release).
+include_once 'config.php';
+if (is_file('vendor/autoload.php')) {
+	require_once 'vendor/autoload.php';
+}
 include_once 'includes/main/WebUI.php';
 
 $user = new Users();

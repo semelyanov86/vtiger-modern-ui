@@ -123,6 +123,62 @@
 				{if $MU_THEME.standardView}
 					<p class="help-block">{mu_t key='LBL_YOU_CHOSE_STANDARD_VIEW'}</p>
 				{/if}
+				{if $MU_PILOT}
+					<h5><strong>{mu_t key='LBL_SECTION_PILOT'}</strong></h5>
+					<p>{mu_t key='LBL_PILOT_HELP'}</p>
+					<div class="row modernui-pilot">
+						{foreach item=KIND from=['user', 'role']}
+							{if $KIND eq 'user'}
+								{assign var=ENTRIES value=$MU_PILOT.users}
+								{assign var=OPTIONS value=$MU_PILOT.userOptions}
+							{else}
+								{assign var=ENTRIES value=$MU_PILOT.roles}
+								{assign var=OPTIONS value=$MU_PILOT.roleOptions}
+							{/if}
+							<div class="col-sm-6">
+								<table class="table table-bordered table-condensed modernui-pilot-{$KIND}s">
+									<caption>{if $KIND eq 'user'}{mu_t key='LBL_PILOT_USERS'}{else}{mu_t key='LBL_PILOT_ROLES'}{/if}</caption>
+									<tbody>
+										{foreach item=ENTRY from=$ENTRIES}
+											<tr data-mu-pilot-{$KIND}="{$ENTRY.id|escape}">
+												<td>{$ENTRY.label|escape}</td>
+												<td class="text-right">
+													<form method="post" action="index.php" class="modernui-inline-form">
+														<input type="hidden" name="module" value="ModernUI">
+														<input type="hidden" name="parent" value="Settings">
+														<input type="hidden" name="action" value="Toggle">
+														<input type="hidden" name="mode" value="{if $KIND eq 'user'}pilotRemoveUser{else}pilotRemoveRole{/if}">
+														<input type="hidden" name="{$KIND}" value="{$ENTRY.id|escape}">
+														<input type="hidden" name="__vtrftk" value="{$MU_CSRF|escape}">
+														<button type="submit" class="btn btn-default btn-xs" name="modernui-pilot-remove-{$KIND}" aria-label="{mu_t key='LBL_PILOT_REMOVE_LABEL' name=$ENTRY.label}">{mu_t key='LBL_PILOT_REMOVE'}</button>
+													</form>
+												</td>
+											</tr>
+										{foreachelse}
+											<tr><td class="text-muted">{if $KIND eq 'user'}{mu_t key='LBL_PILOT_NO_USERS'}{else}{mu_t key='LBL_PILOT_NO_ROLES'}{/if}</td></tr>
+										{/foreach}
+									</tbody>
+								</table>
+								{if $OPTIONS}
+									<form method="post" action="index.php" class="form-inline modernui-pilot-add">
+										<input type="hidden" name="module" value="ModernUI">
+										<input type="hidden" name="parent" value="Settings">
+										<input type="hidden" name="action" value="Toggle">
+										<input type="hidden" name="mode" value="{if $KIND eq 'user'}pilotAddUser{else}pilotAddRole{/if}">
+										<input type="hidden" name="__vtrftk" value="{$MU_CSRF|escape}">
+										<label class="sr-only" for="modernui-pilot-{$KIND}">{if $KIND eq 'user'}{mu_t key='LBL_PILOT_CHOOSE_USER'}{else}{mu_t key='LBL_PILOT_CHOOSE_ROLE'}{/if}</label>
+										<select class="form-control input-sm" id="modernui-pilot-{$KIND}" name="{$KIND}">
+											{foreach item=OPTION from=$OPTIONS}
+												<option value="{$OPTION.id|escape}">{$OPTION.label|escape}</option>
+											{/foreach}
+										</select>&nbsp;
+										<button type="submit" class="btn btn-default btn-sm" name="modernui-pilot-add-{$KIND}">{if $KIND eq 'user'}{mu_t key='LBL_PILOT_ADD_USER'}{else}{mu_t key='LBL_PILOT_ADD_ROLE'}{/if}</button>
+									</form>
+								{/if}
+							</div>
+						{/foreach}
+					</div>
+				{/if}
 				<p><a href="index.php?module=ModernUI&amp;view=Preferences">{mu_t key='LBL_OPEN_PREFERENCES'}</a></p>
 				{if $MU_SETTINGS_WARNINGS > 0}
 					<p class="text-warning">{mu_t key='LBL_SETTINGS_WARNINGS' count=$MU_SETTINGS_WARNINGS}</p>

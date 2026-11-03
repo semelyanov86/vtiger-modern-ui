@@ -1,13 +1,16 @@
 <?php
 /*
  * POST index.php?module=ModernUI&parent=Settings&action=Toggle&mode=enableForMe|disableForMe|disableForAll
+ *      …&mode=pilotAddUser|pilotRemoveUser (user=<id>), …&mode=pilotAddRole|pilotRemoveRole (role=<roleid>)
  *
  * Administrators only, CSRF-checked (Settings_Vtiger_Basic_Action). A plain HTML form posts here, so the theme
  * can be switched without the frontend. "Enable for me" turns an "off" theme into a pilot with the current
- * administrator (docs/settings.md §3): first the administrator, then the others.
+ * administrator (docs/settings.md §3): first the administrator, then the others. Adding a user or a role to the
+ * pilot does the same for them; only active users and existing roles are accepted.
  */
 
 require_once 'modules/ModernUI/models/Page.php';
+require_once 'modules/ModernUI/models/Pilot.php';
 
 class Settings_ModernUI_Toggle_Action extends Settings_Vtiger_Basic_Action {
 
@@ -43,6 +46,49 @@ class Settings_ModernUI_Toggle_Action extends Settings_Vtiger_Basic_Action {
 				if (in_array($userId, $users, true)) {
 					$changes['theme.pilot.users'] = array_values(array_diff($users, array($userId)));
 					$result = 'disabled_for_me';
+				}
+				break;
+			case 'pilotAddUser':
+			case 'pilotRemoveUser':
+				$target = (int) $request->get('user');
+				if ($target <= 0 || ($request->getMode() === 'pilotAddUser' && !ModernUI_Pilot_Model::isActiveUser($target))) {
+					$this->back('error_bad_request');
+					return;
+				}
+				if ($request->getMode() === 'pilotAddUser') {
+					if (!in_array($target, $users, true)) {
+						$users[] = $target;
+						$changes['theme.pilot.users'] = $users;
+					}
+					if ($values['theme.mode'] === 'off') {
+						$changes['theme.mode'] = 'pilot';
+					}
+					$result = $changes ? 'pilot_added' : 'unchanged';
+				} elseif (in_array($target, $users, true)) {
+					$changes['theme.pilot.users'] = array_values(array_diff($users, array($target)));
+					$result = 'pilot_removed';
+				}
+				break;
+			case 'pilotAddRole':
+			case 'pilotRemoveRole':
+				$role = (string) $request->get('role');
+				$roles = $values['theme.pilot.roles'];
+				if ($role === '' || ($request->getMode() === 'pilotAddRole' && !ModernUI_Pilot_Model::roleExists($role))) {
+					$this->back('error_bad_request');
+					return;
+				}
+				if ($request->getMode() === 'pilotAddRole') {
+					if (!in_array($role, $roles, true)) {
+						$roles[] = $role;
+						$changes['theme.pilot.roles'] = $roles;
+					}
+					if ($values['theme.mode'] === 'off') {
+						$changes['theme.mode'] = 'pilot';
+					}
+					$result = $changes ? 'pilot_added' : 'unchanged';
+				} elseif (in_array($role, $roles, true)) {
+					$changes['theme.pilot.roles'] = array_values(array_diff($roles, array($role)));
+					$result = 'pilot_removed';
 				}
 				break;
 			case 'disableForAll':

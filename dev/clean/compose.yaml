@@ -1,0 +1,93 @@
+# Clean Vtiger 8.4.0 stand of ModernUI (docs/environments.md §2). Managed by dev/clean/clean.sh (task clean:*).
+#
+#   c81 — PHP 8.1 (lower bound of Vtiger 8.4.0), CRM in the site root:       http://127.0.0.1:${MU_CLEAN_PORT}/
+#   c85 — PHP 8.5, CRM in a subdirectory (base URL check):                  http://127.0.0.1:${MU_CLEAN85_PORT}/vtigercrm/
+#   mail — mailpit, the only mail server the CRMs know:                      http://127.0.0.1:${MU_CLEAN_MAIL_PORT}/
+#
+# The web servers have no route to the internet (network "stand" is internal): the 8.4.0 installer posts a
+# registration to the vendor and some settings pages call the marketplace. Only the gateway publishes ports,
+# on 127.0.0.1. Every image is pinned by digest. Data lives in the volumes of this project only.
+name: modernui-clean
+
+x-web: &web
+  build:
+    context: .
+  restart: unless-stopped
+  depends_on:
+    db:
+      condition: service_healthy
+  networks: [stand]
+  volumes:
+    # Tools of the repository (crm-info.php, clean/tools) — read-only, never the module sources.
+    - ..:/opt/mu-dev:ro
+
+services:
+  db:
+    image: mysql:8.4.13@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69
+    restart: unless-stopped
+    # The installer and the core of 8.4.0 need a "friendly" sql_mode (Install_Utils_Model::isMySQLSqlModeFriendly).
+    command: ['--sql-mode=NO_ENGINE_SUBSTITUTION']
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MU_CLEAN_DB_ROOT_PASSWORD:?run dev/clean/clean.sh}
+      MYSQL_USER: vtiger
+      MYSQL_PASSWORD: ${MU_CLEAN_DB_PASSWORD:?run dev/clean/clean.sh}
+    volumes:
+      - db:/var/lib/mysql
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    networks: [stand]
+    healthcheck:
+      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 -uroot -p"$$MYSQL_ROOT_PASSWORD" --silent']
+      interval: 3s
+      timeout: 5s
+      retries: 60
+
+  web81:
+    <<: *web
+    build:
+      context: .
+      args:
+        BASE: php:8.1-apache-bookworm@sha256:a935f4a5717427519337269d5d1c89968cc27ab84d1c8d5d7b5363672d800cd5
+        IMAP: bundled
+    image: modernui-clean-web81:local
+    volumes:
+      - ..:/opt/mu-dev:ro
+      - crm81:/var/www/html
+
+  web85:
+    <<: *web
+    build:
+      context: .
+      args:
+        BASE: php:8.5-apache-bookworm@sha256:6b401f1bfa88fc9d2ae5c3ff2558f18d0c17c9801718ded725095ea29131f34b
+        IMAP: pecl
+    image: modernui-clean-web85:local
+    volumes:
+      - ..:/opt/mu-dev:ro
+      - crm85:/var/www/html/vtigercrm
+
+  mail:
+    image: axllent/mailpit:v1.31.6@sha256:23fe39e81bde596a918000b3135c0f85dc8bb4c9ea6be274b051143f3e300387
+    restart: unless-stopped
+    networks: [stand]
+
+  gateway:
+    image: nginx:alpine@sha256:1d13701a5f9f3fb01aaa88cef2344d65b6b5bf6b7d9fa4cf0dca557a8d7702ba
+    restart: unless-stopped
+    depends_on: [web81, web85, mail]
+    volumes:
+      - ./gateway.conf:/etc/nginx/conf.d/default.conf:ro
+    networks: [stand, outside]
+    ports:
+      - 127.0.0.1:${MU_CLEAN_PORT:-8481}:8081
+      - 127.0.0.1:${MU_CLEAN85_PORT:-8485}:8085
+      - 127.0.0.1:${MU_CLEAN_MAIL_PORT:-8425}:8025
+
+networks:
+  stand:
+    internal: true
+  outside: {}
+
+volumes:
+  db:
+  crm81:
+  crm85:

@@ -35,6 +35,11 @@ if ($command === 'import' || $command === 'update') {
 }
 
 chdir($root);
+// Bootstrap of index.php of Vtiger 8.4.0: the logger needs the composer autoloader (vendor/ of the release).
+include_once 'config.php';
+if (is_file('vendor/autoload.php')) {
+	require_once 'vendor/autoload.php';
+}
 // The same bootstrap as vtlib/tools/console.php of the instance.
 include_once 'vtlib/Vtiger/Module.php';
 include_once 'vtlib/Vtiger/Package.php';

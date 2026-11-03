@@ -9,6 +9,7 @@
 
 require_once 'modules/ModernUI/models/Page.php';
 require_once 'modules/ModernUI/models/Lifecycle.php';
+require_once 'modules/ModernUI/models/Pilot.php';
 
 class Settings_ModernUI_Index_View extends Settings_Vtiger_Index_View {
 
@@ -57,7 +58,7 @@ class Settings_ModernUI_Index_View extends Settings_Vtiger_Index_View {
 		$viewer->assign('MU_CSRF', function_exists('csrf_get_tokens') ? csrf_get_tokens() : '');
 		$viewer->assign('MU_SAFE_MODE', ModernUI_Activation_Model::isSafeMode(array()));
 		$viewer->assign('MU_MESSAGE', ModernUI_Page_Model::message($request, array(
-			'enabled_for_me', 'disabled_for_me', 'disabled_for_all', 'recovered', 'unchanged',
+			'enabled_for_me', 'disabled_for_me', 'disabled_for_all', 'pilot_added', 'pilot_removed', 'recovered', 'unchanged',
 			'error_recovery', 'error_schema', 'error_conflict', 'error_bad_request',
 		)));
 
@@ -84,6 +85,9 @@ class Settings_ModernUI_Index_View extends Settings_Vtiger_Index_View {
 			$viewer->assign('MU_CAN_DISABLE_FOR_ME', $values['theme.mode'] === 'pilot' && $inPilot);
 			$viewer->assign('MU_CAN_DISABLE_FOR_ALL', $values['theme.mode'] !== 'off');
 			$viewer->assign('MU_SETTINGS_WARNINGS', count($context['settings']['errors']));
+			// Pilot users and roles (plain forms; the full editor of users and roles comes with the settings editor).
+			$viewer->assign('MU_PILOT', $moduleActive && $status['vtigerSupported'] && $values['theme.mode'] !== 'all'
+				? ModernUI_Pilot_Model::overview($values['theme.pilot.users'], $values['theme.pilot.roles']) : null);
 		}
 
 		$tags = ModernUI_Assets_Model::entryTags(ModernUI_Assets_Model::ENTRY_SETTINGS);

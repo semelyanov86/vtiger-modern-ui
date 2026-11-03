@@ -44,7 +44,7 @@
 | Исходники модуля (раскладка как в CRM после импорта ZIP) | `src/` (сборка — `src/…/resources/dist/`, не в git) | да |
 | Vue/Vite, словари, unit- и e2e-тесты frontend | `frontend/` (`tests/`, `e2e/`) | да |
 | Сборка ZIP | `packaging/`, результат — `dist/` (не в git) | да |
-| Окружение | `dev/` (`crm-link.sh`, `crm-mounts.txt`, `crm-info.php`, `crm-vtlib.php`, `crm-links-for.php`, `check-private.sh`) | да |
+| Окружение | `dev/` (`crm-link.sh`, `crm-mounts.txt`, `crm-info.php`, `crm-vtlib.php`, `crm-links-for.php`, `check-private.sh`); чистый стенд — `dev/clean/` | да |
 | Тесты | `tests/` | да |
 | Документы | `docs/` | да, обезличенно |
 | Локальные настройки и состояние | `.env` (`.env.example`), `.local/` — не в git | да |
@@ -66,6 +66,12 @@ task crm:uninstall # Vtiger_Module::delete(); таблицы остаются, -
 task lint          # php -l под 8.5, 8.4, 8.1 (Docker); vue-tsc, ESLint 0 предупреждений, ES5 loader.js
 task test          # PHP 8.5/8.4/8.1, миграции на временной MySQL, vitest, пакет (VTIGER_SRC_REPO в .env)
 task test:e2e      # Playwright на dev-стенде (вход из .env); оставляет тему включённой у администратора
+task test:devcycle # правка → результат на dev-стенде (PHP, Smarty, словарь, CSS, Vue), всё откатывает
+task crm:import-zip # PACKAGE на dev-стенде: unlink + ZIP через менеджер модулей; назад — crm:link -- --force
+task clean:up      # чистый стенд 8.4.0 (dev/clean): архив релиза, PHP 8.1 в корне и 8.5 в /vtigercrm/
+task clean:install # штатный установщик; clean:seed — синтетические роли, пользователи, записи, модуль Gadgets
+task clean:import-zip # ZIP через менеджер модулей чистых экземпляров; task test:e2e:clean — сценарии
+task clean:verify  # НОВЫЙ чистый стенд (данные удаляются) и полная PACKAGE-проверка ZIP с отчётом
 task privacy       # нет ли частной информации в публикуемых файлах
 ```
 
@@ -79,8 +85,12 @@ task privacy       # нет ли частной информации в публ
   lifecycle: `task crm:install` / `task crm:update` (этап 02), импорт ZIP, менеджер модулей.
   Ручной SQL запрещён.
 - После перезагрузки компьютера — `task crm:link`. После пересоздания базы стенда — `task crm:install`.
-- Проверка ZIP (PACKAGE) на dev-стенде: `task crm:unlink` → импорт ZIP в менеджере модулей →
+- Проверка ZIP (PACKAGE) на dev-стенде: `task crm:import-zip` (unlink + импорт в менеджере модулей) →
   проверки → `task crm:link -- --force`. Никогда не импортируй ZIP поверх подключённых исходников.
+- Чистый стенд (`dev/clean/`, `docs/environments.md`) — полностью свой: только штатный установщик, менеджер
+  модулей, консоль vtlib и API CRM; файлы его ядра не правятся, ручного SQL нет.
+- Smarty и OPcache видят время файла с точностью до секунды: правка, не появившаяся после перезагрузки, —
+  сохранить файл ещё раз.
 - Подробно — `docs/DEVELOPMENT.md`; конкретный стенд, вход, логи, чтение базы — `PRIVATE.md`.
 
 База dev-стенда может быть копией рабочей CRM с персональными данными: только синтетические записи,

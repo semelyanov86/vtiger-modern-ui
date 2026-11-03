@@ -102,10 +102,92 @@ tasks:
     cmd: python3 tests/package/test_package.py
 
   test:e2e:
-    desc: Browser checks on the dev instance (CRM_URL) - loader, settings, switching on and off; run task crm:install first
+    desc: Browser checks on the dev instance (CRM_URL) - loader, settings, switching on and off, network; run task crm:install first
     deps: [fe:install]
     dir: frontend
-    cmd: npx playwright test --config e2e/playwright.config.ts {{.CLI_ARGS}}
+    cmd: MU_E2E_TARGET=dev npx playwright test --config e2e/playwright.config.ts --project modernui {{.CLI_ARGS}}
+
+  test:e2e:clean:
+    desc: Browser checks on the clean stand (both instances) after task clean:import-zip - pilot, other users, languages, Module Manager switch, network
+    deps: [fe:install]
+    dir: frontend
+    cmds:
+      - for: [c81, c85]
+        cmd: MU_E2E_TARGET={{.ITEM}} npx playwright test --config e2e/playwright.config.ts --project clean --project modernui {{.CLI_ARGS}}
+
+  baseline:
+    desc: 'Behaviour of the CRM screens without the theme (metrics only) into .local/e2e-reports/<target>/; MU_E2E_TARGET=dev|c81|c85, default dev (safe mode on)'
+    deps: [fe:install]
+    dir: frontend
+    cmd: MU_E2E_TARGET=${MU_E2E_TARGET:-dev} MU_BASELINE_SAFE_MODE=${MU_BASELINE_SAFE_MODE:-1} npx playwright test --config e2e/playwright.config.ts --project baseline {{.CLI_ARGS}}
+
+  test:devcycle:
+    desc: 'Edit → result on the dev instance: temporary edits of PHP, Smarty, a PHP dictionary, CSS and Vue (own watcher), a compile error; all undone'
+    deps: [fe:install]
+    dir: frontend
+    cmd: MU_E2E_TARGET=dev npx playwright test --config e2e/playwright.config.ts --project devcycle
+
+  test:devrecord:
+    desc: 'A synthetic Calendar task through the standard form with the theme on: task test:devrecord -- create | delete:<id> (check the integrations of the instance first)'
+    deps: [fe:install]
+    dir: frontend
+    cmd: MU_E2E_TARGET=dev MU_DEVRECORD={{.CLI_ARGS}} npx playwright test --config e2e/playwright.config.ts --project devrecord
+
+  clean:up:
+    desc: 'Clean Vtiger 8.4.0 stand (dev/clean): build the images, start, unpack the official release archive (SHA-256 checked) into new volumes'
+    cmd: dev/clean/clean.sh up
+
+  clean:install:
+    desc: Run the standard web installer of each clean instance that is not installed (new empty databases); turn on the strict PHP log
+    deps: [fe:install]
+    cmd: dev/clean/clean.sh install
+
+  clean:seed:
+    desc: Synthetic roles, users (restricted, view-all, second admin), records with line items, the test entity module Gadgets (Module Manager)
+    deps: [fe:install]
+    cmd: dev/clean/clean.sh seed
+
+  clean:status:
+    desc: Containers, URLs, PHP and Vtiger versions, ModernUI registration and files of each clean instance
+    cmd: dev/clean/clean.sh status
+
+  clean:import-zip:
+    desc: 'ModernUI ZIP (default dist/ModernUI-<VERSION>.zip) into every clean instance through Settings → Module Manager → Import'
+    deps: [fe:install]
+    cmd: dev/clean/clean.sh import-zip {{.CLI_ARGS}}
+
+  clean:uninstall:
+    desc: Remove ModernUI from the clean instances like an administrator - vtlib console --remove, then the module files; settings tables stay
+    cmd: dev/clean/clean.sh uninstall
+
+  clean:verify:
+    desc: 'NEW clean stand (deletes its data) and the whole PACKAGE check of a ZIP: install, import, scenarios, update, uninstall, reinstall, hashes, PHP log'
+    deps: [fe:install]
+    cmd: dev/clean/clean.sh verify {{.CLI_ARGS}}
+
+  clean:hash:
+    desc: 'SHA-256 of the CRM code files of each clean instance: task clean:hash -- <label>'
+    cmd: dev/clean/clean.sh hash {{.CLI_ARGS}}
+
+  clean:meta:
+    desc: 'Metadata of the clean databases (tabs, global links, settings items, tables, roles, users): task clean:meta -- <label>'
+    cmd: dev/clean/clean.sh meta {{.CLI_ARGS}}
+
+  clean:logs:
+    desc: PHP messages of the clean instances (logs/phperr.log), grouped by type and file; messages in ModernUI files listed
+    cmd: dev/clean/clean.sh logs {{.CLI_ARGS}}
+
+  clean:verify-source:
+    desc: Compare the release archive of 8.4.0 with the tag 8.4.0 of VTIGER_SRC_REPO
+    cmd: dev/clean/clean.sh verify-source
+
+  clean:down:
+    desc: Stop the clean stand; the volumes (CRM code and databases) stay
+    cmd: dev/clean/clean.sh down
+
+  clean:reset:
+    desc: Stop the clean stand and DELETE its volumes (new empty databases next time)
+    cmd: dev/clean/clean.sh reset
 
   crm:link:
     desc: 'Connect src/ to the CRM stand (read-only bind mounts, language stubs, git excludes); task crm:link -- --force moves a ZIP-installed copy aside'
@@ -143,6 +225,14 @@ tasks:
       - dev/crm-link.sh unlink
       - defer: dev/crm-link.sh link --force
       - '{{.CRM_PHP}} dev/crm-vtlib.php "{{.CRM_ROOT}}" {{.ACTION}}'
+
+  crm:import-zip:
+    desc: 'PACKAGE run on the dev instance: unlink src/, then the ZIP (default dist/ModernUI-<VERSION>.zip) through Settings → Module Manager → Import; back to DEV with task crm:link -- --force'
+    deps: [fe:install]
+    cmds:
+      - dev/crm-link.sh unlink
+      - cd frontend && MU_E2E_TARGET=dev MU_IMPORT_ZIP={{if .CLI_ARGS}}{{.CLI_ARGS}}{{else}}{{.ZIP}}{{end}} npx playwright test --config e2e/playwright.config.ts --project import
+      - dev/crm-link.sh status
 
   crm:uninstall:
     desc: Vtiger_Module::delete() of ModernUI - links and the settings item go, settings tables stay; task crm:uninstall -- --purge drops them

@@ -1,20 +1,19 @@
 /**
- * Stage 02 browser checks on a Vtiger 8.4 instance with ModernUI registered (task crm:install):
+ * Browser checks on a Vtiger 8.4 instance with ModernUI registered (stage 02; dev instance: task crm:install,
+ * clean stand: task clean:import-zip):
  * settings page and frontend check, theme off by default, "enable for me", loader and shell on real pages,
  * system menu (mouse and keyboard), RU/EN/DE of the theme texts, safe mode, standard view with in-place
  * teardown, failures of the frontend that must leave the v7 interface working, "disable for me".
  */
 import { expect, test, type Page } from '@playwright/test'
+import { HOME, ISLAND, LOADER, PREFERENCES, SETTINGS, SKIN, isolateNetwork, themeOnPage, waitForShell } from './support'
 
 test.describe.configure({ mode: 'serial' })
 
-const SETTINGS = 'index.php?module=ModernUI&parent=Settings&view=Index'
-const PREFERENCES = 'index.php?module=ModernUI&view=Preferences'
-const HOME = 'index.php?module=Home&view=DashBoard'
-
-const SKIN = 'link[rel="stylesheet"][href*="modules/ModernUI/resources/dist/assets/skin-"]'
-const LOADER = 'script[src*="modules/ModernUI/resources/loader.js"]'
-const ISLAND = '#navbar > [data-mu-root="system-menu"]'
+test.beforeEach(async ({ context }) => {
+  // The clean stand must not reach the internet (no-op on the dev instance).
+  await isolateNetwork(context)
+})
 
 /** Warnings of ModernUI in the browser console ("[ModernUI] …") and uncaught page errors. */
 function watchConsole(page: Page): string[] {
@@ -30,22 +29,6 @@ function watchConsole(page: Page): string[] {
     }
   })
   return messages
-}
-
-async function themeOnPage(page: Page): Promise<{ skin: number; loader: number; ready: boolean; failed: string | null }> {
-  return {
-    skin: await page.locator(SKIN).count(),
-    loader: await page.locator(LOADER).count(),
-    ready: await page.evaluate(() => document.documentElement.classList.contains('mu-shell-ready')),
-    failed: await page.evaluate(() => document.documentElement.getAttribute('data-mu-failed')),
-  }
-}
-
-async function waitForShell(page: Page): Promise<void> {
-  await page.waitForFunction(() => {
-    const html = document.documentElement
-    return html.classList.contains('mu-shell-ready') || html.hasAttribute('data-mu-failed')
-  })
 }
 
 async function settingsAction(page: Page, button: string): Promise<void> {
@@ -280,4 +263,18 @@ test('disable for me and enable again: the theme follows the pilot list', async 
   await page.goto(HOME)
   await waitForShell(page)
   expect(await themeOnPage(page)).toEqual({ skin: 1, loader: 1, ready: true, failed: null })
+})
+
+test('network: the theme loads only from the CRM itself, no dev server, CDN or repository paths', async ({ page }) => {
+  const requests: string[] = []
+  page.on('request', (request) => requests.push(request.url()))
+  for (const url of [HOME, 'index.php?module=Accounts&view=List', SETTINGS, PREFERENCES]) {
+    await page.goto(url)
+    await page.waitForLoadState('networkidle')
+  }
+  const own = new URL(page.url()).host
+  const theme = requests.filter((url) => url.includes('modules/ModernUI/') || url.includes('module=ModernUI'))
+  expect(theme.length).toBeGreaterThan(3)
+  expect(theme.filter((url) => new URL(url).host !== own)).toEqual([])
+  expect(requests.filter((url) => /localhost:|:5173|\/@vite|\/@fs\/|node_modules|\/frontend\/src\//.test(url))).toEqual([])
 })
