@@ -13,6 +13,7 @@ class ModernUI_Assets_Model {
 
 	const ENTRY_SHELL = 'src/shell/main.ts';
 	const ENTRY_SETTINGS = 'src/settings/main.ts';
+	const ENTRY_PREFERENCES = 'src/preferences/main.ts';
 	const ENTRY_SKIN = 'src/skin/skin.scss';
 
 	/** @var array|null|false false: not read yet, null: missing or invalid */

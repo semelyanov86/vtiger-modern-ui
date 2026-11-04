@@ -7,7 +7,9 @@
  * - modernui — the module on a registered instance: settings, enable for me, loader, shell, languages, safe mode,
  *              failures, standard view (task test:e2e, task test:e2e:clean);
  * - clean    — clean stand only: pilot for a restricted user, other users untouched, Module Manager switch,
- *              custom entity module, English fallback (task test:e2e:clean);
+ *              custom entity module, English fallback; settings of users with different permissions — menu by
+ *              permissions, role profiles, personal keys, role change, refused administrator actions (access.spec.ts);
+ * - settings — the settings editor and the preferences editor as an administrator (stage 05, both stands);
  * - baseline — behaviour of the CRM without the theme: pages, errors, timings (task baseline);
  * - import   — Settings → Module Manager → Import of MU_IMPORT_ZIP (task clean:import-zip, PACKAGE run);
  * - devcycle — edit → result on the dev instance for PHP, Smarty, Vue/CSS and translations (task test:devcycle);
@@ -44,7 +46,8 @@ export default defineConfig({
     { name: 'install', testMatch: /tools\/install\.spec\.ts$/ },
     { name: 'auth', testMatch: /auth\.setup\.ts$/ },
     { name: 'modernui', testMatch: /modernui\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
-    { name: 'clean', testMatch: /clean\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
+    { name: 'clean', testMatch: /(?:clean|access)\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
+    { name: 'settings', testMatch: /settings\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'baseline', testMatch: /baseline\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'import', testMatch: /tools\/module-import\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'devcycle', testMatch: /devcycle\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },

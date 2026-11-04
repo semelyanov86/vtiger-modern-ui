@@ -1,0 +1,61 @@
+/**
+ * Names of the settings keys for people (conflicts, import reports, errors with a path) and short forms of values.
+ */
+import type { Composer } from 'vue-i18n'
+
+type Translate = Composer['t']
+
+/** Known keys of the schema (docs/settings.md §4); other keys are shown as they are. */
+export const FIELD_KEYS = [
+  'theme.mode', 'theme.pilot.users', 'theme.pilot.roles', 'theme.pilot.includeSubordinates', 'theme.allowSelfEnable',
+  'theme.allowOptOut', 'theme.excludedScreens', 'policy.userOverrides', 'locale.default', 'locale',
+  'appearance.primaryColor', 'appearance.background', 'appearance.surface', 'appearance.density', 'appearance.fontScale',
+  'appearance.font', 'branding.logo', 'branding.title', 'navigation.groups', 'navigation.hidden',
+  'navigation.favoritesEnabled', 'navigation.compact', 'navigation.favorites', 'user.standardView', 'user.selfEnabled',
+] as const
+
+/** "navigation.groups[2].items[0].label.de-DE" → key "navigation.groups" and the rest of the path. */
+export function splitPath(path: string): { key: string; rest: string } {
+  const key = FIELD_KEYS.find((known) => path === known || path.startsWith(`${known}[`) || path.startsWith(`${known}.`))
+  return key === undefined ? { key: path, rest: '' } : { key, rest: path.slice(key.length) }
+}
+
+export function fieldLabel(t: Translate): (key: string) => string {
+  return (key: string): string => {
+    const known = FIELD_KEYS.find((entry) => entry === key)
+    return known === undefined ? key : t(`fields.${known.replace(/\./g, '_')}`)
+  }
+}
+
+/** A path of an error as text: the name of the field and the place inside it. */
+export function pathLabel(t: Translate, path: string): string {
+  const { key, rest } = splitPath(path)
+  return rest === '' ? fieldLabel(t)(key) : `${fieldLabel(t)(key)} ${rest}`
+}
+
+/** Short text of a value of an import report or a conflict. */
+export function valueText(t: Translate, value: unknown): string {
+  if (value === null || value === undefined) {
+    return t('editor.values.unset')
+  }
+  if (typeof value === 'boolean') {
+    return value ? t('editor.values.yes') : t('editor.values.no')
+  }
+  if (typeof value === 'string' || typeof value === 'number') {
+    return String(value)
+  }
+  if (Array.isArray(value)) {
+    return value.length === 0 ? t('editor.values.empty') : value.map((entry) => (typeof entry === 'string' || typeof entry === 'number' ? String(entry) : '…')).join(', ')
+  }
+  if (typeof value === 'object') {
+    const entry = value as Record<string, unknown>
+    if (typeof entry['groups'] === 'number' && typeof entry['items'] === 'number') {
+      return t('editor.values.menu', { groups: entry['groups'], items: entry['items'] })
+    }
+    if (typeof entry['count'] === 'number') {
+      return t('editor.values.count', entry['count'])
+    }
+    return Object.entries(entry).map(([key, text]) => `${key}: ${typeof text === 'string' ? text : '…'}`).join('; ')
+  }
+  return '…'
+}

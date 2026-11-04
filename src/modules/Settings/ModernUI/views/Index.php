@@ -3,8 +3,9 @@
  * GET index.php?module=ModernUI&parent=Settings&view=Index — Settings → Other settings → ModernUI.
  *
  * Administrators only (Settings_Vtiger_Index_View). The status and the switches are a plain server page with
- * HTML forms, so the theme can be switched off and the schema repaired even when the frontend is broken.
- * A small Vue island checks the frontend build in the browser. The full editor comes with stage 05.
+ * HTML forms, so the theme can be switched off and the schema repaired even when the frontend is broken. The
+ * settings editor (Vue, frontend/src/settings) mounts above them; "&editor=off" leaves the server page alone.
+ * A small Vue island checks the frontend build in the browser.
  */
 
 require_once 'modules/ModernUI/models/Page.php';
@@ -90,8 +91,13 @@ class Settings_ModernUI_Index_View extends Settings_Vtiger_Index_View {
 				? ModernUI_Pilot_Model::overview($values['theme.pilot.users'], $values['theme.pilot.roles']) : null);
 		}
 
+		// The settings editor (Vue) works while the module is switched off too: an administrator prepares the theme
+		// before enabling it. "editor=off" is the page without it (switches, pilot forms, recovery) for a broken frontend.
 		$tags = ModernUI_Assets_Model::entryTags(ModernUI_Assets_Model::ENTRY_SETTINGS);
-		$viewer->assign('MU_ASSETS', $moduleActive ? $tags : array('css' => array(), 'preload' => array(), 'script' => null));
+		$editorOff = $request->get('editor') === 'off';
+		$viewer->assign('MU_ASSETS', $tags);
+		$viewer->assign('MU_EDITOR', $ready && !$editorOff && $tags['script'] !== null);
+		$viewer->assign('MU_EDITOR_OFF', $editorOff);
 		$viewer->assign('MU_BUILD', (string) ModernUI_Assets_Model::buildId());
 		$viewer->view('Index.tpl', $request->getModule(false));
 	}

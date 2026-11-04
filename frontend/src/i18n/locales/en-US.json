@@ -23,7 +23,20 @@
     "MU_MODULE_INACTIVE": "The ModernUI module is disabled.",
     "MU_SCHEMA_OUTDATED": "The settings need to be upgraded by an administrator.",
     "MU_SCHEMA_NEWER": "The settings belong to a newer version of the module.",
-    "MU_UNKNOWN": "Unknown error."
+    "MU_UNKNOWN": "Unknown error.",
+    "MU_UNKNOWN_KEY": "This setting is unknown to this version of the module.",
+    "MU_UNKNOWN_ROLE": "The role does not exist in this CRM.",
+    "MU_UNKNOWN_USER": "The user does not exist or is not active.",
+    "MU_LOGO_INVALID": "The file could not be received. Choose it again.",
+    "MU_LOGO_TOO_LARGE": "The logo is larger than 512 KB.",
+    "MU_LOGO_FORMAT": "Only PNG, JPEG and GIF images are accepted.",
+    "MU_LOGO_DIMENSIONS": "The image must be between 16 and 4096 pixels on each side.",
+    "MU_LOGO_UNSUPPORTED": "The server cannot process images (the PHP extension GD is missing).",
+    "MU_LOGO_STORAGE": "The logo could not be saved in the logo directory of the CRM.",
+    "MU_IMPORT_FORMAT": "This is not a settings file of ModernUI.",
+    "MU_IMPORT_VERSION": "The file comes from a newer version of ModernUI. Update the module first.",
+    "MU_IMPORT_TOO_LARGE": "The file is larger than 256 KB.",
+    "MU_REJECTED": "The CRM refused the request: no permission, or the page is out of date. Reload the page."
   },
   "diagnostics": {
     "checking": "Checking…",
@@ -47,5 +60,20 @@
     "ru-RU": "Русский",
     "en-US": "English",
     "de-DE": "Deutsch"
+  },
+  "menu": {
+    "apps": {
+      "MARKETING": "Marketing",
+      "SALES": "Sales",
+      "INVENTORY": "Inventory",
+      "SUPPORT": "Support",
+      "PROJECT": "Projects",
+      "TOOLS": "Tools"
+    },
+    "otherGroup": "Other modules",
+    "button": "Modules",
+    "title": "Modules of the CRM",
+    "favorites": "Favorites",
+    "empty": "No modules are available to you."
   }
 }

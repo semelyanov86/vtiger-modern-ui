@@ -25,9 +25,16 @@ class ModernUI_Settings_Model {
 		'appearance.density', 'appearance.fontScale', 'navigation.compact', 'navigation.favorites',
 	);
 
+	/** Locales of custom labels; "*" is the common variant for any other language (docs/settings.md §6.2). */
+	const LABEL_LOCALES = array('ru-RU', 'en-US', 'de-DE', '*');
+	const LABEL_MAX = 60;
+	const MENU_GROUPS_MAX = 30;
+	const MENU_ITEMS_MAX = 100;
+	/** Parameters a menu route may carry (docs/settings.md §6.1); the URL is always built by the server. */
+	const ROUTE_PARAMS = array('app', 'viewname', 'mode', 'parent');
+
 	/**
-	 * Specification of the keys of schema version 1 that this version of the module handles.
-	 * Navigation, branding and the menu editor keys are added together with their editor (stage 05).
+	 * Specification of the keys of schema version 1 (docs/settings.md §4).
 	 * @return array key => {type, default, scopes, …}
 	 */
 	public static function spec() {
@@ -51,6 +58,10 @@ class ModernUI_Settings_Model {
 				'appearance.density' => array('type' => 'enum', 'values' => array('comfortable', 'standard', 'compact'), 'default' => 'standard', 'scopes' => array('global', 'role', 'user')),
 				'appearance.fontScale' => array('type' => 'enum', 'values' => array(90, 100, 110, 125), 'default' => 100, 'scopes' => array('global', 'role', 'user')),
 				'appearance.font' => array('type' => 'enum', 'values' => array('inter', 'system'), 'default' => 'inter', 'scopes' => array('global', 'role')),
+				'branding.logo' => array('type' => 'logo', 'default' => 'company', 'scopes' => array('global')),
+				'branding.title' => array('type' => 'title', 'default' => 'company', 'scopes' => array('global')),
+				'navigation.groups' => array('type' => 'menu', 'default' => null, 'scopes' => array('global', 'role')),
+				'navigation.hidden' => array('type' => 'modules', 'max' => 500, 'default' => array(), 'scopes' => array('global', 'role')),
 				'navigation.favoritesEnabled' => array('type' => 'bool', 'default' => true, 'scopes' => array('global', 'role')),
 				'navigation.compact' => array('type' => 'bool', 'default' => false, 'scopes' => array('global', 'role', 'user')),
 				'navigation.favorites' => array('type' => 'modules', 'max' => 30, 'default' => array(), 'scopes' => array('user')),
@@ -71,6 +82,14 @@ class ModernUI_Settings_Model {
 			$values[$key] = $definition['default'];
 		}
 		return $values;
+	}
+
+	/**
+	 * Keys an administrator may open to personal changes (values of policy.userOverrides).
+	 * @return array
+	 */
+	public static function userOverridableKeys() {
+		return self::$userOverridable;
 	}
 
 	/**
@@ -101,27 +120,30 @@ class ModernUI_Settings_Model {
 	 * @param string $scope
 	 * @param array $values flat map
 	 * @param array|null $allowedKeys extra restriction (user scope: allowedUserKeys())
-	 * @return array {values: array, errors: array of {key, code}}
+	 * @return array {values: array, errors: array of {key, code, path}}; path names the offending part of a
+	 *         composite value (navigation.groups[2].items[0].label.de-DE), otherwise it equals the key
 	 */
 	public static function validate($scope, array $values, $allowedKeys = null) {
 		$spec = self::spec();
 		$clean = array();
 		$errors = array();
 		foreach ($values as $key => $value) {
+			$key = (string) $key;
 			if (!isset($spec[$key])) {
-				$errors[] = array('key' => (string) $key, 'code' => 'MU_UNKNOWN_KEY');
+				$errors[] = array('key' => substr($key, 0, 80), 'code' => 'MU_UNKNOWN_KEY', 'path' => substr($key, 0, 80));
 				continue;
 			}
 			if (!in_array($scope, $spec[$key]['scopes'], true) || ($allowedKeys !== null && !in_array($key, $allowedKeys, true))) {
-				$errors[] = array('key' => $key, 'code' => 'MU_FORBIDDEN_KEY');
+				$errors[] = array('key' => $key, 'code' => 'MU_FORBIDDEN_KEY', 'path' => $key);
 				continue;
 			}
 			if ($value === null) {
 				continue;
 			}
-			$normalized = self::normalizeValue($spec[$key], $value);
+			$path = '';
+			$normalized = self::normalizeValue($spec[$key], $value, $path);
 			if ($normalized === null) {
-				$errors[] = array('key' => $key, 'code' => 'MU_INVALID_VALUE');
+				$errors[] = array('key' => $key, 'code' => 'MU_INVALID_VALUE', 'path' => $key . $path);
 				continue;
 			}
 			$clean[$key] = $normalized;
@@ -130,13 +152,96 @@ class ModernUI_Settings_Model {
 	}
 
 	/**
+	 * Whether a value is a JSON list (and not an object).
+	 * @param mixed $value
+	 * @return bool
+	 */
+	public static function isList($value) {
+		return is_array($value) && (!$value || array_keys($value) === range(0, count($value) - 1));
+	}
+
+	/**
+	 * Whether a value is a JSON object: an array with string keys (an empty array counts as an empty object).
+	 * @param mixed $value
+	 * @return bool
+	 */
+	private static function isObject($value) {
+		return is_array($value) && (!$value || array_keys($value) !== range(0, count($value) - 1));
+	}
+
+	/**
+	 * A custom label: plain text of 1–60 characters after removing control characters and trimming. Markup and
+	 * script URLs are refused (the islands print labels as text anyway; such values are mistakes or attacks).
+	 * @param mixed $text
+	 * @return string|null '' for an empty text, null when invalid
+	 */
+	public static function cleanLabel($text) {
+		if (!is_string($text) || !preg_match('//u', $text)) {
+			return null;
+		}
+		$text = trim(preg_replace('/[\p{Cc}\p{Zl}\p{Zp}]+/u', ' ', $text), " \u{00a0}\t");
+		$text = preg_replace('/\s{2,}/u', ' ', $text);
+		if ($text === '') {
+			return '';
+		}
+		if (mb_strlen($text, 'UTF-8') > self::LABEL_MAX || preg_match('/[<>]|(?:java|vb)script\s*:|data\s*:\s*text\/html/iu', $text)) {
+			return null;
+		}
+		return $text;
+	}
+
+	/**
+	 * Labels by locale ({ru-RU, en-US, de-DE, *}); empty variants are dropped.
+	 * @param mixed $value
+	 * @param string $path receives the sub-path of the error
+	 * @return array|null null when invalid; an empty array when no variant is set
+	 */
+	public static function normalizeLabels($value, &$path) {
+		if (!self::isObject($value) || count($value) > count(self::LABEL_LOCALES)) {
+			return null;
+		}
+		$labels = array();
+		foreach (self::LABEL_LOCALES as $locale) {
+			if (!array_key_exists($locale, $value) || $value[$locale] === null) {
+				continue;
+			}
+			$text = self::cleanLabel($value[$locale]);
+			if ($text === null) {
+				$path .= '.' . $locale;
+				return null;
+			}
+			if ($text !== '') {
+				$labels[$locale] = $text;
+			}
+		}
+		foreach (array_keys($value) as $locale) {
+			if (!in_array($locale, self::LABEL_LOCALES, true)) {
+				$path .= '.' . substr((string) $locale, 0, 20);
+				return null;
+			}
+		}
+		return $labels;
+	}
+
+	/**
 	 * Normalized value, or null when invalid.
 	 * @param array $definition
 	 * @param mixed $value
+	 * @param string $path receives the sub-path of the error inside a composite value
 	 * @return mixed
 	 */
-	private static function normalizeValue(array $definition, $value) {
+	private static function normalizeValue(array $definition, $value, &$path = '') {
 		switch ($definition['type']) {
+			case 'logo':
+				return is_string($value) && preg_match('/^(company|modernui_[0-9a-f]{40}\.png)$/', $value) ? $value : null;
+			case 'title':
+				if ($value === 'company') {
+					return $value;
+				}
+				$labels = self::normalizeLabels($value, $path);
+				return $labels ? $labels : null;
+			case 'menu':
+				return self::normalizeMenu($value, $path);
 			case 'bool':
 				return is_bool($value) ? $value : null;
 			case 'enum':
@@ -165,20 +270,20 @@ class ModernUI_Settings_Model {
 						return $item;
 					}
 					return (is_string($item) && preg_match('/^[1-9][0-9]{0,9}$/', $item)) ? (int) $item : null;
-				});
+				}, $path);
 			case 'roles':
 				return self::normalizeList($value, $definition['max'], function ($item) {
 					return (is_string($item) && preg_match('/^[A-Za-z0-9_]{1,32}$/', $item)) ? $item : null;
-				});
+				}, $path);
 			case 'modules':
 				return self::normalizeList($value, $definition['max'], function ($item) {
 					return (is_string($item) && preg_match('/^[A-Za-z0-9_]{1,50}$/', $item)) ? $item : null;
-				});
+				}, $path);
 			case 'keys':
 				$overridable = self::$userOverridable;
 				return self::normalizeList($value, count($overridable), function ($item) use ($overridable) {
 					return in_array($item, $overridable, true) ? $item : null;
-				});
+				}, $path);
 			case 'screens':
 				return self::normalizeList($value, $definition['max'], function ($item) {
 					if (!is_array($item)) {
@@ -196,9 +301,230 @@ class ModernUI_Settings_Model {
 						return null;
 					}
 					return $screen;
-				});
+				}, $path);
 		}
 		return null;
+	}
+
+	/** Icons of menu groups and items: a subset of Lucide bundled with the frontend (tests/fixtures/menu-icons.json). */
+	public static $menuIcons = array(
+		'app-window', 'archive', 'banknote', 'bell', 'bookmark', 'box', 'boxes', 'briefcase', 'building', 'calculator',
+		'calendar', 'car', 'chart-column', 'clipboard-list', 'clock', 'contact', 'credit-card', 'database', 'door-open',
+		'factory', 'file-spreadsheet', 'file-text', 'flag', 'folder', 'globe', 'graduation-cap', 'hammer', 'handshake',
+		'headphones', 'heart', 'house', 'inbox', 'kanban', 'landmark', 'layers', 'layout-grid', 'life-buoy', 'link',
+		'list-checks', 'mail', 'map-pin', 'megaphone', 'message-square', 'notebook', 'package', 'paint-roller', 'percent',
+		'phone', 'presentation', 'receipt', 'ruler', 'settings', 'shield', 'shopping-cart', 'square-pen', 'star', 'store',
+		'tag', 'target', 'ticket', 'truck', 'user', 'users', 'wallet', 'wrench', 'zap',
+	);
+
+	/**
+	 * @param mixed $value
+	 * @return bool an icon of the menu set (null means "no icon of its own")
+	 */
+	private static function isMenuIcon($value) {
+		return is_string($value) && in_array($value, self::$menuIcons, true);
+	}
+
+	/**
+	 * Only the listed keys, all of the required ones.
+	 * @param array $object
+	 * @param array $allowed
+	 * @param array $required
+	 * @param string $path receives the unknown or missing key
+	 * @return bool
+	 */
+	private static function hasShape(array $object, array $allowed, array $required, &$path) {
+		foreach (array_keys($object) as $key) {
+			if (!in_array($key, $allowed, true)) {
+				$path .= '.' . substr((string) $key, 0, 40);
+				return false;
+			}
+		}
+		foreach ($required as $key) {
+			if (!array_key_exists($key, $object)) {
+				$path .= '.' . $key;
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Menu tree of navigation.groups (docs/settings.md §6.1): groups → items, one level, module items and CRM routes.
+	 * A route is a module, a view and a few parameters; the server builds index.php?… from them, so external URLs and
+	 * script URLs cannot be expressed. Modules are not checked against the CRM here: unknown modules are kept and
+	 * skipped when the menu is built (another CRM may have them).
+	 * @param mixed $value
+	 * @param string $path
+	 * @return array|null
+	 */
+	private static function normalizeMenu($value, &$path) {
+		if (!self::isList($value) || count($value) > self::MENU_GROUPS_MAX) {
+			return null;
+		}
+		$name = '/^[A-Za-z0-9_]{1,50}$/';
+		$groups = array();
+		$groupIds = array();
+		$routeIds = array();
+		foreach ($value as $g => $group) {
+			$at = '[' . $g . ']';
+			if (!self::isObject($group) || !self::hasShape($group, array('id', 'source', 'label', 'icon', 'collapsed', 'items'), array('id', 'items'), $at)) {
+				$path .= $at;
+				return null;
+			}
+			if (!is_string($group['id']) || !preg_match('/^[a-z0-9_-]{1,32}$/', $group['id']) || in_array($group['id'], $groupIds, true)) {
+				$path .= $at . '.id';
+				return null;
+			}
+			$groupIds[] = $group['id'];
+			$clean = array('id' => $group['id']);
+			if (isset($group['source'])) {
+				$sourcePath = $at . '.source';
+				if (!self::isObject($group['source']) || !self::hasShape($group['source'], array('app'), array('app'), $sourcePath)
+						|| !is_string($group['source']['app']) || !preg_match('/^[A-Z][A-Z_]{0,31}$/', $group['source']['app'])) {
+					$path .= $sourcePath;
+					return null;
+				}
+				$clean['source'] = array('app' => $group['source']['app']);
+			}
+			$labelPath = $at . '.label';
+			$labels = isset($group['label']) ? self::normalizeLabels($group['label'], $labelPath) : array();
+			if ($labels === null) {
+				$path .= $labelPath;
+				return null;
+			}
+			$clean['label'] = $labels ? $labels : null;
+			if (isset($group['icon']) && !self::isMenuIcon($group['icon'])) {
+				$path .= $at . '.icon';
+				return null;
+			}
+			$clean['icon'] = isset($group['icon']) ? $group['icon'] : null;
+			if (isset($group['collapsed']) && !is_bool($group['collapsed'])) {
+				$path .= $at . '.collapsed';
+				return null;
+			}
+			$clean['collapsed'] = !empty($group['collapsed']);
+			if (!self::isList($group['items']) || count($group['items']) > self::MENU_ITEMS_MAX) {
+				$path .= $at . '.items';
+				return null;
+			}
+			$clean['items'] = array();
+			$modules = array();
+			foreach ($group['items'] as $i => $item) {
+				$itemPath = $at . '.items[' . $i . ']';
+				$type = is_array($item) && isset($item['type']) ? $item['type'] : null;
+				if (!self::isObject($item) || ($type !== 'module' && $type !== 'route')) {
+					$path .= $itemPath . (is_array($item) ? '.type' : '');
+					return null;
+				}
+				$entry = $type === 'module'
+					? self::normalizeModuleItem($item, $name, $itemPath)
+					: self::normalizeRouteItem($item, $name, $itemPath);
+				if ($entry === null) {
+					$path .= $itemPath;
+					return null;
+				}
+				if ($type === 'module') {
+					if (in_array($entry['module'], $modules, true)) {
+						$path .= $itemPath . '.module';
+						return null;
+					}
+					$modules[] = $entry['module'];
+				} else {
+					if (in_array($entry['id'], $routeIds, true)) {
+						$path .= $itemPath . '.id';
+						return null;
+					}
+					$routeIds[] = $entry['id'];
+				}
+				$clean['items'][] = $entry;
+			}
+			$groups[] = $clean;
+		}
+		return $groups;
+	}
+
+	/**
+	 * @param array $item
+	 * @param string $name pattern of module names
+	 * @param string $path
+	 * @return array|null
+	 */
+	private static function normalizeModuleItem(array $item, $name, &$path) {
+		if (!self::hasShape($item, array('type', 'module', 'label', 'icon'), array('type', 'module'), $path)) {
+			return null;
+		}
+		if (!is_string($item['module']) || !preg_match($name, $item['module'])) {
+			$path .= '.module';
+			return null;
+		}
+		$labelPath = '.label';
+		$labels = isset($item['label']) ? self::normalizeLabels($item['label'], $labelPath) : array();
+		if ($labels === null) {
+			$path .= $labelPath;
+			return null;
+		}
+		if (isset($item['icon']) && !self::isMenuIcon($item['icon'])) {
+			$path .= '.icon';
+			return null;
+		}
+		return array('type' => 'module', 'module' => $item['module'], 'label' => $labels ? $labels : null,
+			'icon' => isset($item['icon']) ? $item['icon'] : null);
+	}
+
+	/**
+	 * @param array $item
+	 * @param string $name pattern of module and view names
+	 * @param string $path
+	 * @return array|null
+	 */
+	private static function normalizeRouteItem(array $item, $name, &$path) {
+		if (!self::hasShape($item, array('type', 'id', 'label', 'icon', 'route'), array('type', 'id', 'label', 'route'), $path)) {
+			return null;
+		}
+		if (!is_string($item['id']) || !preg_match('/^[a-z0-9_-]{1,32}$/', $item['id'])) {
+			$path .= '.id';
+			return null;
+		}
+		$labelPath = '.label';
+		$labels = self::normalizeLabels($item['label'], $labelPath);
+		if (!$labels) {
+			$path .= $labelPath;
+			return null;
+		}
+		if (isset($item['icon']) && !self::isMenuIcon($item['icon'])) {
+			$path .= '.icon';
+			return null;
+		}
+		$route = $item['route'];
+		$routePath = '.route';
+		if (!self::isObject($route) || !self::hasShape($route, array('module', 'view', 'params'), array('module', 'view'), $routePath)) {
+			$path .= $routePath;
+			return null;
+		}
+		foreach (array('module', 'view') as $part) {
+			if (!is_string($route[$part]) || !preg_match($name, $route[$part])) {
+				$path .= '.route.' . $part;
+				return null;
+			}
+		}
+		$params = array();
+		if (isset($route['params'])) {
+			if (!self::isObject($route['params'])) {
+				$path .= '.route.params';
+				return null;
+			}
+			foreach ($route['params'] as $key => $paramValue) {
+				if (!in_array($key, self::ROUTE_PARAMS, true) || !is_string($paramValue) || !preg_match('/^[A-Za-z0-9_:-]{1,64}$/', $paramValue)) {
+					$path .= '.route.params.' . substr((string) $key, 0, 20);
+					return null;
+				}
+				$params[$key] = $paramValue;
+			}
+			ksort($params);
+		}
+		return array('type' => 'route', 'id' => $item['id'], 'label' => $labels, 'icon' => isset($item['icon']) ? $item['icon'] : null,
+			'route' => array('module' => $route['module'], 'view' => $route['view'], 'params' => $params ? $params : null));
 	}
 
 	/**
@@ -206,16 +532,18 @@ class ModernUI_Settings_Model {
 	 * @param mixed $value
 	 * @param int $max
 	 * @param callable $item
+	 * @param string $path receives "[index]" of the first invalid item
 	 * @return array|null
 	 */
-	private static function normalizeList($value, $max, $item) {
-		if (!is_array($value) || ($value && array_keys($value) !== range(0, count($value) - 1)) || count($value) > $max) {
+	private static function normalizeList($value, $max, $item, &$path = '') {
+		if (!self::isList($value) || count($value) > $max) {
 			return null;
 		}
 		$list = array();
-		foreach ($value as $entry) {
+		foreach ($value as $index => $entry) {
 			$normalized = $item($entry);
 			if ($normalized === null) {
+				$path .= '[' . $index . ']';
 				return null;
 			}
 			if (!in_array($normalized, $list, true)) {
@@ -281,15 +609,18 @@ class ModernUI_Settings_Model {
 	 */
 	public static function flatten(array $document) {
 		$flat = array();
-		$walk = function ($node, $prefix) use (&$walk, &$flat) {
+		$spec = self::spec();
+		$walk = function ($node, $prefix) use (&$walk, &$flat, $spec) {
 			foreach ($node as $key => $value) {
 				$path = $prefix === '' ? (string) $key : $prefix . '.' . $key;
 				if ($prefix === '' && ($key === 'v' || $key === 'meta')) {
 					continue;
 				}
-				// Objects are always walked (no key of the schema holds an object, "locale" and "locale.default"
-				// live in different scopes); scalars and lists are values.
-				if (!is_array($value) || !$value || array_keys($value) === range(0, count($value) - 1)) {
+				// Objects are walked, except the value of a key that holds an object (branding.title: labels by locale).
+				// "locale" and "locale.default" live in different scopes, so the object {"default": …} of a global or
+				// role document is walked. Scalars and lists are values.
+				$objectKey = isset($spec[$path]) && $spec[$path]['type'] === 'title';
+				if ($objectKey || !is_array($value) || !$value || array_keys($value) === range(0, count($value) - 1)) {
 					$flat[$path] = $value;
 				} else {
 					$walk($value, $path);

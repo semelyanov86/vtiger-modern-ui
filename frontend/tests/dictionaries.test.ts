@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import shared from '../../tests/fixtures/shared-messages.json'
-import { messages } from '../src/i18n'
-import { THEME_LOCALES } from '../src/i18n/locale'
+import { messages as baseMessages } from '../src/i18n'
+import { editorMessages } from '../src/i18n/editor'
+import { THEME_LOCALES, type ThemeLocale } from '../src/i18n/locale'
+
+/** The dictionaries of the shell and of the editors: top-level keys never overlap (checked below). */
+const messages: Record<ThemeLocale, Record<string, unknown>> = {
+  'en-US': { ...baseMessages['en-US'], ...editorMessages['en-US'] },
+  'ru-RU': { ...baseMessages['ru-RU'], ...editorMessages['ru-RU'] },
+  'de-DE': { ...baseMessages['de-DE'], ...editorMessages['de-DE'] },
+}
 
 function flatten(node: unknown, prefix = ''): Map<string, string> {
   const result = new Map<string, string>()
@@ -56,6 +64,13 @@ describe('Vue dictionaries RU/EN/DE', () => {
       }
     }
     expect([...flatten(messages['de-DE']).values()].join(' ')).toMatch(/[äöüß]/)
+  })
+
+  it('the editor dictionaries do not redefine keys of the shell', () => {
+    for (const locale of THEME_LOCALES) {
+      const base = Object.keys(baseMessages[locale])
+      expect(Object.keys(editorMessages[locale]).filter((key) => base.includes(key)), locale).toEqual([])
+    }
   })
 
   it('contain no HTML (messages are rendered as text)', () => {

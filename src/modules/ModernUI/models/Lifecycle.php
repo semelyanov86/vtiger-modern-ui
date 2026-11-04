@@ -174,6 +174,8 @@ class ModernUI_Lifecycle_Model {
 		self::removeSettingsItem();
 		if ($purge) {
 			ModernUI_Schema_Model::dropTables();
+			require_once 'modules/ModernUI/models/Branding.php';
+			ModernUI_Branding_Model::purge();
 		}
 		self::log('uninstall' . ($purge ? ' with data removal' : ', settings tables kept'));
 	}

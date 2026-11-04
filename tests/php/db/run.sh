@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Migrations and settings storage of ModernUI against a throwaway MySQL 8.4 container (task test:db).
-# Two databases: utf8mb4 (upgraded installations) and utf8 (what the installer of a clean 8.4.0 creates).
+# Two databases: utf8mb4 (upgraded installations) and utf8 (what the installer of a clean 8.4.0 creates); two more for
+# moving settings between CRMs (export from one, import into the other).
 # Never touches the database of the dev instance.
 set -euo pipefail
 REPO=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)
@@ -16,10 +17,12 @@ for _ in $(seq 1 90); do
 	fi
 	sleep 1
 done
-docker exec "$name" mysql -uroot -ptest -e "CREATE DATABASE mu_utf8mb4 CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci; CREATE DATABASE mu_utf8 CHARACTER SET utf8 COLLATE utf8_general_ci" 2>/dev/null
+docker exec "$name" mysql -uroot -ptest -e "CREATE DATABASE mu_utf8mb4 CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci; CREATE DATABASE mu_utf8 CHARACTER SET utf8 COLLATE utf8_general_ci; CREATE DATABASE mu_xfer_a CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci; CREATE DATABASE mu_xfer_b CHARACTER SET utf8 COLLATE utf8_general_ci" 2>/dev/null
 port=$(docker port "$name" 3306/tcp | head -1 | sed 's/.*://')
 status=0
 for database in mu_utf8mb4 mu_utf8; do
 	"$PHP" "$REPO/tests/php/db/DbTest.php" 127.0.0.1 "$port" "$database" || status=1
 done
+# Moving settings from one CRM (utf8mb4) to another (utf8, other ids).
+"$PHP" "$REPO/tests/php/db/TransferTest.php" 127.0.0.1 "$port" mu_xfer_a mu_xfer_b || status=1
 exit $status

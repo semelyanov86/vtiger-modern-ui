@@ -25,12 +25,20 @@ export const messages: Record<ThemeLocale, MessageSchema> = {
   'de-DE': deDE,
 }
 
-export function createThemeI18n(locale: ThemeLocale) {
+/** Additional dictionaries of a page (the editors): top-level keys of their own, merged per locale. */
+export type ExtraMessages = Readonly<Record<ThemeLocale, Readonly<Record<string, unknown>>>>
+
+export function createThemeI18n(locale: ThemeLocale, extra?: ExtraMessages) {
+  const all = extra === undefined ? messages : {
+    'en-US': { ...messages['en-US'], ...extra['en-US'] },
+    'ru-RU': { ...messages['ru-RU'], ...extra['ru-RU'] },
+    'de-DE': { ...messages['de-DE'], ...extra['de-DE'] },
+  }
   return createI18n({
     legacy: false,
     locale,
     fallbackLocale: FALLBACK_LOCALE,
-    messages,
+    messages: all,
     pluralRules: { 'ru-RU': russianPlural },
     missingWarn: import.meta.env.DEV,
     fallbackWarn: import.meta.env.DEV,

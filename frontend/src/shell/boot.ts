@@ -8,6 +8,8 @@
  * their own containers; "skin" — an unknown page shell, only the stylesheet applies. The standard view (no
  * theme at all) is html.mu-off or a page the server printed without the theme links.
  */
+// createApp() of imported single-file components, not components defined here.
+/* eslint-disable vue/one-component-per-file */
 import { createApp } from 'vue'
 import { fetchBootstrap } from '../api/client'
 import { ApiError } from '../api/guards'
@@ -17,6 +19,8 @@ import { createThemeI18n } from '../i18n'
 import { createContainer, IslandRuntime } from '../boot/runtime'
 import { applyTokens, clearTokens } from '../boot/tokens'
 import SystemMenu from './SystemMenu.vue'
+import NavigationMenu from './NavigationMenu.vue'
+import Brand from './Brand.vue'
 
 const READY_CLASS = 'mu-shell-ready'
 const OFF_CLASS = 'mu-off'
@@ -65,6 +69,37 @@ function registerIslands(data: Bootstrap, i18n: ReturnType<typeof createThemeI18
     },
     create: () => createApp(SystemMenu, { bootstrap: data, onStandardView: teardown }).use(i18n),
   })
+  runtime.register({
+    id: 'navigation',
+    // Next to the system menu (floats right: placed after it in the DOM, it stands to its left).
+    place: () => {
+      const navbar = document.getElementById('navbar')
+      if (navbar?.closest('nav.app-fixed-navbar') == null || (data.menu.groups.length === 0 && data.menu.favorites.length === 0)) {
+        return null
+      }
+      overlayRoot()
+      const system = navbar.querySelector(':scope > [data-mu-root="system-menu"]')
+      return { kind: 'insert', parent: navbar, before: system !== null ? system.nextSibling : navbar.firstChild, className: 'mu-navigation-root' }
+    },
+    create: () => createApp(NavigationMenu, { menu: data.menu }).use(i18n),
+  })
+  const branding = data.branding
+  if (branding.logoUrl !== null || branding.title !== null) {
+    const brand = {
+      id: 'brand',
+      // Inside the company logo link of the v7 header, after its image (the red marks extensions put there stay).
+      place: () => {
+        const anchor = document.querySelector('nav.app-fixed-navbar .logo-container a.company-logo')
+        if (anchor === null) {
+          return null
+        }
+        const image = anchor.querySelector(':scope > img')
+        return { kind: 'insert' as const, parent: anchor, before: image !== null ? image.nextSibling : anchor.firstChild, className: 'mu-brand-root' }
+      },
+      create: () => createApp(Brand, { branding }).use(i18n),
+    }
+    runtime.register(branding.logoUrl !== null ? { ...brand, replaces: 'logo' } : brand)
+  }
 }
 
 function removeMarkers(): void {

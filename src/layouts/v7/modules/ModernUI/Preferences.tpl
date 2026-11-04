@@ -11,6 +11,15 @@
 		{if !$MU_READY}
 			<div class="alert alert-warning" role="alert">{mu_t key='LBL_NOT_READY'}</div>
 		{else}
+			{if $MU_EDITOR}
+				<div class="modernui-preferences-editor" data-mu-root="preferences-editor" data-mu-build="{$MU_BUILD|escape}">
+					<p class="text-muted">{mu_t key='LBL_EDITOR_LOADING'}</p>
+				</div>
+				<p class="help-block" data-mu-fallback-link="preferences"><a href="index.php?module=ModernUI&amp;view=Preferences&amp;editor=off">{mu_t key='LBL_CLASSIC_PAGE'}</a></p>
+			{elseif $MU_EDITOR_OFF}
+				<p><a href="index.php?module=ModernUI&amp;view=Preferences">{mu_t key='LBL_EDITOR_PAGE'}</a></p>
+			{/if}
+			<div data-mu-fallback="preferences">
 			<h4>{mu_t key='LBL_STATUS'}</h4>
 			<p>
 				{if $MU_ACTIVE}
@@ -108,6 +117,7 @@
 					<button type="submit" class="btn btn-default">{mu_t key='LBL_RESET_PERSONAL'}</button>
 				</form>
 			{/if}
+			</div>
 		{/if}
 		<hr>
 		<h4>{mu_t key='LBL_SAFE_MODE_TITLE'}</h4>
@@ -117,6 +127,15 @@
 		{else}
 			<p>{mu_t key='LBL_SAFE_MODE_HELP'}</p>
 			<p><a class="btn btn-default" href="index.php?modernui=off">{mu_t key='LBL_SAFE_MODE_ENTER'}</a></p>
+		{/if}
+		{foreach item=CSS from=$MU_ASSETS.css}
+			<link rel="stylesheet" href="{$CSS|escape}">
+		{/foreach}
+		{foreach item=PRELOAD from=$MU_ASSETS.preload}
+			<link rel="modulepreload" href="{$PRELOAD|escape}">
+		{/foreach}
+		{if $MU_EDITOR && $MU_ASSETS.script}
+			<script type="module" src="{$MU_ASSETS.script|escape}"></script>
 		{/if}
 	</div>
 </div>

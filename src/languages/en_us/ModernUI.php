@@ -59,5 +59,15 @@ $languageStrings = array(
 	'LBL_RESULT_ERROR_SCHEMA_OUTDATED' => 'The settings need to be upgraded by an administrator.',
 	'LBL_RESULT_ERROR_SCHEMA_NEWER' => 'The settings belong to a newer version of the module.',
 	'LBL_RESULT_ERROR_MODULE_INACTIVE' => 'The ModernUI module is disabled.',
+	'LBL_MENU_APP_MARKETING' => 'Marketing',
+	'LBL_MENU_APP_SALES' => 'Sales',
+	'LBL_MENU_APP_INVENTORY' => 'Inventory',
+	'LBL_MENU_APP_SUPPORT' => 'Support',
+	'LBL_MENU_APP_PROJECT' => 'Projects',
+	'LBL_MENU_APP_TOOLS' => 'Tools',
+	'LBL_MENU_GROUP_OTHER' => 'Other modules',
+	'LBL_EDITOR_LOADING' => 'Loading the preferences editor…',
+	'LBL_CLASSIC_PAGE' => 'Simple form without the editor',
+	'LBL_EDITOR_PAGE' => 'Open the preferences editor',
 );
 $jsLanguageStrings = array();

@@ -1,0 +1,85 @@
+<script setup lang="ts">
+/**
+ * Compatibility (docs/settings.md §3): screens that always open in the standard view (module, view, parent; "*" for
+ * any), the safe mode and the page without the editor. A role adds its own screens to the common ones.
+ */
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { Plus, Trash2 } from '@lucide/vue'
+import type { Editor } from '../state'
+import type { Problem } from '../types'
+import ScopedField from '../components/ScopedField.vue'
+
+const props = defineProps<{ editor: Editor; problems: readonly Problem[] }>()
+const { t } = useI18n()
+
+interface Screen { module: string; view: string; parent: string }
+const PART = /^(\*|[A-Za-z0-9_]{0,50})$/
+
+function screens(value: unknown): Screen[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+  return value.flatMap((entry: unknown) => {
+    if (typeof entry !== 'object' || entry === null) {
+      return []
+    }
+    const item = entry as Record<string, unknown>
+    const text = (part: unknown): string => (typeof part === 'string' ? part : '')
+    return [{ module: text(item['module']), view: text(item['view']), parent: text(item['parent']) }]
+  })
+}
+
+const inheritedScreens = computed(() => (props.editor.isRole.value ? screens(props.editor.data.value.global.values['theme.excludedScreens']) : []))
+
+function change(list: Screen[], index: number, part: keyof Screen, value: string, update: (value: unknown) => void): void {
+  const next = list.map((entry) => ({ ...entry }))
+  const row = next[index]
+  if (row !== undefined) {
+    row[part] = value.trim()
+    update(next)
+  }
+}
+
+function valid(screen: Screen): boolean {
+  return screen.module !== '' && PART.test(screen.module) && PART.test(screen.view) && PART.test(screen.parent)
+}
+</script>
+
+<template>
+  <div class="mu-section" data-mu-section="compatibility">
+    <p class="mu-help">{{ t('editor.compatibility.intro') }}</p>
+    <div v-if="inheritedScreens.length > 0" class="mu-note">
+      <span>{{ t('editor.compatibility.inherited') }}</span>
+      <code v-for="(screen, index) in inheritedScreens" :key="index">{{ screen.module }} / {{ screen.view || '—' }} / {{ screen.parent || '—' }}</code>
+    </div>
+    <ScopedField v-slot="{ value, disabled, update }" :editor="editor" field="theme.excludedScreens" :problems="problems" :legend="t('fields.theme_excludedScreens')">
+      <div class="mu-table-scroll">
+        <table class="mu-table" data-mu-table="screens">
+          <caption class="mu-field__label">{{ t('fields.theme_excludedScreens') }}</caption>
+          <thead><tr><th scope="col">{{ t('editor.compatibility.module') }}</th><th scope="col">{{ t('editor.compatibility.view') }}</th><th scope="col">{{ t('editor.compatibility.parent') }}</th><th scope="col"><span class="mu-visually-hidden">{{ t('editor.access.actions') }}</span></th></tr></thead>
+          <tbody>
+            <tr v-for="(screen, index) in screens(value)" :key="index">
+              <td v-for="part in (['module', 'view', 'parent'] as const)" :key="part">
+                <input class="mu-input" type="text" maxlength="50" :value="screen[part]" :disabled="disabled" :aria-label="t(`editor.compatibility.${part}`)" :aria-invalid="!valid(screen)" :data-mu-screen="`${index}-${part}`" @change="change(screens(value), index, part, ($event.target as HTMLInputElement).value, update)" />
+              </td>
+              <td class="mu-table__actions">
+                <button type="button" class="mu-icon-btn" :disabled="disabled" :aria-label="t('editor.compatibility.remove', { screen: screen.module })" @click="update(screens(value).filter((_, position) => position !== index))"><Trash2 :size="14" /></button>
+              </td>
+            </tr>
+            <tr v-if="screens(value).length === 0"><td colspan="4" class="mu-help">{{ t('editor.compatibility.none') }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p v-if="screens(value).some((screen) => !valid(screen))" class="mu-field__error" role="alert">{{ t('editor.compatibility.invalid') }}</p>
+      <button type="button" class="mu-btn" :disabled="disabled || screens(value).length >= 100" data-mu-action="add-screen" @click="update([...screens(value), { module: 'Reports', view: '*', parent: '' }])">
+        <Plus :size="14" aria-hidden="true" /><span>{{ t('editor.compatibility.add') }}</span>
+      </button>
+      <p class="mu-help">{{ t('editor.compatibility.example') }}</p>
+    </ScopedField>
+
+    <h3 class="mu-section__heading">{{ t('editor.compatibility.recoveryTitle') }}</h3>
+    <p class="mu-help">{{ t('editor.compatibility.safeMode') }} <a href="index.php?modernui=off">index.php?modernui=off</a></p>
+    <p class="mu-help">{{ t('editor.compatibility.classic') }} <a href="index.php?module=ModernUI&amp;parent=Settings&amp;view=Index&amp;editor=off">{{ t('editor.compatibility.classicLink') }}</a></p>
+  </div>
+</template>

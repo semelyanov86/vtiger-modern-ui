@@ -296,8 +296,10 @@ Select2 для `ru_ru`). ModernUI не опирается ни на одно и�
 | `modules/Settings/ModernUI/views/Index.php` | страница настроек администратора: состояние, включение, восстановление, проверка frontend | 02 (редактор — 05) |
 | `modules/Settings/ModernUI/actions/{Toggle,Recovery}.php` | включение для себя/выключение, пилот по пользователю и роли (режимы `pilotAddUser`, `pilotRemoveUser`, `pilotAddRole`, `pilotRemoveRole`), повтор миграций и ссылок (HTML-формы) | 02, пилот — 03 |
 | `modules/ModernUI/models/Pilot.php` | кто может войти в пилот (активные пользователи, существующие роли) и подписи для страницы настроек; только чтение таблиц CRM | 03 |
-| `modules/Settings/ModernUI/actions/{Save,Export,Import,Logo,Reset,Uninstall}.php` | редактор настроек и меню, перенос, логотип, удаление из интерфейса | 05, 10 |
-| `modules/ModernUI/models/Menu.php` | итоговое меню пользователя из разрешённых модулей | 05–06 |
+| `modules/Settings/ModernUI/actions/{Data,Save,Logo,Transfer}.php` | данные редактора (GET); сохранение области, предпросмотр меню, удаление профиля роли, сброс личных настроек пользователя; загрузка логотипа; экспорт/предпросмотр/применение JSON (`settings.md` §13) | 05 |
+| `modules/Settings/ModernUI/actions/Uninstall.php` | удаление из интерфейса | 10 |
+| `modules/ModernUI/models/Menu.php` | итоговое меню пользователя из разрешённых модулей: кандидаты по правам Vtiger, чистая сборка `assemble()`, каталог редактора | 05 |
+| `modules/ModernUI/models/Editor.php`, `Transfer.php`, `Branding.php` | данные и сохранение редактора (ревизии, проверка пилота и ролей, конфликты); экспорт/импорт без числовых id; логотип (GD → PNG в `test/logo/`) и название | 05 |
 
 Совместимость PHP 8.1–8.5: без `readonly`-классов, `enum` допускаются только если используются
 одинаково в 8.1 (8.1 их поддерживает), без синтаксиса 8.2+ (`readonly class`, DNF-типы, константы в
@@ -352,8 +354,10 @@ TypeScript проверяет общий набор `tests/fixtures/tokens.json`
 ### 5.2. Сборка (этап 02)
 
 - `frontend/` — Vite 8 + Vue 3.5, TypeScript в строгом режиме (`dependencies.md` §5), `@vitejs/plugin-vue`; entries: `shell` (`src/shell/main.ts`),
-  `settings` (`src/settings/main.ts`), `skin` (`src/skin/skin.scss`); `preferences` — с редактором этапа 05
-  (на этапе 02 страница предпочтений — серверная форма). Код нескольких entries (Vue, vue-i18n, базовые
+  `settings` (`src/settings/main.ts`), `preferences` (`src/preferences/main.ts`, этап 05), `skin` (`src/skin/skin.scss`).
+  Этап 05: код, общий для `settings` и `preferences` (редакторы, их словари `i18n/locales/editor/*`, перетаскивание),
+  выделен группой `editor` с приоритетом выше `common`: shell на страницах CRM не загружает ни кода, ни текстов
+  редакторов (после разделения `common` — 33 КБ gzip вместо 86 КБ). Код нескольких entries (Vue, vue-i18n, базовые
   стили) — в одном chunk `common` (`codeSplitting.groups`, `minShareCount: 2`); все приложения одной
   страницы получают один экземпляр Vue (один URL модуля), `window.Vue` не создаётся. Загрузчик и PHP
   (`ModernUI_Assets_Model::entryTags`) подключают CSS entry **и всех импортируемых им chunk'ов**
@@ -498,6 +502,20 @@ qtip 1082, Select2 10000+. Оверлеи темы (выпадающие мен�
 удалённый контейнер возвращается один раз, второй загрузчик и вторая копия entry не дают второго острова, второго
 `#mu-overlay-root` и второго меню по одному щелчку.
 
+### 7.4. Острова этапа 05
+
+- `navigation` — кнопка «Модули» (`LayoutGrid`) в собственном контейнере `#navbar`, левее системного меню; немодальный
+  popover в `#mu-overlay-root` с меню пользователя из `Bootstrap` (`src/menu/MenuPanel.vue`: избранное, в компактном
+  режиме только значками с `aria-label`, группы и пункты). Меню приложений v7 не скрывается и не заменяется — это этап
+  06 (мега-меню, полоса избранного, поиск модулей); данные и настройки меню те же.
+- `brand` — свой логотип и/или название темы внутри ссылки логотипа шапки v7 (после её изображения); `replaces: 'logo'`
+  только при своём логотипе — изображение v7 скрывается правилом под `html[data-mu-replaced~="logo"]`. Без своих
+  логотипа и названия остров не регистрируется.
+- Страницы модуля: редактор настроек (`[data-mu-root="settings-editor"]`) и редактор предпочтений
+  (`[data-mu-root="preferences-editor"]`) — существующие контейнеры серверных шаблонов; при монтировании скрывают
+  серверные формы с `data-mu-fallback`; оверлеи (диалоги) — в `#mu-overlay-root`, который страница создаёт сама
+  (`boot/overlay.ts`), если shell не активен.
+
 ## 8. Серверные действия
 
 Ответ — `Vtiger_Response` (JSON `{success, result | error}`), ошибки — коды `MU_*` с параметрами, тексты
@@ -512,10 +530,11 @@ qtip 1082, Select2 10000+. Оверлеи темы (выпадающие мен�
 | `module=ModernUI&view=Preferences` | GET | любой вошедший | — | страница личных предпочтений |
 | `module=ModernUI&parent=Settings&view=Index` | GET | админ | `Settings_Vtiger_Index_View` | страница настроек (+ HTML-форма без JS: вкл/выкл темы, безопасный режим) |
 | `module=ModernUI&parent=Settings&action=Save` | POST | админ | CSRF, ревизия, валидация | общие и ролевые настройки, меню |
-| `…&action=Export` | GET | админ | — | JSON-экспорт (`settings.md` §8) |
-| `…&action=Import&mode=preview|apply` | POST | админ | CSRF, размер ≤ 256 КБ, схема | импорт JSON |
-| `…&action=Logo&mode=upload|delete` | POST | админ | CSRF, PNG/JPEG/GIF ≤ 512 КБ, проверка изображения | логотип темы в `test/logo/` |
-| `…&action=Reset` | POST | админ | CSRF | сброс области к значениям по умолчанию |
+| `…&action=Data` | GET | админ | Referer | данные редактора: документы с ревизиями, роли, пользователи, каталог модулей (этап 05) |
+| `…&action=Save&mode=previewMenu|deleteRole|resetUser` | POST | админ | CSRF | предпросмотр меню черновика с правами администратора; удаление профиля роли (ревизия); сброс личных настроек пользователя (этап 05) |
+| `…&action=Transfer&mode=export` | GET | админ | Referer | JSON-экспорт (`settings.md` §9, §13) |
+| `…&action=Transfer&mode=preview|apply` | POST | админ | CSRF, размер ≤ 256 КБ, схема, `fingerprint` | импорт JSON: отчёт, применение одной транзакцией |
+| `…&action=Logo&mode=upload` | POST | админ | CSRF, PNG/JPEG/GIF ≤ 512 КБ, `getimagesize` + перекодирование GD | логотип темы в `test/logo/modernui_<sha1>.png` (удаление неиспользуемых — автоматически, `settings.md` §13.3) |
 | `…&action=Toggle` | POST | админ | CSRF | включить/выключить тему (обычная HTML-форма, работает без Vue) |
 | `…&action=Recovery` | POST | админ | CSRF | повторить миграции, пересинхронизировать ссылки |
 | `…&action=Uninstall` | POST | админ | CSRF, подтверждение | `Vtiger_Module::delete()` по политике `settings.md` §9 |
@@ -597,7 +616,7 @@ src/                                   раскладка путей CRM (dev/cr
 frontend/                              package.json, package-lock.json, vite.config.ts, build/ (плагины сборки),
                                        src/{shell,settings,skin,styles,i18n,api,adapters,boot}, tests/ (vitest), e2e/ (Playwright)
 packaging/                             manifest.xml.tpl, build-zip.py, allowlist.txt
-dev/                                   crm-link.sh, crm-mounts.txt, crm-info.php, crm-vtlib.php, crm-links-for.php, check-private.sh
+dev/                                   crm-link.sh, crm-mounts.txt, crm-info.php, crm-vtlib.php, crm-links-for.php, crm-menu-for.php, check-private.sh
 tests/                                 php/ (модели, i18n, маршруты; db/ — миграции на временной MySQL), package/ (состав ZIP,
                                        распаковка импортёром 8.4.0), fixtures/ (общие для PHP и TypeScript)
 dist/                                  ModernUI-X.Y.Z.zip, .zip.sha256, .files.txt (не в git)
@@ -662,5 +681,5 @@ Unit-тесты TypeScript и e2e лежат в `frontend/`, потому что
 | Q8 | skin в `<head>` не даёт мигания v7 при переходах; CLS полосы избранного при `mu-pending` ≤ 0.1 | 04: см. `verification.md` §3 (замер `task measure`); полоса избранного появится на этапе 06 — CLS повторить там |
 | Q9 | `Bootstrap` < 50 мс на сервере dev-стенда, ETag/304 | 04: см. `verification.md` §3 (замер `task measure`) |
 | Q10 | Vue-оверлей внутри модалки Bootstrap 3 не конфликтует с `enforceFocus` | 07 |
-| Q11 | реэкспорт/импорт ролей по имени между чистым и dev-стендом | 05 |
+| Q11 | реэкспорт/импорт ролей по имени между чистым и dev-стендом | 05: да — роль по пути имён ниже корня без учёта регистра (MySQL: две базы с разными id и именем корня, `TransferTest.php`); e2e — файл чистого стенда на dev-стенде и наоборот: неизвестные роли и пользователи перечислены в отчёте, применение без числовых id (`verification.md` §3) |
 | Q12 | удаление через консоль vtlib и кнопку модуля: нет ссылок, пункта настроек, таблиц (по политике) | 03: консоль на чистом стенде — ссылок и пункта нет, таблицы сохранены, страницы без ошибок; кнопка модуля и `--purge` — 10 |

@@ -105,7 +105,7 @@ tasks:
     desc: Browser checks on the dev instance (CRM_URL) - loader, settings, switching on and off, network; run task crm:install first
     deps: [fe:install]
     dir: frontend
-    cmd: MU_E2E_TARGET=dev npx playwright test --config e2e/playwright.config.ts --project modernui {{.CLI_ARGS}}
+    cmd: MU_E2E_TARGET=dev npx playwright test --config e2e/playwright.config.ts --project modernui --project settings {{.CLI_ARGS}}
 
   test:e2e:clean:
     desc: Browser checks on the clean stand (both instances) after task clean:import-zip - pilot, other users, languages, Module Manager switch, network
@@ -113,7 +113,7 @@ tasks:
     dir: frontend
     cmds:
       - for: [c81, c85]
-        cmd: MU_E2E_TARGET={{.ITEM}} npx playwright test --config e2e/playwright.config.ts --project clean --project modernui {{.CLI_ARGS}}
+        cmd: MU_E2E_TARGET={{.ITEM}} npx playwright test --config e2e/playwright.config.ts --project clean --project modernui --project settings {{.CLI_ARGS}}
 
   baseline:
     desc: 'Behaviour of the CRM screens without the theme (metrics only) into .local/e2e-reports/<target>/; MU_E2E_TARGET=dev|c81|c85, default dev (safe mode on)'
@@ -243,6 +243,9 @@ tasks:
     deps: [fe:install]
     cmds:
       - dev/crm-link.sh unlink
+      # PHP-FPM workers keep the unmounted files in OPcache until the next revalidation (revalidate_freq, usually 2 s):
+      # a page in that window fails on require_once of the link handler. Wait before opening the Module Manager.
+      - sleep 5
       - cd frontend && MU_E2E_TARGET=dev MU_IMPORT_ZIP={{if .CLI_ARGS}}{{.CLI_ARGS}}{{else}}{{.ZIP}}{{end}} npx playwright test --config e2e/playwright.config.ts --project import
       - dev/crm-link.sh status
 

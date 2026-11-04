@@ -14,7 +14,11 @@ require_once 'modules/ModernUI/models/Pilot.php';
 
 class Settings_ModernUI_Toggle_Action extends Settings_Vtiger_Basic_Action {
 
+	/** @var bool the form was posted from the page without the editor: return there */
+	private $editorOff = false;
+
 	public function process(Vtiger_Request $request) {
+		$this->editorOff = $request->get('editor') === 'off';
 		if (ModernUI_Schema_Model::state(true) !== ModernUI_Schema_Model::STATE_CURRENT) {
 			$this->back('error_schema');
 			return;
@@ -126,6 +130,6 @@ class Settings_ModernUI_Toggle_Action extends Settings_Vtiger_Basic_Action {
 	 * @param string $result
 	 */
 	private function back($result) {
-		ModernUI_Page_Model::redirect(ModernUI_Lifecycle_Model::SETTINGS_URL . '&result=' . rawurlencode($result));
+		ModernUI_Page_Model::redirect(ModernUI_Lifecycle_Model::SETTINGS_URL . ($this->editorOff ? '&editor=off' : '') . '&result=' . rawurlencode($result));
 	}
 }

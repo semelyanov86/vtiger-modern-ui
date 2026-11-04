@@ -1,0 +1,70 @@
+{
+  "comment": "Label of a custom label map in a theme locale (docs/settings.md §6.2 item 8): locale → \"*\" → system label → en-US → first variant. Checked by tests/php/MenuTest.php and frontend/tests/menu.test.ts.",
+  "cases": [
+    {
+      "labels": {
+        "ru-RU": "Продажи",
+        "en-US": "Sales",
+        "de-DE": "Vertrieb"
+      },
+      "locale": "de-DE",
+      "system": "System",
+      "expected": "Vertrieb"
+    },
+    {
+      "labels": {
+        "ru-RU": "Продажи",
+        "*": "Common"
+      },
+      "locale": "de-DE",
+      "system": "System",
+      "expected": "Common"
+    },
+    {
+      "labels": {
+        "ru-RU": "Продажи",
+        "en-US": "Sales"
+      },
+      "locale": "de-DE",
+      "system": "Vertrieb (System)",
+      "expected": "Vertrieb (System)"
+    },
+    {
+      "labels": {
+        "ru-RU": "Продажи",
+        "en-US": "Sales"
+      },
+      "locale": "de-DE",
+      "system": null,
+      "expected": "Sales"
+    },
+    {
+      "labels": {
+        "ru-RU": "Продажи"
+      },
+      "locale": "de-DE",
+      "system": null,
+      "expected": "Продажи"
+    },
+    {
+      "labels": null,
+      "locale": "ru-RU",
+      "system": "Контакты",
+      "expected": "Контакты"
+    },
+    {
+      "labels": {},
+      "locale": "en-US",
+      "system": null,
+      "expected": null
+    },
+    {
+      "labels": {
+        "de-DE": "Größenänderungsübersicht"
+      },
+      "locale": "de-DE",
+      "system": "x",
+      "expected": "Größenänderungsübersicht"
+    }
+  ]
+}

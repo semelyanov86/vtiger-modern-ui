@@ -44,7 +44,7 @@
 | Исходники модуля (раскладка как в CRM после импорта ZIP) | `src/` (сборка — `src/…/resources/dist/`, не в git) | да |
 | Vue/Vite, словари, unit- и e2e-тесты frontend | `frontend/` (`tests/`, `e2e/`) | да |
 | Сборка ZIP | `packaging/`, результат — `dist/` (не в git) | да |
-| Окружение | `dev/` (`crm-link.sh`, `crm-mounts.txt`, `crm-info.php`, `crm-vtlib.php`, `crm-links-for.php`, `check-private.sh`); чистый стенд — `dev/clean/` | да |
+| Окружение | `dev/` (`crm-link.sh`, `crm-mounts.txt`, `crm-info.php`, `crm-vtlib.php`, `crm-links-for.php`, `crm-menu-for.php`, `check-private.sh`); чистый стенд — `dev/clean/` | да |
 | Тесты | `tests/` | да |
 | Документы | `docs/` | да, обезличенно |
 | Локальные настройки и состояние | `.env` (`.env.example`), `.local/` — не в git | да |
@@ -65,7 +65,7 @@ task crm:update    # то же через Vtiger_Package::update() (миграц
 task crm:uninstall # Vtiger_Module::delete(); таблицы остаются, -- --purge удаляет; crm:enable/crm:disable
 task lint          # php -l под 8.5, 8.4, 8.1 (Docker); vue-tsc, ESLint 0 предупреждений, ES5 loader.js
 task test          # PHP 8.5/8.4/8.1, миграции на временной MySQL, vitest, пакет (VTIGER_SRC_REPO в .env)
-task test:e2e      # Playwright на dev-стенде (вход из .env); оставляет тему включённой у администратора
+task test:e2e      # Playwright на dev-стенде (вход из .env): modernui + settings (редактор, этап 05); оставляет тему включённой у администратора
 task test:devcycle # правка → результат на dev-стенде (PHP, Smarty, словарь, CSS, Vue), всё откатывает
 task shots         # снимки экранов 1440/1024/768/412 с темой и без (dev-стенд — только MU_SHOTS_DIR из PRIVATE.md)
 task measure       # стоимость темы относительно безопасного режима (время, CLS, байты, Bootstrap/304)

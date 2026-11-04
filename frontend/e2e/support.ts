@@ -7,6 +7,9 @@ import { crmUrl, isClean, type Credentials } from './env'
 
 export const SETTINGS = 'index.php?module=ModernUI&parent=Settings&view=Index'
 export const PREFERENCES = 'index.php?module=ModernUI&view=Preferences'
+/** The server pages without the Vue editors (the way without JavaScript): the forms of the switches, pilot, preferences. */
+export const SETTINGS_FORMS = `${SETTINGS}&editor=off`
+export const PREFERENCES_FORM = `${PREFERENCES}&editor=off`
 export const HOME = 'index.php?module=Home&view=DashBoard'
 export const MODULE_MANAGER = 'index.php?module=ModuleManager&parent=Settings&view=List'
 export const MODULE_IMPORT = 'index.php?module=ModuleManager&parent=Settings&view=ModuleImport&mode=importUserModuleStep1'

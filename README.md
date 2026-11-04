@@ -113,8 +113,8 @@ VERSION         version of the module written into manifest.xml
 | `task crm:enable` / `task crm:disable` | Enable or disable the module like the Module Manager does |
 | `task lint` | `php -l` under PHP 8.5, 8.4 and 8.1 (Docker), `vue-tsc`, ESLint with zero warnings, ES5 syntax of the loader |
 | `task test` | Build, PHP tests (8.5/8.4/8.1), migrations on a throwaway MySQL 8.4 container, Vitest, package tests |
-| `task test:e2e` | Playwright scenarios on the instance from `.env` (signs in with `CRM_ADMIN_USER`/`CRM_ADMIN_PASS[_FILE]`) |
-| `task test:e2e:clean` | The same plus pilot, restricted users, languages, Module Manager switch, on both clean instances |
+| `task test:e2e` | Playwright scenarios on the instance from `.env` (signs in with `CRM_ADMIN_USER`/`CRM_ADMIN_PASS[_FILE]`): the module (`modernui`) and the settings and preferences editors (`settings`); every change of the settings is undone at the end |
+| `task test:e2e:clean` | The same plus pilot, restricted users, languages, Module Manager switch, and the settings of users with different permissions (menu by permissions, role profiles, personal keys, role change via `dev/clean/tools/set-role.php`, refused administrator actions), on both clean instances |
 | `task test:devcycle` | Proof of the edit → result loop on the linked instance: temporary edits of PHP, Smarty, a dictionary, CSS and Vue, all undone |
 | `task test:devrecord -- create` / `-- delete:<id>` | A synthetic record through the standard form with the theme on, then its deletion |
 | `task baseline` | Metrics of the CRM screens without the theme (`MU_E2E_TARGET`: `dev`, `c81` or `c85`), into `.local/e2e-reports/` |

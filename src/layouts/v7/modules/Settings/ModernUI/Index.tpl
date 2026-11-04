@@ -28,6 +28,18 @@
 				<div class="alert alert-danger" role="alert">{mu_t key='LBL_SCHEMA_NEEDS_RECOVERY'}</div>
 			{/if}
 
+			{if $MU_EDITOR}
+				<div class="modernui-editor" data-mu-root="settings-editor" data-mu-build="{$MU_BUILD|escape}">
+					<p class="text-muted">{mu_t key='LBL_EDITOR_LOADING'}</p>
+				</div>
+				<p class="modernui-classic-link help-block">
+					<a href="index.php?module=ModernUI&amp;parent=Settings&amp;view=Index&amp;editor=off">{mu_t key='LBL_CLASSIC_PAGE'}</a>.&nbsp;{mu_t key='LBL_CLASSIC_PAGE_HELP'}
+				</p>
+				<hr>
+				<h4>{mu_t key='LBL_SECTION_SERVER'}</h4>
+			{elseif $MU_EDITOR_OFF}
+				<p><a href="index.php?module=ModernUI&amp;parent=Settings&amp;view=Index">{mu_t key='LBL_EDITOR_PAGE'}</a></p>
+			{/if}
 			<h5><strong>{mu_t key='LBL_SECTION_STATUS'}</strong></h5>
 			<table class="table table-bordered modernui-status">
 				<tbody>
@@ -95,7 +107,7 @@
 							<input type="hidden" name="parent" value="Settings">
 							<input type="hidden" name="action" value="Toggle">
 							<input type="hidden" name="mode" value="enableForMe">
-							<input type="hidden" name="__vtrftk" value="{$MU_CSRF|escape}">
+							<input type="hidden" name="__vtrftk" value="{$MU_CSRF|escape}">{if $MU_EDITOR_OFF}<input type="hidden" name="editor" value="off">{/if}
 							<button type="submit" class="btn btn-success" name="modernui-enable-for-me">{mu_t key='LBL_ENABLE_FOR_ME'}</button>
 						</form>
 					{/if}
@@ -105,7 +117,7 @@
 							<input type="hidden" name="parent" value="Settings">
 							<input type="hidden" name="action" value="Toggle">
 							<input type="hidden" name="mode" value="disableForMe">
-							<input type="hidden" name="__vtrftk" value="{$MU_CSRF|escape}">
+							<input type="hidden" name="__vtrftk" value="{$MU_CSRF|escape}">{if $MU_EDITOR_OFF}<input type="hidden" name="editor" value="off">{/if}
 							<button type="submit" class="btn btn-default" name="modernui-disable-for-me">{mu_t key='LBL_DISABLE_FOR_ME'}</button>
 						</form>
 					{/if}
@@ -115,7 +127,7 @@
 							<input type="hidden" name="parent" value="Settings">
 							<input type="hidden" name="action" value="Toggle">
 							<input type="hidden" name="mode" value="disableForAll">
-							<input type="hidden" name="__vtrftk" value="{$MU_CSRF|escape}">
+							<input type="hidden" name="__vtrftk" value="{$MU_CSRF|escape}">{if $MU_EDITOR_OFF}<input type="hidden" name="editor" value="off">{/if}
 							<button type="submit" class="btn btn-danger" name="modernui-disable-for-all">{mu_t key='LBL_DISABLE_FOR_ALL'}</button>
 						</form>
 					{/if}
@@ -124,6 +136,7 @@
 					<p class="help-block">{mu_t key='LBL_YOU_CHOSE_STANDARD_VIEW'}</p>
 				{/if}
 				{if $MU_PILOT}
+					<div data-mu-fallback="pilot">
 					<h5><strong>{mu_t key='LBL_SECTION_PILOT'}</strong></h5>
 					<p>{mu_t key='LBL_PILOT_HELP'}</p>
 					<div class="row modernui-pilot">
@@ -149,7 +162,7 @@
 														<input type="hidden" name="action" value="Toggle">
 														<input type="hidden" name="mode" value="{if $KIND eq 'user'}pilotRemoveUser{else}pilotRemoveRole{/if}">
 														<input type="hidden" name="{$KIND}" value="{$ENTRY.id|escape}">
-														<input type="hidden" name="__vtrftk" value="{$MU_CSRF|escape}">
+														<input type="hidden" name="__vtrftk" value="{$MU_CSRF|escape}">{if $MU_EDITOR_OFF}<input type="hidden" name="editor" value="off">{/if}
 														<button type="submit" class="btn btn-default btn-xs" name="modernui-pilot-remove-{$KIND}" aria-label="{mu_t key='LBL_PILOT_REMOVE_LABEL' name=$ENTRY.label}">{mu_t key='LBL_PILOT_REMOVE'}</button>
 													</form>
 												</td>
@@ -165,7 +178,7 @@
 										<input type="hidden" name="parent" value="Settings">
 										<input type="hidden" name="action" value="Toggle">
 										<input type="hidden" name="mode" value="{if $KIND eq 'user'}pilotAddUser{else}pilotAddRole{/if}">
-										<input type="hidden" name="__vtrftk" value="{$MU_CSRF|escape}">
+										<input type="hidden" name="__vtrftk" value="{$MU_CSRF|escape}">{if $MU_EDITOR_OFF}<input type="hidden" name="editor" value="off">{/if}
 										<label class="sr-only" for="modernui-pilot-{$KIND}">{if $KIND eq 'user'}{mu_t key='LBL_PILOT_CHOOSE_USER'}{else}{mu_t key='LBL_PILOT_CHOOSE_ROLE'}{/if}</label>
 										<select class="form-control input-sm" id="modernui-pilot-{$KIND}" name="{$KIND}">
 											{foreach item=OPTION from=$OPTIONS}
@@ -177,6 +190,7 @@
 								{/if}
 							</div>
 						{/foreach}
+					</div>
 					</div>
 				{/if}
 				<p><a href="index.php?module=ModernUI&amp;view=Preferences">{mu_t key='LBL_OPEN_PREFERENCES'}</a></p>
@@ -198,7 +212,7 @@
 				<input type="hidden" name="module" value="ModernUI">
 				<input type="hidden" name="parent" value="Settings">
 				<input type="hidden" name="action" value="Recovery">
-				<input type="hidden" name="__vtrftk" value="{$MU_CSRF|escape}">
+				<input type="hidden" name="__vtrftk" value="{$MU_CSRF|escape}">{if $MU_EDITOR_OFF}<input type="hidden" name="editor" value="off">{/if}
 				<button type="submit" class="btn btn-default" name="modernui-recovery">{mu_t key='LBL_RECOVERY'}</button>
 			</form>
 

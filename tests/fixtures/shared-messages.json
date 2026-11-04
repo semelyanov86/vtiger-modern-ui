@@ -9,13 +9,24 @@
     { "vue": "errors.MU_SCHEMA_NEWER", "php": ["ModernUI", "LBL_RESULT_ERROR_SCHEMA_NEWER"] },
     { "vue": "languages.ru-RU", "php": ["ModernUI", "LBL_LOCALE_ru-RU"] },
     { "vue": "languages.en-US", "php": ["ModernUI", "LBL_LOCALE_en-US"] },
-    { "vue": "languages.de-DE", "php": ["ModernUI", "LBL_LOCALE_de-DE"] }
+    { "vue": "languages.de-DE", "php": ["ModernUI", "LBL_LOCALE_de-DE"] },
+    { "vue": "menu.apps.MARKETING", "php": ["ModernUI", "LBL_MENU_APP_MARKETING"] },
+    { "vue": "menu.apps.SALES", "php": ["ModernUI", "LBL_MENU_APP_SALES"] },
+    { "vue": "menu.apps.INVENTORY", "php": ["ModernUI", "LBL_MENU_APP_INVENTORY"] },
+    { "vue": "menu.apps.SUPPORT", "php": ["ModernUI", "LBL_MENU_APP_SUPPORT"] },
+    { "vue": "menu.apps.PROJECT", "php": ["ModernUI", "LBL_MENU_APP_PROJECT"] },
+    { "vue": "menu.apps.TOOLS", "php": ["ModernUI", "LBL_MENU_APP_TOOLS"] },
+    { "vue": "menu.otherGroup", "php": ["ModernUI", "LBL_MENU_GROUP_OTHER"] }
   ],
   "sameInAllLanguages": {
     "comment": "Keys whose text is legitimately identical in English and German (names, codes). Everything else must differ.",
-    "vue": ["languages.ru-RU", "languages.en-US", "languages.de-DE", "diagnostics.build"],
+    "vue": [
+      "languages.ru-RU", "languages.en-US", "languages.de-DE", "diagnostics.build",
+      "menu.apps.MARKETING", "menu.apps.SUPPORT", "editor.transfer.change"
+    ],
     "php": [
       "ModernUI.ModernUI", "ModernUI.LBL_LOCALE_ru-RU", "ModernUI.LBL_LOCALE_en-US", "ModernUI.LBL_LOCALE_de-DE",
+      "ModernUI.LBL_MENU_APP_MARKETING", "ModernUI.LBL_MENU_APP_SUPPORT",
       "Settings/ModernUI.ModernUI", "Settings/ModernUI.LBL_SECTION_STATUS"
     ]
   }

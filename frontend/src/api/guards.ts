@@ -3,12 +3,18 @@
  * A mismatch throws ApiError('MU_BAD_RESPONSE') with the path of the offending field; the island is not mounted.
  */
 import { isThemeLocale, type LocaleSource } from '../i18n/locale'
+import { isMenuIcon } from '../menu/icons'
 import {
   ERROR_CODES,
   SYSTEM_ITEM_IDS,
   TOKEN_NAMES,
   type Appearance,
   type Bootstrap,
+  type Branding,
+  type Menu,
+  type MenuGroup,
+  type MenuItem,
+  type ModuleIcon,
   type Density,
   type ErrorCode,
   type FontChoice,
@@ -23,16 +29,19 @@ import {
 export class ApiError extends Error {
   readonly code: ErrorCode
   readonly detail: string
+  /** {error: {params}} of the server answer: paths of invalid values, the current revision of a conflict… */
+  readonly params: Readonly<Record<string, unknown>>
 
-  constructor(code: ErrorCode, detail = '') {
+  constructor(code: ErrorCode, detail = '', params: Readonly<Record<string, unknown>> = {}) {
     super(detail === '' ? code : `${code}: ${detail}`)
     this.name = 'ApiError'
     this.code = code
     this.detail = detail
+    this.params = params
   }
 }
 
-function bad(path: string): never {
+export function bad(path: string): never {
   throw new ApiError('MU_BAD_RESPONSE', path)
 }
 
@@ -40,40 +49,45 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-function record(value: unknown, path: string): Record<string, unknown> {
+export function record(value: unknown, path: string): Record<string, unknown> {
   return isRecord(value) ? value : bad(path)
 }
 
-function string(value: unknown, path: string, pattern?: RegExp): string {
+export function string(value: unknown, path: string, pattern?: RegExp): string {
   if (typeof value !== 'string' || (pattern !== undefined && !pattern.test(value))) {
     return bad(path)
   }
   return value
 }
 
-function boolean(value: unknown, path: string): boolean {
+export function boolean(value: unknown, path: string): boolean {
   return typeof value === 'boolean' ? value : bad(path)
 }
 
-function integer(value: unknown, path: string): number {
+export function integer(value: unknown, path: string): number {
   return typeof value === 'number' && Number.isInteger(value) && value >= 0 ? value : bad(path)
 }
 
-function oneOf<T extends string | number>(value: unknown, allowed: readonly T[], path: string): T {
+export function oneOf<T extends string | number>(value: unknown, allowed: readonly T[], path: string): T {
   const found = allowed.find((item) => item === value)
   return found ?? bad(path)
 }
 
-function stringList(value: unknown, path: string): string[] {
+export function stringList(value: unknown, path: string): string[] {
   if (!Array.isArray(value)) {
     return bad(path)
   }
   return value.map((item, index) => string(item, `${path}[${String(index)}]`))
 }
 
-const COLOR = /^#[0-9a-f]{6}$/
-/** Links of the system menu: relative to index.php of the CRM, never another origin or a script URL. */
-const CRM_URL = /^index\.php\?[A-Za-z0-9_=&%.:-]*$/
+export const COLOR = /^#[0-9a-f]{6}$/
+/** Links of the menus: relative to index.php of the CRM, never another origin or a script URL. */
+export const CRM_URL = /^index\.php\?[A-Za-z0-9_=&%.:-]*$/
+/** Logo of the theme: served by public.php of the CRM like the company logo, name chosen by the server. */
+export const LOGO_URL = /^public\.php\?type=logo&key=modernui_[0-9a-f]{40}\.png$/
+/** Icon image of a module (layouts/v7/modules/<Module>/<Module>.png), never outside the layouts. */
+const ICON_IMAGE = /^layouts\/[A-Za-z0-9_-]+\/modules\/[A-Za-z0-9_]+\/[A-Za-z0-9_]+\.png$/
+const MODULE = /^[A-Za-z0-9_]{1,50}$/
 const LOCALE_SOURCES: readonly LocaleSource[] = ['personal', 'crm', 'global', 'fallback']
 const THEME_MODES: readonly ThemeMode[] = ['off', 'pilot', 'all']
 const DENSITIES: readonly Density[] = ['comfortable', 'standard', 'compact']
@@ -148,6 +162,80 @@ function appearance(value: unknown, path: string): Appearance {
   }
 }
 
+export function moduleIcon(value: unknown, path: string): ModuleIcon {
+  const icon = record(value, path)
+  switch (icon['kind']) {
+    case 'vicon':
+      return { kind: 'vicon', name: string(icon['name'], `${path}.name`, /^vicon-[a-z0-9_]{1,60}$/) }
+    case 'image':
+      return { kind: 'image', src: string(icon['src'], `${path}.src`, ICON_IMAGE) }
+    case 'letters':
+      return { kind: 'letters', text: string(icon['text'], `${path}.text`, /^.{0,4}$/u) }
+    case 'lucide': {
+      const name = icon['name']
+      return isMenuIcon(name) ? { kind: 'lucide', name } : bad(`${path}.name`)
+    }
+    default:
+      return bad(`${path}.kind`)
+  }
+}
+
+function menuItem(value: unknown, path: string): MenuItem {
+  const item = record(value, path)
+  return {
+    id: string(item['id'], `${path}.id`, /^[mr]:[A-Za-z0-9_-]{1,50}$/),
+    module: string(item['module'], `${path}.module`, MODULE),
+    label: string(item['label'], `${path}.label`, /^[^<>]{1,200}$/u),
+    url: string(item['url'], `${path}.url`, CRM_URL),
+    icon: moduleIcon(item['icon'], `${path}.icon`),
+  }
+}
+
+function menuItems(value: unknown, path: string): MenuItem[] {
+  return Array.isArray(value) ? value.map((item, index) => menuItem(item, `${path}[${String(index)}]`)) : bad(path)
+}
+
+function menuGroup(value: unknown, path: string): MenuGroup {
+  const group = record(value, path)
+  const icon = group['icon']
+  return {
+    id: string(group['id'], `${path}.id`, /^[a-z0-9_-]{1,32}$/),
+    label: string(group['label'], `${path}.label`, /^[^<>]{1,200}$/u),
+    icon: isMenuIcon(icon) ? icon : bad(`${path}.icon`),
+    items: menuItems(group['items'], `${path}.items`),
+  }
+}
+
+/** The menu of a Bootstrap answer (also the menu preview of the settings editor). */
+export function parseBootstrapMenu(value: unknown): Menu {
+  const data = record(value, 'menu')
+  const system = data['system']
+  const groups = data['groups']
+  if (!Array.isArray(system)) {
+    return bad('menu.system')
+  }
+  if (!Array.isArray(groups)) {
+    return bad('menu.groups')
+  }
+  return {
+    system: system.map((item, index) => systemItem(item, `menu.system[${String(index)}]`)),
+    groups: groups.map((group, index) => menuGroup(group, `menu.groups[${String(index)}]`)),
+    favorites: menuItems(data['favorites'], 'menu.favorites'),
+    favoritesEnabled: boolean(data['favoritesEnabled'], 'menu.favoritesEnabled'),
+    compact: boolean(data['compact'], 'menu.compact'),
+  }
+}
+
+function branding(value: unknown): Branding {
+  const data = record(value, 'branding')
+  const logoUrl = data['logoUrl']
+  const title = data['title']
+  return {
+    logoUrl: logoUrl === null ? null : string(logoUrl, 'branding.logoUrl', LOGO_URL),
+    title: title === null ? null : string(title, 'branding.title', /^[^<>]{1,200}$/u),
+  }
+}
+
 /** The "result" of a Bootstrap answer. */
 export function parseBootstrap(value: unknown): Bootstrap {
   const data = record(value, 'result')
@@ -157,15 +245,10 @@ export function parseBootstrap(value: unknown): Bootstrap {
   const user = record(data['user'], 'user')
   const locale = record(data['locale'], 'locale')
   const theme = record(data['theme'], 'theme')
-  const menu = record(data['menu'], 'menu')
   const personal = record(data['personal'], 'personal')
   const effective = locale['effective']
   if (!isThemeLocale(effective)) {
     return bad('locale.effective')
-  }
-  const system = menu['system']
-  if (!Array.isArray(system)) {
-    return bad('menu.system')
   }
   return {
     v: 1,
@@ -175,7 +258,11 @@ export function parseBootstrap(value: unknown): Bootstrap {
       isAdmin: boolean(user['isAdmin'], 'user.isAdmin'),
       crmLanguage: string(user['crmLanguage'], 'user.crmLanguage'),
     },
-    locale: { effective, source: oneOf(locale['source'], LOCALE_SOURCES, 'locale.source') },
+    locale: {
+      effective,
+      source: oneOf(locale['source'], LOCALE_SOURCES, 'locale.source'),
+      default: oneOf(locale['default'], ['auto', 'ru-RU', 'en-US', 'de-DE'] as const, 'locale.default'),
+    },
     theme: {
       active: boolean(theme['active'], 'theme.active'),
       reason: string(theme['reason'], 'theme.reason', /^[A-Z_]{1,40}$/),
@@ -185,11 +272,13 @@ export function parseBootstrap(value: unknown): Bootstrap {
       cacheKey: string(theme['cacheKey'], 'theme.cacheKey', /^[0-9a-f]{1,40}$/),
     },
     appearance: appearance(data['appearance'], 'appearance'),
-    menu: { system: system.map((item, index) => systemItem(item, `menu.system[${String(index)}]`)) },
+    branding: branding(data['branding']),
+    menu: parseBootstrapMenu(data['menu']),
     personal: {
       values: record(personal['values'], 'personal.values'),
       allowed: stringList(personal['allowed'], 'personal.allowed'),
       revision: integer(personal['revision'], 'personal.revision'),
+      inherited: record(personal['inherited'], 'personal.inherited'),
     },
   }
 }
@@ -199,11 +288,26 @@ export function parseRevision(value: unknown): number {
   return integer(record(value, 'result')['revision'], 'result.revision')
 }
 
-/** Error code of a failed answer ({success: false, error: {code}}); unknown codes become MU_UNKNOWN. */
+/**
+ * Error code of a failed answer ({success: false, error: {code}}). A refusal of the core (permission, CSRF, Referer:
+ * Vtiger answers {code: "<message>"} without a MU_ code) is MU_REJECTED; other unknown codes are MU_UNKNOWN.
+ */
 export function errorCodeOf(value: unknown): ErrorCode {
   if (!isRecord(value) || !isRecord(value['error'])) {
     return 'MU_BAD_RESPONSE'
   }
   const code = value['error']['code']
-  return ERROR_CODES.find((known) => known === code) ?? 'MU_UNKNOWN'
+  const known = ERROR_CODES.find((entry) => entry === code)
+  if (known !== undefined) {
+    return known
+  }
+  return typeof code === 'string' && !code.startsWith('MU_') ? 'MU_REJECTED' : 'MU_UNKNOWN'
+}
+
+/** Parameters of a failed answer ({error: {params}}), unchecked. */
+export function errorParamsOf(value: unknown): Record<string, unknown> {
+  if (!isRecord(value) || !isRecord(value['error']) || !isRecord(value['error']['params'])) {
+    return {}
+  }
+  return value['error']['params']
 }

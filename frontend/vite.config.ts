@@ -66,14 +66,25 @@ export default defineConfig({
       input: {
         shell: resolve(here, 'src/shell/main.ts'),
         settings: resolve(here, 'src/settings/main.ts'),
+        preferences: resolve(here, 'src/preferences/main.ts'),
         skin: resolve(here, 'src/skin/skin.scss'),
       },
       output: {
         // Code used by several entries (Vue, vue-i18n, base styles) goes to one "common" chunk: every island
         // of a page imports the same module URL, so there is one Vue instance per page and window.Vue stays
         // untouched.
+        // Code of the module's own pages (the editors and their dictionaries, drag and drop) goes to an "editor" chunk:
+        // the shell, loaded on every CRM page, never downloads it.
         codeSplitting: {
-          groups: [{ name: 'common', minShareCount: 2 }],
+          groups: [
+            {
+              name: 'editor',
+              test: /[\\/]src[\\/](?:settings|preferences)[\\/]|[\\/]src[\\/]i18n[\\/](?:editor\.ts|locales[\\/]editor[\\/])|[\\/]node_modules[\\/](?:vue-draggable-plus|sortablejs)[\\/]/,
+              minShareCount: 2,
+              priority: 2,
+            },
+            { name: 'common', minShareCount: 2, priority: 1 },
+          ],
         },
       },
     },

@@ -20,7 +20,7 @@
 import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test'
 import { adminCredentials, cleanUserCredentials, crmUrl, isClean, type CleanUser } from './env'
 import {
-  HOME, PREFERENCES, SETTINGS, isolateNetwork, setModuleActive, signIn, themeOnPage, waitForShell,
+  HOME, PREFERENCES_FORM, SETTINGS, SETTINGS_FORMS, isolateNetwork, setModuleActive, signIn, themeOnPage, waitForShell,
 } from './support'
 
 test.describe.configure({ mode: 'serial' })
@@ -58,7 +58,7 @@ async function themeActive(page: Page, url = HOME): Promise<boolean> {
 }
 
 async function settingsForm(page: Page, button: string, field?: { name: string; value: string }): Promise<void> {
-  await page.goto(SETTINGS)
+  await page.goto(SETTINGS_FORMS)
   const form = page.locator(`form:has(button[name="${button}"])`).filter(field === undefined ? {} : { has: page.locator(`[name="${field.name}"]`) })
   if (field !== undefined) {
     await form.locator(`select[name="${field.name}"]`).selectOption(field.value)
@@ -68,9 +68,9 @@ async function settingsForm(page: Page, button: string, field?: { name: string; 
 
 /** Removes every user and role from the pilot and switches the theme off for everyone. */
 async function resetTheme(page: Page): Promise<void> {
-  await page.goto(SETTINGS)
+  await page.goto(SETTINGS_FORMS)
   for (const kind of ['user', 'role']) {
-    while ((await page.locator(`button[name="modernui-pilot-remove-${kind}"]`).count()) > 0) {
+    while ((await page.locator(`button[name="modernui-pilot-remove-${kind}"]:visible`).count()) > 0) {
       await Promise.all([page.waitForURL(/result=/), page.locator(`button[name="modernui-pilot-remove-${kind}"]`).first().click()])
     }
   }
@@ -80,7 +80,7 @@ async function resetTheme(page: Page): Promise<void> {
 }
 
 async function optionValue(page: Page, select: string, label: RegExp): Promise<string> {
-  await page.goto(SETTINGS)
+  await page.goto(SETTINGS_FORMS)
   const option = page.locator(`${select} option`).filter({ hasText: label })
   await expect(option).toHaveCount(1)
   return (await option.getAttribute('value')) ?? ''
@@ -114,7 +114,7 @@ test('after the import (or a reset): theme off for everyone, no ModernUI resourc
   }
   if (process.env['MU_EXPECT_REINSTALL'] === '1') {
     // Reinstall over kept settings (L8): notice for the administrator, the saved pilot list is still there.
-    await admin.page.goto(SETTINGS)
+    await admin.page.goto(SETTINGS_FORMS)
     await expect(admin.page.locator('.alert-info')).toHaveCount(1)
     await expect(admin.page.locator('tr[data-mu-pilot-user]')).not.toHaveCount(0)
   }
@@ -174,7 +174,7 @@ test('pilot by role: the user of the role gets the theme, removing the role take
   await settingsForm(admin.page, 'modernui-pilot-add-role', { name: 'role', value: role })
   expect(await themeActive(viewer.page)).toBe(true)
   expect(await themeActive(admin2.page)).toBe(false)
-  await admin.page.goto(SETTINGS)
+  await admin.page.goto(SETTINGS_FORMS)
   await Promise.all([admin.page.waitForURL(/result=pilot_removed/),
     admin.page.locator(`tr[data-mu-pilot-role="${role}"] button[name="modernui-pilot-remove-role"]`).click()])
   expect(await themeActive(viewer.page)).toBe(false)
@@ -189,7 +189,7 @@ test('languages: theme texts in RU/EN/DE on a CRM with en_us only, "As in the CR
     auto: { saved: 'Your preferences have been saved.', menu: 'New interface' },
   }
   for (const [locale, texts] of Object.entries(expected)) {
-    await page.goto(PREFERENCES)
+    await page.goto(PREFERENCES_FORM)
     await page.locator('#modernui-locale').selectOption(locale)
     await Promise.all([page.waitForURL(/result=saved/), page.locator('form.modernui-preferences-form button[type="submit"]').click()])
     await expect(page.locator('.alert-success')).toHaveText(texts.saved)
@@ -216,7 +216,7 @@ test('a restricted user cannot open or post to the administrator pages of Modern
   await page.goto(SETTINGS)
   await expect(page.locator('table.modernui-status')).toHaveCount(0)
   await expect(page.locator('body')).toContainText(/permission denied/i)
-  await page.goto(PREFERENCES)
+  await page.goto(PREFERENCES_FORM)
   const token = await page.locator('form.modernui-preferences-form input[name="__vtrftk"]').first().getAttribute('value')
   const response = await page.request.post('index.php', {
     form: { module: 'ModernUI', parent: 'Settings', action: 'Toggle', mode: 'disableForAll', __vtrftk: token ?? '' },
@@ -240,11 +240,11 @@ test('Module Manager: disable takes the theme away from everyone, enable brings 
 
 test('standard view and safe mode of the restricted user', async () => {
   const page = limited.page
-  await page.goto(PREFERENCES)
+  await page.goto(PREFERENCES_FORM)
   await page.locator('input[type="checkbox"][name="standardView"]').check()
   await Promise.all([page.waitForURL(/result=saved/), page.locator('form.modernui-preferences-form button[type="submit"]').click()])
   expect(await themeActive(page)).toBe(false)
-  await page.goto(PREFERENCES)
+  await page.goto(PREFERENCES_FORM)
   await page.locator('input[type="checkbox"][name="standardView"]').uncheck()
   await Promise.all([page.waitForURL(/result=saved/), page.locator('form.modernui-preferences-form button[type="submit"]').click()])
   expect(await themeActive(page)).toBe(true)

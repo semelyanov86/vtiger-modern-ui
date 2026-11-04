@@ -7,7 +7,7 @@
  */
 import { expect, test, type Page } from '@playwright/test'
 import { isClean } from './env'
-import { HOME, ISLAND, LOADER, PREFERENCES, SETTINGS, SKIN, TOKENS, isolateNetwork, themeOnPage, waitForShell } from './support'
+import { HOME, ISLAND, LOADER, PREFERENCES, PREFERENCES_FORM, SETTINGS, SKIN, TOKENS, isolateNetwork, themeOnPage, waitForShell } from './support'
 
 test.describe.configure({ mode: 'serial' })
 
@@ -38,7 +38,7 @@ async function settingsAction(page: Page, button: string): Promise<void> {
 }
 
 async function savePreferences(page: Page, change: (page: Page) => Promise<void>): Promise<void> {
-  await page.goto(PREFERENCES)
+  await page.goto(PREFERENCES_FORM)
   await change(page)
   await Promise.all([page.waitForURL(/result=saved/), page.locator('form.modernui-preferences-form button[type="submit"]').click()])
 }
@@ -49,7 +49,7 @@ test('initial state: theme off for everyone, nothing of ModernUI on CRM pages', 
   if ((await page.locator('button[name="modernui-disable-for-all"]').count()) > 0) {
     await settingsAction(page, 'modernui-disable-for-all')
   }
-  await page.goto(PREFERENCES)
+  await page.goto(PREFERENCES_FORM)
   if ((await page.locator('form.modernui-reset-form button').count()) > 0) {
     await Promise.all([page.waitForURL(/result=reset/), page.locator('form.modernui-reset-form button').click()])
   }
@@ -163,7 +163,9 @@ test('system menu: mouse and keyboard, entries of an administrator', async ({ pa
 
   await trigger.click()
   await Promise.all([page.waitForURL(/module=ModernUI&view=Preferences/), menu.locator('[data-mu-item="preferences"]').click()])
-  await expect(page.locator('form.modernui-preferences-form')).toBeVisible()
+  // The editor of the preferences replaces the server form (still on the page, hidden).
+  await expect(page.locator('[data-mu-prefs]')).toBeVisible()
+  await expect(page.locator('form.modernui-preferences-form')).toBeHidden()
 })
 
 test('languages: the theme texts follow the personal choice RU/EN/DE, English is the fallback', async ({ page }) => {
@@ -250,7 +252,7 @@ test('standard view from the system menu: in-place teardown, kept after reload, 
 
   await page.goto(HOME)
   expect(await themeOnPage(page)).toMatchObject({ skin: 0, tokens: 0, loader: 0 })
-  await page.goto(PREFERENCES)
+  await page.goto(PREFERENCES_FORM)
   await expect(page.locator('input[type="checkbox"][name="standardView"]')).toBeChecked()
   await savePreferences(page, async (p) => {
     await p.locator('input[type="checkbox"][name="standardView"]').uncheck()

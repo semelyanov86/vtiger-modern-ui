@@ -23,7 +23,20 @@
     "MU_MODULE_INACTIVE": "Das Modul ModernUI ist deaktiviert.",
     "MU_SCHEMA_OUTDATED": "Die Einstellungen müssen von einem Administrator aktualisiert werden.",
     "MU_SCHEMA_NEWER": "Die Einstellungen gehören zu einer neueren Version des Moduls.",
-    "MU_UNKNOWN": "Unbekannter Fehler."
+    "MU_UNKNOWN": "Unbekannter Fehler.",
+    "MU_UNKNOWN_KEY": "Diese Einstellung kennt diese Version des Moduls nicht.",
+    "MU_UNKNOWN_ROLE": "Diese Rolle gibt es in diesem CRM nicht.",
+    "MU_UNKNOWN_USER": "Den Benutzer gibt es nicht oder er ist nicht aktiv.",
+    "MU_LOGO_INVALID": "Die Datei wurde nicht empfangen. Wählen Sie sie erneut aus.",
+    "MU_LOGO_TOO_LARGE": "Das Logo ist größer als 512 KB.",
+    "MU_LOGO_FORMAT": "Nur PNG-, JPEG- und GIF-Bilder werden angenommen.",
+    "MU_LOGO_DIMENSIONS": "Jede Seite des Bildes muss zwischen 16 und 4096 Pixel groß sein.",
+    "MU_LOGO_UNSUPPORTED": "Der Server kann keine Bilder verarbeiten (die PHP-Erweiterung GD fehlt).",
+    "MU_LOGO_STORAGE": "Das Logo konnte nicht im Logo-Verzeichnis des CRM gespeichert werden.",
+    "MU_IMPORT_FORMAT": "Das ist keine Einstellungsdatei von ModernUI.",
+    "MU_IMPORT_VERSION": "Die Datei stammt aus einer neueren Version von ModernUI. Aktualisieren Sie zuerst das Modul.",
+    "MU_IMPORT_TOO_LARGE": "Die Datei ist größer als 256 KB.",
+    "MU_REJECTED": "Das CRM hat die Anfrage abgelehnt: keine Berechtigung oder die Seite ist veraltet. Laden Sie die Seite neu."
   },
   "diagnostics": {
     "checking": "Prüfung läuft …",
@@ -47,5 +60,20 @@
     "ru-RU": "Русский",
     "en-US": "English",
     "de-DE": "Deutsch"
+  },
+  "menu": {
+    "apps": {
+      "MARKETING": "Marketing",
+      "SALES": "Vertrieb",
+      "INVENTORY": "Lager",
+      "SUPPORT": "Support",
+      "PROJECT": "Projekte",
+      "TOOLS": "Werkzeuge"
+    },
+    "otherGroup": "Weitere Module",
+    "button": "Module",
+    "title": "Module des CRM",
+    "favorites": "Favoriten",
+    "empty": "Ihnen steht kein Modul zur Verfügung."
   }
 }

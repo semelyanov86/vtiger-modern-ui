@@ -17,6 +17,6 @@ class Settings_ModernUI_Recovery_Action extends Settings_Vtiger_Basic_Action {
 		}
 		ModernUI_Lifecycle_Model::addSettingsItem();
 		$result = $report['error'] === null ? 'recovered' : 'error_recovery';
-		ModernUI_Page_Model::redirect(ModernUI_Lifecycle_Model::SETTINGS_URL . '&result=' . $result);
+		ModernUI_Page_Model::redirect(ModernUI_Lifecycle_Model::SETTINGS_URL . ($request->get('editor') === 'off' ? '&editor=off' : '') . '&result=' . $result);
 	}
 }

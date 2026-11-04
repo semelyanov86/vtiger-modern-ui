@@ -95,4 +95,34 @@ class ModernUI_Page_Model {
 		$body = $error === null ? array('success' => true, 'result' => $result) : array('success' => false, 'error' => $error);
 		echo json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 	}
+
+	/**
+	 * A JSON object parameter of a request, read raw (Vtiger_Request::get() decodes JSON and purifies the text, which
+	 * would change custom labels).
+	 * @param Vtiger_Request $request
+	 * @param string $name
+	 * @param int $maxBytes
+	 * @return array|null
+	 */
+	public static function jsonParam($request, $name, $maxBytes = 1048576) {
+		$raw = $request->getRaw($name);
+		if (!is_string($raw) || $raw === '' || strlen($raw) > $maxBytes) {
+			return null;
+		}
+		$value = json_decode($raw, true, 64);
+		return is_array($value) && (!$value || array_keys($value) !== range(0, count($value) - 1)) ? $value : null;
+	}
+
+	/**
+	 * Answers with the result of a model call: {ok: true, …} → success with the rest, otherwise {status, error}.
+	 * @param array $result
+	 */
+	public static function respond(array $result) {
+		if (empty($result['ok'])) {
+			self::json(null, $result['error'], isset($result['status']) ? $result['status'] : 400);
+			return;
+		}
+		unset($result['ok']);
+		self::json($result);
+	}
 }

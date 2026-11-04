@@ -9,6 +9,7 @@
  */
 
 require_once 'modules/ModernUI/models/Page.php';
+require_once 'modules/ModernUI/models/Menu.php';
 
 class ModernUI_Preferences_Action extends Vtiger_Action_Controller {
 
@@ -60,9 +61,20 @@ class ModernUI_Preferences_Action extends Vtiger_Action_Controller {
 				$checked['errors'][] = array('key' => $key, 'code' => 'MU_FORBIDDEN_KEY');
 			}
 		}
+		// Favorites: only modules of the user's own menu candidates (the permissions of Vtiger), never a way to probe others.
+		if (isset($checked['values']['navigation.favorites'])) {
+			$candidates = ModernUI_Menu_Model::candidates();
+			foreach ($checked['values']['navigation.favorites'] as $index => $module) {
+				if (!isset($candidates['list'][$module])) {
+					$checked['errors'][] = array('key' => 'navigation.favorites', 'code' => 'MU_INVALID_VALUE', 'path' => 'navigation.favorites[' . $index . ']');
+					break;
+				}
+			}
+		}
 		if ($checked['errors']) {
 			$first = $checked['errors'][0];
-			$this->finish($json, null, array('code' => $first['code'], 'params' => array('key' => $first['key'])));
+			$this->finish($json, null, array('code' => $first['code'], 'params' => array('key' => $first['key'],
+				'path' => isset($first['path']) ? $first['path'] : $first['key'])));
 			return;
 		}
 		$apply = $checked['values'];
@@ -71,13 +83,43 @@ class ModernUI_Preferences_Action extends Vtiger_Action_Controller {
 				$apply[$key] = null;
 			}
 		}
-		$result = ModernUI_Settings_Model::update(ModernUI_Settings_Model::SCOPE_USER, (string) $userId, $apply, $userId);
+		if ($json && $request->has('baseRevision')) {
+			// The editor of the preferences page sends the revision its draft is based on: a save of another tab or
+			// session in between is a conflict the user resolves, not a silent overwrite.
+			$result = $this->saveOnRevision($userId, $apply, (int) $request->get('baseRevision'));
+		} else {
+			$result = ModernUI_Settings_Model::update(ModernUI_Settings_Model::SCOPE_USER, (string) $userId, $apply, $userId);
+		}
 		ModernUI_Activation_Model::reset();
 		if (!$result['ok']) {
-			$this->finish($json, null, array('code' => 'MU_CONFLICT', 'params' => array('revision' => $result['revision'])));
+			$this->finish($json, null, array('code' => 'MU_CONFLICT', 'params' => array('revision' => $result['revision'])), '', 409);
 			return;
 		}
 		$this->finish($json, array('revision' => $result['revision']), null, 'saved');
+	}
+
+	/**
+	 * Applies changes to the personal document if it still has the given revision.
+	 * @param int $userId
+	 * @param array $changes flat map, null removes a key
+	 * @param int $baseRevision
+	 * @return array result of ModernUI_Settings_Model::save()
+	 */
+	private function saveOnRevision($userId, array $changes, $baseRevision) {
+		$row = ModernUI_Settings_Model::getRow(ModernUI_Settings_Model::SCOPE_USER, (string) $userId);
+		$current = ModernUI_Settings_Model::decodeRow($row, ModernUI_Settings_Model::SCOPE_USER);
+		if ($current['revision'] !== $baseRevision) {
+			return array('ok' => false, 'revision' => $current['revision']);
+		}
+		$values = $current['values'];
+		foreach ($changes as $key => $value) {
+			if ($value === null) {
+				unset($values[$key]);
+			} else {
+				$values[$key] = $value;
+			}
+		}
+		return ModernUI_Settings_Model::save(ModernUI_Settings_Model::SCOPE_USER, (string) $userId, $values, $baseRevision, $userId, $current['meta']);
 	}
 
 	/**
@@ -141,10 +183,11 @@ class ModernUI_Preferences_Action extends Vtiger_Action_Controller {
 	 * @param array|null $result
 	 * @param array|null $error
 	 * @param string $resultCode code shown on the preferences page after a form post
+	 * @param int $status HTTP status of a JSON error
 	 */
-	private function finish($json, $result, $error, $resultCode = '') {
+	private function finish($json, $result, $error, $resultCode = '', $status = 400) {
 		if ($json) {
-			ModernUI_Page_Model::json($result, $error, $error === null ? 200 : 400);
+			ModernUI_Page_Model::json($result, $error, $error === null ? 200 : $status);
 			return;
 		}
 		$code = $error === null ? $resultCode : 'error_' . strtolower(str_replace('MU_', '', $error['code']));

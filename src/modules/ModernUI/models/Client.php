@@ -8,6 +8,8 @@
 require_once 'modules/ModernUI/models/Activation.php';
 require_once 'modules/ModernUI/models/Lifecycle.php';
 require_once 'modules/ModernUI/models/Tokens.php';
+require_once 'modules/ModernUI/models/Menu.php';
+require_once 'modules/ModernUI/models/Branding.php';
 
 class ModernUI_Client_Model {
 
@@ -55,7 +57,7 @@ class ModernUI_Client_Model {
 				'isAdmin' => (bool) $context['isAdmin'],
 				'crmLanguage' => $context['crmLanguage'],
 			),
-			'locale' => array('effective' => $locale['locale'], 'source' => $locale['source']),
+			'locale' => array('effective' => $locale['locale'], 'source' => $locale['source'], 'default' => $values['locale.default']),
 			'theme' => array(
 				'active' => (bool) $decision['active'],
 				'reason' => $decision['reason'],
@@ -66,12 +68,51 @@ class ModernUI_Client_Model {
 			),
 			// The settings values and the CSS variables computed from them (the same map as action=Tokens).
 			'appearance' => array_merge($appearance, array('tokens' => (object) ModernUI_Tokens_Model::forAppearance($appearance))),
-			'menu' => array('system' => $system),
+			'branding' => ModernUI_Branding_Model::forClient($values, $locale['locale']),
+			'menu' => array_merge(array('system' => $system), self::menu($values, $locale['locale'], (bool) $context['isAdmin'])),
 			'personal' => array(
 				'values' => (object) $personal,
 				'allowed' => $allowed,
 				'revision' => $context['settings']['user']['revision'],
+				// What applies without a personal value ("as the administrator set it"), for the allowed keys.
+				'inherited' => (object) self::inherited($context['settings'], $allowed),
 			),
 		);
+	}
+
+	/**
+	 * Effective values without the personal scope, for the keys the user may change.
+	 * @param array $settings ModernUI_Settings_Model::forUser()
+	 * @param array $allowed
+	 * @return array
+	 */
+	private static function inherited(array $settings, array $allowed) {
+		$values = ModernUI_Settings_Model::merge($settings['global']['values'], $settings['role']['values'], array());
+		$inherited = array();
+		foreach ($allowed as $key) {
+			if (array_key_exists($key, $values) && strpos($key, 'user.') !== 0) {
+				$inherited[$key] = $values[$key];
+			}
+		}
+		return $inherited;
+	}
+
+	/**
+	 * Menu of the user; a failure while reading the modules of the CRM leaves an empty menu (the system section,
+	 * the way back to the standard view and to the settings, is always there).
+	 * @param array $values
+	 * @param string $locale
+	 * @param bool $isAdmin
+	 * @return array
+	 */
+	private static function menu(array $values, $locale, $isAdmin) {
+		try {
+			return ModernUI_Menu_Model::build($values, $locale, $isAdmin);
+		} catch (Throwable $e) {
+			if (class_exists('Vtiger_Utils')) {
+				Vtiger_Utils::Log('ModernUI: menu: ' . $e->getMessage());
+			}
+			return array('groups' => array(), 'favorites' => array(), 'favoritesEnabled' => false, 'compact' => false);
+		}
 	}
 }

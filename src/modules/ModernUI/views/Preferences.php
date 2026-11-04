@@ -3,7 +3,8 @@
  * GET index.php?module=ModernUI&view=Preferences — personal preferences of the theme for any logged-in user.
  *
  * A plain server form: it works when the frontend is broken or blocked, so a user can always switch the
- * new interface off for themselves (if the administrator allows it). The full editor comes with stage 05.
+ * new interface off for themselves (if the administrator allows it). The editor of the preferences (Vue,
+ * frontend/src/preferences) mounts above the form and hides it; "&editor=off" shows the form alone.
  */
 
 require_once 'modules/ModernUI/models/Page.php';
@@ -92,6 +93,14 @@ class ModernUI_Preferences_View extends Vtiger_Basic_View {
 			$viewer->assign('MU_HAS_PERSONAL', $context['settings']['user']['revision'] > 0);
 		}
 		$viewer->assign('MU_LOCALES', array('auto', 'ru-RU', 'en-US', 'de-DE'));
+		// The editor of the preferences (Vue) above the server form; "editor=off" or no JavaScript: the form alone.
+		$tags = ModernUI_Assets_Model::entryTags(ModernUI_Assets_Model::ENTRY_PREFERENCES);
+		$editorOff = $request->get('editor') === 'off';
+		$editor = $ready && !$editorOff && $tags['script'] !== null && vtlib_isModuleActive('ModernUI');
+		$viewer->assign('MU_ASSETS', $editor ? $tags : array('css' => array(), 'preload' => array(), 'script' => null));
+		$viewer->assign('MU_EDITOR', $editor);
+		$viewer->assign('MU_EDITOR_OFF', $editorOff);
+		$viewer->assign('MU_BUILD', (string) ModernUI_Assets_Model::buildId());
 		$viewer->view('Preferences.tpl', $request->getModule());
 	}
 }

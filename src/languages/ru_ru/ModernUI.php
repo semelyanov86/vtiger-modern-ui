@@ -59,5 +59,15 @@ $languageStrings = array(
 	'LBL_RESULT_ERROR_SCHEMA_OUTDATED' => 'Администратору нужно обновить настройки.',
 	'LBL_RESULT_ERROR_SCHEMA_NEWER' => 'Настройки относятся к более новой версии модуля.',
 	'LBL_RESULT_ERROR_MODULE_INACTIVE' => 'Модуль ModernUI выключен.',
+	'LBL_MENU_APP_MARKETING' => 'Маркетинг',
+	'LBL_MENU_APP_SALES' => 'Продажи',
+	'LBL_MENU_APP_INVENTORY' => 'Склад',
+	'LBL_MENU_APP_SUPPORT' => 'Поддержка',
+	'LBL_MENU_APP_PROJECT' => 'Проекты',
+	'LBL_MENU_APP_TOOLS' => 'Инструменты',
+	'LBL_MENU_GROUP_OTHER' => 'Другие модули',
+	'LBL_EDITOR_LOADING' => 'Загрузка редактора предпочтений…',
+	'LBL_CLASSIC_PAGE' => 'Простая форма без редактора',
+	'LBL_EDITOR_PAGE' => 'Открыть редактор предпочтений',
 );
 $jsLanguageStrings = array();

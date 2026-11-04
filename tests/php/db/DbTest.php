@@ -7,133 +7,12 @@
  *
  *   php tests/php/db/DbTest.php <host> <port> <database>
  */
-error_reporting(E_ALL);
-set_error_handler(function ($severity, $message, $file, $line) {
-	throw new ErrorException($message, 0, $severity, $file, $line);
-});
 list(, $host, $port, $database) = $argv + array('', '127.0.0.1', '3306', 'mu_test');
-
-define('MU_REPO', dirname(__DIR__, 3));
-chdir(MU_REPO . '/src');
-set_include_path(MU_REPO . '/tests/php/stubs' . PATH_SEPARATOR . get_include_path());
-mysqli_report(MYSQLI_REPORT_OFF);
-
-class MU_Fake {
-	public static $links = array();
-	public static $settingsLinks = array();
-}
-
-class MU_DbResult {
-	public $rows;
-
-	public function __construct(array $rows) {
-		$this->rows = $rows;
-	}
-}
-
-/** PearDatabase over mysqli; "?" are replaced like ADOdb does without native binding. */
-class PearDatabase {
-	public $dieOnError = false;
-	public $database;
-	public static $connection;
-	private static $instance = null;
-	private $affected = 0;
-
-	public static function getInstance() {
-		if (self::$instance === null) {
-			self::$instance = new PearDatabase();
-			self::$instance->database = new MU_DbErrors();
-		}
-		return self::$instance;
-	}
-
-	public function pquery($sql, $params = array()) {
-		$link = self::$connection;
-		$parts = explode('?', $sql);
-		$built = array_shift($parts);
-		foreach ($parts as $index => $part) {
-			$value = $params[$index];
-			if ($value === null) {
-				$built .= 'NULL';
-			} elseif (is_int($value) || is_float($value)) {
-				$built .= $value;
-			} elseif (is_bool($value)) {
-				$built .= $value ? '1' : '0';
-			} else {
-				$built .= "'" . $link->real_escape_string((string) $value) . "'";
-			}
-			$built .= $part;
-		}
-		$result = $link->query($built);
-		if ($result === false) {
-			return false;
-		}
-		$this->affected = $link->affected_rows;
-		return new MU_DbResult($result === true ? array() : $result->fetch_all(MYSQLI_ASSOC));
-	}
-
-	public function num_rows($result) {
-		return count($result->rows);
-	}
-
-	public function raw_query_result_rowdata($result, $row = 0) {
-		return isset($result->rows[$row]) ? $result->rows[$row] : null;
-	}
-
-	public function getAffectedRowCount($result) {
-		return $this->affected;
-	}
-}
-
-class MU_DbErrors {
-	public function ErrorMsg() {
-		return PearDatabase::$connection->error;
-	}
-}
-
-class Users_Record_Model {
-	public static function getCurrentUserModel() {
-		return null;
-	}
-}
-
-function vtlib_isModuleActive($module) {
-	return true;
-}
-
-function vglobal($name) {
-	return $name === 'vtiger_current_version' ? '8.4.0' : null;
-}
-
-function vtlib_addSettingsLink($name, $url, $block) {
-	MU_Fake::$settingsLinks[] = array($name, $url, $block);
-	return true;
-}
-
-PearDatabase::$connection = new mysqli($host, 'root', 'test', $database, (int) $port);
-if (PearDatabase::$connection->connect_errno) {
-	fwrite(STDERR, "db: cannot connect: " . PearDatabase::$connection->connect_error . "\n");
-	exit(1);
-}
-PearDatabase::$connection->set_charset('utf8mb4');
+require __DIR__ . '/harness.php';
+mu_connect($host, $port, $database);
 
 require_once 'modules/ModernUI/models/Lifecycle.php';
 
-$failures = 0;
-$count = 0;
-function check($condition, $message) {
-	global $failures, $count;
-	$count++;
-	if ($condition !== true) {
-		$failures++;
-		fwrite(STDERR, "FAIL {$message}\n");
-	}
-}
-
-function q($sql) {
-	$result = PearDatabase::$connection->query($sql);
-	return $result instanceof mysqli_result ? $result->fetch_all(MYSQLI_ASSOC) : array();
-}
 
 $expectedCollation = q('SELECT @@collation_database AS c')[0]['c'];
 
@@ -214,5 +93,5 @@ check(array_column($left, 't') === array('vtiger_links', 'vtiger_other', 'vtiger
 check((int) q("SELECT COUNT(*) AS n FROM vtiger_settings_field")[0]['n'] === 1, 'settings items of other modules stay');
 check(ModernUI_Schema_Model::state(true) === 'missing', 'schema missing after the removal');
 
-printf("db %s (%s): %d check(s), %d failed\n", $database, $expectedCollation, $count, $failures);
-exit($failures > 0 ? 1 : 0);
+printf("db %s (%s): %d check(s), %d failed\n", $database, $expectedCollation, $GLOBALS['mu_count'], $GLOBALS['mu_failures']);
+exit($GLOBALS['mu_failures'] > 0 ? 1 : 0);
