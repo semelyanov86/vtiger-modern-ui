@@ -5,7 +5,7 @@
 import type { LocaleSource, ThemeLocale } from '../i18n/locale'
 import type { MenuIconName } from '../menu/icons'
 
-export const SYSTEM_ITEM_IDS = ['preferences', 'standardView', 'safeMode', 'moduleSettings', 'crmSettings'] as const
+export const SYSTEM_ITEM_IDS = ['preferences', 'standardView', 'safeMode', 'moduleSettings', 'crmSettings', 'users'] as const
 export type SystemItemId = (typeof SYSTEM_ITEM_IDS)[number]
 
 export type SystemItem =
@@ -72,6 +72,8 @@ export interface MenuGroup {
   readonly id: string
   readonly label: string
   readonly icon: MenuIconName
+  /** App of the v7 menu the group stands for (MARKETING, SALES, …), null for groups of the settings. */
+  readonly app: string | null
   readonly items: readonly MenuItem[]
 }
 
@@ -82,6 +84,8 @@ export interface Menu {
   readonly favorites: readonly MenuItem[]
   readonly favoritesEnabled: boolean
   readonly compact: boolean
+  /** Every module the user may open (hidden ones included): what the menu of the theme covers. */
+  readonly modules: readonly string[]
 }
 
 /** null: as in the CRM (the v7 header keeps the company logo, no title of the theme). */

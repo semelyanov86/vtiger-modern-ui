@@ -35,8 +35,9 @@ class ModernUI_Tokens_Action extends Vtiger_Action_Controller {
 			$decision = ModernUI_Activation_Model::evaluate(null, false);
 			$context = $decision['context'];
 			if ($decision['active'] && $context !== null) {
-				$tokens = ModernUI_Tokens_Model::forAppearance(ModernUI_Tokens_Model::appearanceOf($context['settings']['values']));
-				$css = ModernUI_Tokens_Model::css($tokens);
+				$values = $context['settings']['values'];
+				$tokens = ModernUI_Tokens_Model::forAppearance(ModernUI_Tokens_Model::appearanceOf($values));
+				$css = ModernUI_Tokens_Model::css(array_merge($tokens, ModernUI_Tokens_Model::layout($values)));
 				$key = $request->get('r');
 				$cacheable = is_string($key) && $key !== '' && hash_equals($context['cacheKey'], $key);
 			}

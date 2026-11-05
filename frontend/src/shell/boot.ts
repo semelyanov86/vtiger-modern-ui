@@ -10,17 +10,23 @@
  */
 // createApp() of imported single-file components, not components defined here.
 /* eslint-disable vue/one-component-per-file */
-import { createApp } from 'vue'
+import { createApp, shallowRef } from 'vue'
 import { fetchBootstrap } from '../api/client'
 import { ApiError } from '../api/guards'
 import type { Bootstrap } from '../api/types'
 import { detectPageLevel, hostReady } from '../adapters/v7/host'
+import { coveredBy, scanMenu, type ExtraLink } from '../adapters/v7/appMenu'
+import { pageContext } from '../adapters/v7/page'
 import { createThemeI18n } from '../i18n'
-import { createContainer, IslandRuntime } from '../boot/runtime'
+import { createContainer, IslandRuntime, setReplaced } from '../boot/runtime'
 import { applyTokens, clearTokens } from '../boot/tokens'
 import SystemMenu from './SystemMenu.vue'
-import NavigationMenu from './NavigationMenu.vue'
+import MegaMenu from './MegaMenu.vue'
+import FavoritesBar from './FavoritesBar.vue'
+import ModuleRail from './ModuleRail.vue'
 import Brand from './Brand.vue'
+import { createFavorites, type FavoritesStore } from './nav/favorites'
+import { currentGroup } from './nav/model'
 
 const READY_CLASS = 'mu-shell-ready'
 const OFF_CLASS = 'mu-off'
@@ -56,10 +62,17 @@ function overlayRoot(): HTMLElement {
 }
 
 function registerIslands(data: Bootstrap, i18n: ReturnType<typeof createThemeI18n>): void {
+  const favorites = createFavorites(data)
   runtime.register({
     id: 'system-menu',
-    // Our own container next to the v7 actions: never inside a foreign <ul> (extensions use #navbar li:eq(0)).
+    // With the favorites bar: at its right end (own container of the fixed header), so the row of v7 actions keeps the
+    // width v7 gives it. Without it: next to the v7 actions, never inside a foreign <ul> (extensions use #navbar li:eq(0)).
     place: () => {
+      const header = document.querySelector('#page > nav.app-fixed-navbar')
+      if (favorites.visible && header !== null) {
+        overlayRoot()
+        return { kind: 'insert', parent: header, before: null, className: 'mu-system-menu mu-system-menu--bar' }
+      }
       const navbar = document.getElementById('navbar')
       if (navbar?.closest('nav.app-fixed-navbar') == null) {
         return null
@@ -69,20 +82,7 @@ function registerIslands(data: Bootstrap, i18n: ReturnType<typeof createThemeI18
     },
     create: () => createApp(SystemMenu, { bootstrap: data, onStandardView: teardown }).use(i18n),
   })
-  runtime.register({
-    id: 'navigation',
-    // Next to the system menu (floats right: placed after it in the DOM, it stands to its left).
-    place: () => {
-      const navbar = document.getElementById('navbar')
-      if (navbar?.closest('nav.app-fixed-navbar') == null || (data.menu.groups.length === 0 && data.menu.favorites.length === 0)) {
-        return null
-      }
-      overlayRoot()
-      const system = navbar.querySelector(':scope > [data-mu-root="system-menu"]')
-      return { kind: 'insert', parent: navbar, before: system !== null ? system.nextSibling : navbar.firstChild, className: 'mu-navigation-root' }
-    },
-    create: () => createApp(NavigationMenu, { menu: data.menu }).use(i18n),
-  })
+  registerNavigation(data, i18n, favorites)
   const branding = data.branding
   if (branding.logoUrl !== null || branding.title !== null) {
     const brand = {
@@ -102,10 +102,112 @@ function registerIslands(data: Bootstrap, i18n: ReturnType<typeof createThemeI18
   }
 }
 
+/** Height of the favorites bar: the same variable the tokens stylesheet reserves from the first paint. */
+const BAR_VARIABLE = '--mu-favorites-bar'
+
+/**
+ * Navigation of the theme (docs/design.md §5.1, docs/architecture.md §7.1): the mega menu instead of the v7 app
+ * menu, the favorites bar above the header and the module rail of the current section instead of the v7 strip.
+ * A v7 original is hidden only when the theme covers all of its entries; links the theme menu does not have stay
+ * reachable in the mega menu, and an entry without a link (a button of an extension) keeps the original visible.
+ */
+function registerNavigation(data: Bootstrap, i18n: ReturnType<typeof createThemeI18n>, favorites: FavoritesStore): void {
+  const page = pageContext()
+  const covered = coveredBy(data.menu.modules, data.user.isAdmin)
+  const extras = shallowRef<readonly ExtraLink[]>([])
+  let appMenuForeign = false
+
+  const scanAppMenu = (): void => {
+    const menu = document.getElementById('app-menu')
+    const scan = menu !== null ? scanMenu(menu, covered) : { extras: [], foreign: [] }
+    extras.value = scan.extras
+    const foreign = scan.foreign.length > 0
+    if (foreign && !appMenuForeign) {
+      console.info(`[ModernUI] the v7 app menu has entries without a link (${scan.foreign.slice(0, 5).join(', ')}): its button stays visible`)
+    }
+    appMenuForeign = foreign
+  }
+
+  // The tokens stylesheet reserved the bar from the settings; this is what the shell really shows.
+  document.documentElement.style.setProperty(BAR_VARIABLE, favorites.visible ? '42px' : '0px')
+
+  runtime.register({
+    id: 'mega-menu',
+    // In place of the v7 hamburger; on a header without it, next to the system menu.
+    place: () => {
+      const navigator = document.getElementById('appnavigator')
+      const row = navigator?.parentElement ?? null
+      if (navigator !== null && row !== null && navigator.closest('nav.app-fixed-navbar') !== null) {
+        overlayRoot()
+        scanAppMenu()
+        return { kind: 'insert', parent: row, before: navigator, className: 'mu-mega-root' }
+      }
+      const navbar = document.getElementById('navbar')
+      if (navbar?.closest('nav.app-fixed-navbar') == null) {
+        return null
+      }
+      overlayRoot()
+      scanAppMenu()
+      return { kind: 'insert', parent: navbar, before: navbar.firstChild, className: 'mu-mega-root mu-mega-root--navbar' }
+    },
+    replaces: () => (appMenuForeign || document.getElementById('appnavigator') === null ? null : 'app-menu'),
+    create: (scope) => {
+      const menu = document.getElementById('app-menu')
+      if (menu !== null) {
+        // Extensions may add entries later: the extra links follow, an entry without a link brings the v7 button back.
+        scope.observe(menu, { childList: true, subtree: true, attributes: true, attributeFilter: ['href', 'data-default-url', 'onclick'] }, () => {
+          scanAppMenu()
+          setReplaced('app-menu', !appMenuForeign)
+        })
+      }
+      return createApp(MegaMenu, { bootstrap: data, favorites, extras, onStandardView: teardown }).use(i18n)
+    },
+  })
+
+  if (favorites.visible) {
+    runtime.register({
+      id: 'favorites',
+      // First in the fixed header of v7, in the space the stylesheet reserved above its rows.
+      place: () => {
+        const nav = document.querySelector('#page > nav.app-fixed-navbar')
+        if (nav === null) {
+          return null
+        }
+        overlayRoot()
+        return { kind: 'insert', parent: nav, before: nav.firstChild, className: 'mu-favorites-root' }
+      },
+      create: () => createApp(FavoritesBar, { bootstrap: data, favorites }).use(i18n),
+    })
+  }
+
+  const group = currentGroup(data.menu.groups, page)
+  if (group !== null) {
+    runtime.register({
+      id: 'module-rail',
+      place: () => {
+        const rail = document.getElementById('modnavigator')
+        const strip = rail?.querySelector(':scope > .mod-switcher-container') ?? null
+        if (rail === null || strip === null) {
+          return null
+        }
+        const scan = scanMenu(strip, covered)
+        if (scan.foreign.length > 0 || scan.extras.length > 0) {
+          console.info('[ModernUI] the v7 module strip has entries the theme menu does not cover: it stays as it is')
+          return null
+        }
+        return { kind: 'insert', parent: rail, before: strip, className: 'mu-rail-root hidden-xs hidden-sm' }
+      },
+      replaces: 'module-rail',
+      create: () => createApp(ModuleRail, { group, page }).use(i18n),
+    })
+  }
+}
+
 function removeMarkers(): void {
   const html = document.documentElement
   html.classList.remove(READY_CLASS, 'mu-pending')
   html.removeAttribute('data-mu-level')
+  html.style.removeProperty(BAR_VARIABLE)
   document.getElementById('mu-overlay-root')?.remove()
 }
 

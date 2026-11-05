@@ -122,6 +122,48 @@ const screens: Screen[] = [
       await page.waitForTimeout(600)
     },
   },
+  { id: 'salesorder-list', url: fixed('index.php?module=SalesOrder&view=List') },
+  { id: 'leads-list', url: fixed('index.php?module=Leads&view=List') },
+  {
+    // Stage 06: the mega menu of the theme (the v7 app menu in the standard view).
+    id: 'mega-menu',
+    url: fixed('index.php?module=Accounts&view=List&app=MARKETING'),
+    prepare: async (page) => {
+      const trigger = page.locator('[data-mu-trigger="mega-menu"]')
+      await ((await trigger.count()) > 0 ? trigger : page.locator('#appnavigator')).click()
+      await page.waitForTimeout(400)
+    },
+  },
+  {
+    id: 'mega-menu-search',
+    url: fixed('index.php?module=Accounts&view=List&app=MARKETING'),
+    prepare: async (page) => {
+      await page.locator('[data-mu-trigger="mega-menu"]').click()
+      await page.locator('[data-mu-field="menu-search"]').fill('co')
+      await page.waitForTimeout(300)
+    },
+  },
+  {
+    id: 'list-selected',
+    url: fixed('index.php?module=Accounts&view=List'),
+    prepare: async (page) => {
+      const boxes = page.locator('#listview-table .listViewEntriesCheckBox')
+      for (let index = 0; index < Math.min(2, await boxes.count()); index++) {
+        await boxes.nth(index).check()
+      }
+      await page.locator('.listViewMassActions > .btn').click()
+      await page.waitForTimeout(300)
+    },
+  },
+  {
+    id: 'popup-select',
+    url: fixed('index.php?module=Contacts&view=Edit'),
+    prepare: async (page) => {
+      await page.locator('input[name="account_id"]').locator('xpath=ancestor::td[1]').locator('.relatedPopup').click()
+      await page.locator('.modal.in .listViewEntries').first().waitFor({ timeout: 15_000 })
+      await page.waitForTimeout(400)
+    },
+  },
   {
     id: 'list-actions-dropdown',
     url: fixed('index.php?module=Accounts&view=List'),

@@ -86,6 +86,24 @@ class ModernUI_Tokens_Model {
 		return array_merge($tokens, self::$density[$appearance['density']]);
 	}
 
+	/** Height of the favorites bar above the v7 header (docs/design.md §5.1). */
+	const FAVORITES_BAR = '42px';
+
+	/**
+	 * Layout variables of the shell that the first paint needs (docs/design.md §5.1, docs/architecture.md §7.5): the
+	 * space of the favorites bar above the v7 header is reserved by the render-blocking stylesheet, so the header and
+	 * the page do not move when the island mounts. The bar is shown when favorites are enabled and the user has
+	 * favorites or may add them; the shell sets the same variable inline from the menu it really mounted.
+	 * @param array $values effective settings
+	 * @return array
+	 */
+	public static function layout(array $values) {
+		$enabled = !isset($values['navigation.favoritesEnabled']) || $values['navigation.favoritesEnabled'];
+		$favorites = isset($values['navigation.favorites']) && is_array($values['navigation.favorites']) ? $values['navigation.favorites'] : array();
+		$canEdit = in_array('navigation.favorites', ModernUI_Settings_Model::allowedUserKeys($values), true);
+		return array('favorites-bar' => $enabled && ($favorites || $canEdit) ? self::FAVORITES_BAR : '0px');
+	}
+
 	/**
 	 * The stylesheet of action=Tokens. Selector html:root:not(.mu-off) is more specific than the defaults of the
 	 * skin (:root:not(.mu-off)), so the order of the two HEADERCSS links does not matter, and "standard view"

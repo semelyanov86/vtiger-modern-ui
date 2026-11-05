@@ -1,11 +1,10 @@
 <script setup lang="ts">
 /**
- * System section of the new interface (docs/settings.md §6.2 item 7): preferences, standard view, safe mode,
- * and for administrators the ModernUI and CRM settings. It cannot be hidden by the menu settings, so the way
- * back to the standard view and to the settings always stays. Non-modal dropdown: it must not block the v7
+ * System menu of the new interface in the v7 header (docs/settings.md §6.2 item 7): preferences, standard view, safe
+ * mode, and for administrators the ModernUI and CRM settings and the users. It cannot be hidden by the menu settings,
+ * so the way back to the standard view and to the settings always stays. Non-modal dropdown: it must not block the v7
  * header (Reka sets pointer-events:none on body for modal layers).
  */
-import { computed, ref, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   DropdownMenuContent,
@@ -16,11 +15,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from 'reka-ui'
-import { MonitorCog, Palette, Settings, ShieldCheck, SlidersHorizontal, Undo2 } from '@lucide/vue'
-import type { Bootstrap, SystemItem, SystemItemId } from '../api/types'
-import { savePreferences } from '../api/client'
-import { ApiError } from '../api/guards'
-import { notify } from '../adapters/v7/host'
+import type { Bootstrap, SystemItem } from '../api/types'
+import { SYSTEM_BUTTON_ICON, SYSTEM_ICONS, useSystemItems } from './nav/system'
 
 const props = defineProps<{
   bootstrap: Bootstrap
@@ -28,43 +24,8 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
-const busy = ref(false)
-
-const icons: Readonly<Record<SystemItemId, Component>> = {
-  preferences: SlidersHorizontal,
-  standardView: Undo2,
-  safeMode: ShieldCheck,
-  moduleSettings: Palette,
-  crmSettings: Settings,
-}
-
-const labels = computed<Readonly<Record<SystemItemId, string>>>(() => ({
-  preferences: t('system.preferences'),
-  standardView: t('system.standardView'),
-  safeMode: t('system.safeMode'),
-  moduleSettings: t('system.moduleSettings'),
-  crmSettings: t('system.crmSettings'),
-}))
-
-const userItems = computed(() => props.bootstrap.menu.system.filter((item) => item.id !== 'moduleSettings' && item.id !== 'crmSettings'))
-const adminItems = computed(() => props.bootstrap.menu.system.filter((item) => item.id === 'moduleSettings' || item.id === 'crmSettings'))
-
-async function run(item: SystemItem): Promise<void> {
-  if (item.kind !== 'action' || busy.value) {
-    return
-  }
-  busy.value = true
-  try {
-    await savePreferences({ 'user.standardView': true })
-    props.onStandardView()
-    notify('success', t('notify.standardViewOn'))
-  } catch (error) {
-    const code = error instanceof ApiError ? error.code : 'MU_UNKNOWN'
-    notify('error', t('notify.actionFailed', { reason: t(`errors.${code}`) }))
-  } finally {
-    busy.value = false
-  }
-}
+const { labels, userItems, adminItems, busy, run } = useSystemItems(props.bootstrap, props.onStandardView)
+const icons = SYSTEM_ICONS
 
 function select(item: SystemItem, event: Event): void {
   if (item.kind === 'action') {
@@ -77,7 +38,7 @@ function select(item: SystemItem, event: Event): void {
 <template>
   <DropdownMenuRoot :modal="false">
     <DropdownMenuTrigger class="mu-system-menu__trigger" :aria-label="t('system.button')" :title="t('system.button')">
-      <MonitorCog :size="18" aria-hidden="true" />
+      <component :is="SYSTEM_BUTTON_ICON" :size="18" aria-hidden="true" />
     </DropdownMenuTrigger>
     <DropdownMenuPortal to="#mu-overlay-root">
       <DropdownMenuContent class="mu-menu" align="end" :side-offset="6" :collision-padding="8">
@@ -117,9 +78,39 @@ function select(item: SystemItem, event: Event): void {
   float: right;
   display: flex;
   align-items: center;
-  height: 100%;
-  min-height: 50px;
+  // The row of v7 actions is 42 px high (.global-actions): a taller container would make the fixed header grow.
+  height: 42px;
   padding: 0 4px 0 8px;
+
+  // The mega menu has the same entries (service column): between 768 and 991 px the row of v7 actions has no room
+  // for one more button, so it stays only there.
+  @media (min-width: 768px) and (max-width: 991px) {
+    html[data-mu-islands~='mega-menu'] #navbar > & {
+      display: none;
+    }
+  }
+}
+
+// At the right end of the favorites bar (fixed to the window like the bar).
+.mu-root.mu-system-menu.mu-system-menu--bar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  float: none;
+  padding: 0 12px 0 8px;
+  color: tok(text-heading);
+
+  .mu-system-menu__trigger {
+    width: 32px;
+    height: 32px;
+    border-radius: tok(radius-sm);
+
+    &:hover,
+    &[data-state='open'] {
+      background: tok(surface-readonly);
+    }
+  }
 }
 
 .mu-root .mu-system-menu__trigger {

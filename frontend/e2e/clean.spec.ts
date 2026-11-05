@@ -195,7 +195,7 @@ test('languages: theme texts in RU/EN/DE on a CRM with en_us only, "As in the CR
     await expect(page.locator('.alert-success')).toHaveText(texts.saved)
     expect(await themeActive(page)).toBe(true)
     expect(await page.evaluate(() => document.documentElement.getAttribute('data-mu-locale'))).toBe(locale === 'auto' ? 'en-US' : locale)
-    await page.locator('#navbar > [data-mu-root="system-menu"] .mu-system-menu__trigger').click()
+    await page.locator('[data-mu-root="system-menu"] .mu-system-menu__trigger').click()
     await expect(page.locator('#mu-overlay-root .mu-menu__label')).toHaveText(texts.menu)
     // No raw keys or empty entries in the menu of the theme.
     const items = await page.locator('#mu-overlay-root .mu-menu [data-mu-item]').allInnerTexts()

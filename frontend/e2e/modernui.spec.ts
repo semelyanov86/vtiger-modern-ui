@@ -474,8 +474,16 @@ test('failures: a missing skin or tokens stylesheet never blocks the page', asyn
     await expect(page.locator(ISLAND), name).toHaveCount(1)
     // The shell sets the tokens of Bootstrap inline, so even without the tokens stylesheet they are right.
     expect(await page.evaluate(() => document.documentElement.style.getPropertyValue('--mu-row-height')), name).toBe('40px')
-    await page.locator('#appnavigator').click()
-    await expect(page.locator('#app-menu'), name).toBeVisible()
+    // The navigation of the theme works and the favorites bar never covers the header (stage 06).
+    const trigger = page.locator('[data-mu-trigger="mega-menu"]')
+    expect(await trigger.evaluate((element) => {
+      const box = element.getBoundingClientRect()
+      const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
+      return hit !== null && element.contains(hit)
+    }), name).toBe(true)
+    await trigger.click()
+    await expect(page.locator('[data-mu-panel="mega-menu"]'), name).toBeVisible()
+    await page.keyboard.press('Escape')
     await page.unroute(pattern)
   }
 })

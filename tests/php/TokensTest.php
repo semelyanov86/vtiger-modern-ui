@@ -66,3 +66,15 @@ test('tokens: appearance of the effective settings, invalid stored values replac
 	assert_same(array('primaryColor' => '#2e9a5e', 'background' => '#eff0f2', 'surface' => '#ffffff', 'density' => 'comfortable',
 		'fontScale' => 125, 'font' => 'inter'), $appearance);
 });
+
+test('tokens: the favorites bar is reserved when favorites are on and the user has some or may add them', function () {
+	$defaults = ModernUI_Settings_Model::defaults();
+	assert_same(array('favorites-bar' => '42px'), ModernUI_Tokens_Model::layout($defaults), 'default policy lets users add favorites');
+	$noPolicy = array_merge($defaults, array('policy.userOverrides' => array('locale')));
+	assert_same(array('favorites-bar' => '0px'), ModernUI_Tokens_Model::layout($noPolicy), 'nothing to show, nothing to add');
+	assert_same(array('favorites-bar' => '42px'), ModernUI_Tokens_Model::layout(array_merge($noPolicy, array('navigation.favorites' => array('Leads')))));
+	assert_same(array('favorites-bar' => '0px'), ModernUI_Tokens_Model::layout(array_merge($defaults, array('navigation.favoritesEnabled' => false,
+		'navigation.favorites' => array('Leads')))), 'favorites off');
+	$css = ModernUI_Tokens_Model::css(array_merge(ModernUI_Tokens_Model::forAppearance(array()), ModernUI_Tokens_Model::layout($defaults)));
+	assert_true(strpos($css, '--mu-favorites-bar:42px') !== false, 'in the stylesheet');
+});

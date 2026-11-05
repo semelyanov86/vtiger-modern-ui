@@ -269,12 +269,18 @@ test('menu: keyboard order, hiding with undo, labels in RU/EN/DE, preview, save;
   expect(item?.icon).toEqual({ kind: 'lucide', name: 'star' })
   await page.goto(HOME)
   await waitForShell(page)
-  await page.locator('.mu-navigation__trigger').click()
-  const panel = page.locator('#mu-overlay-root .mu-navigation')
-  await expect(panel).toContainText(german)
-  await expect(panel.locator(`[data-mu-item="${moved}"]`)).toHaveCount(0)
+  // The mega menu (stage 06): its search finds the relabelled entry, the hidden module is in no section.
+  await page.locator('[data-mu-trigger="mega-menu"]').click()
+  const panel = page.locator('[data-mu-panel="mega-menu"]')
+  await panel.locator('[data-mu-field="menu-search"]').fill('Größenänderung')
+  await expect(panel.locator('#mu-mega-panel')).toContainText(german)
+  await panel.locator('[data-mu-field="menu-search"]').fill('')
+  for (const tab of await panel.locator('[role="tab"]').all()) {
+    await tab.click()
+    await expect(panel.locator(`#mu-mega-panel [data-mu-item="${moved}"]`)).toHaveCount(0)
+  }
   await page.keyboard.press('Escape')
-  await expect(page.locator('.mu-navigation__trigger')).toBeFocused()
+  await expect(page.locator('[data-mu-trigger="mega-menu"]')).toBeFocused()
   // Hiding is only the menu: the module itself opens as before.
   const response = await page.goto(`index.php?module=${module}&view=List`)
   expect(response?.status()).toBe(200)
@@ -452,12 +458,12 @@ test('preferences: language without losing the draft, favorites with keys, compa
   expect(menu.compact).toBe(true)
   await page.goto(HOME)
   await waitForShell(page)
-  await expect(page.locator('.mu-navigation__trigger')).toHaveAttribute('aria-label', 'Модули')
-  await page.locator('.mu-navigation__trigger').click()
-  const chips = page.locator('#mu-overlay-root .mu-menu-panel__favorites--compact .mu-menu-panel__chip')
+  // The favorites bar (stage 06) in the compact state: icons only, the label in aria-label, in the saved order.
+  await expect(page.locator('[data-mu-trigger="mega-menu"]')).toHaveAttribute('aria-label', 'Открыть меню')
+  const chips = page.locator('.mu-favbar--compact .mu-favbar__tab')
   await expect(chips).toHaveCount(2)
   await expect(chips.first()).toHaveAttribute('aria-label', /.+/)
-  await page.keyboard.press('Escape')
+  await expect(chips.first()).toHaveAttribute('data-mu-item', 'm:Accounts')
   expect(await cssVar(page, '--mu-row-height')).toBe('32px')
 
   // Two tabs: the second save is a conflict, not an overwrite.

@@ -250,7 +250,7 @@ class ModernUI_Menu_Model {
 	 * @param array $candidates candidates()
 	 * @param callable $translate key → text of the theme dictionary in $locale
 	 * @param callable|null $crmApp app → CRM label of an unknown app
-	 * @return array {groups: [{id, label, icon, items}], favorites: [item], favoritesEnabled, compact}
+	 * @return array {groups: [{id, label, icon, app, items}], favorites: [item], favoritesEnabled, compact}
 	 */
 	public static function assemble(array $values, $locale, $isAdmin, array $candidates, $translate, $crmApp = null) {
 		$list = $candidates['list'];
@@ -341,10 +341,11 @@ class ModernUI_Menu_Model {
 			}
 		}
 
+		// Empty groups are not shown. The app of the v7 menu stays with the group: the shell uses it to find the section
+		// of the current page (the app=… of the v7 URLs) for the module rail and the open group of the mega menu.
 		$result = array();
 		foreach ($groups as $group) {
 			if ($group['items']) {
-				unset($group['app']);
 				$result[] = $group;
 			}
 		}
@@ -407,6 +408,17 @@ class ModernUI_Menu_Model {
 		}, function ($app) {
 			return html_entity_decode((string) vtranslate('LBL_' . $app), ENT_QUOTES, 'UTF-8');
 		});
+	}
+
+	/**
+	 * Names of every module the current user may open by the rules of Vtiger (the candidates, hidden ones included).
+	 * The shell compares the links of the v7 app menu with them: a link to one of these modules is already covered by
+	 * the menu of the theme (or hidden on purpose), any other link was added by an extension and is kept.
+	 * @return array
+	 */
+	public static function modules() {
+		$candidates = self::candidates();
+		return array_keys($candidates['list']);
 	}
 
 	/**

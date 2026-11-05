@@ -6,7 +6,8 @@
     "standardView": "Zur Standardansicht wechseln",
     "safeMode": "Standardansicht für diese Sitzung",
     "moduleSettings": "ModernUI-Konfiguration",
-    "crmSettings": "CRM-Einstellungen"
+    "crmSettings": "CRM-Einstellungen",
+    "users": "Benutzer"
   },
   "notify": {
     "standardViewOn": "Die Standardansicht ist aktiv. Um die neue Oberfläche wieder einzuschalten, öffnen Sie Ihre ModernUI-Einstellungen.",
@@ -71,9 +72,33 @@
       "TOOLS": "Werkzeuge"
     },
     "otherGroup": "Weitere Module",
-    "button": "Module",
     "title": "Module des CRM",
     "favorites": "Favoriten",
-    "empty": "Ihnen steht kein Modul zur Verfügung."
+    "empty": "Ihnen steht kein Modul zur Verfügung.",
+    "open": "Menü öffnen",
+    "close": "Menü schließen",
+    "description": "Suchen Sie ein Modul oder öffnen Sie einen Bereich des CRM.",
+    "search": "Module durchsuchen",
+    "searchPlaceholder": "Modul suchen…",
+    "searchResults": "Suchergebnisse",
+    "results": "Keine Module gefunden | {n} Modul gefunden | {n} Module gefunden",
+    "noResults": "Kein Modul passt zu „{query}“.",
+    "sections": "Bereiche",
+    "service": "Service und Einstellungen",
+    "more": "Weitere"
+  },
+  "favorites": {
+    "label": "Favoriten",
+    "actions": "Favoriten: hinzufügen, entfernen, bearbeiten",
+    "add": "„{module}“ zu den Favoriten hinzufügen",
+    "remove": "„{module}“ aus den Favoriten entfernen",
+    "full": "Die Favoriten sind voll (30 Module)",
+    "edit": "Favoriten bearbeiten",
+    "empty": "Noch keine Favoriten: Öffnen Sie ein Modul und fügen Sie es mit dem Stern hinzu.",
+    "added": "„{module}“ ist jetzt in Ihren Favoriten.",
+    "removed": "„{module}“ ist nicht mehr in Ihren Favoriten."
+  },
+  "rail": {
+    "label": "Module des Bereichs „{group}“"
   }
 }

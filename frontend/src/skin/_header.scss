@@ -10,8 +10,26 @@
     box-shadow: tok(shadow-header);
   }
 
-  .global-nav {
+  // The font of the theme for the texts of the header (search, dropdowns of the core and extensions), not for the row of
+  // action icons: the line boxes of its <li> would follow the metrics of Inter and make the fixed header of v7 ~2 px
+  // taller than the padding of #page (stage 06, measured on the stock 8.4 header).
+  .global-nav .search-link,
+  .global-nav .dropdown-menu,
+  .global-nav .logout-content {
     font-family: tok(font-family);
+  }
+
+  // The row of action icons keeps the line metrics of v7 (12 px / 1.4): with the 13 px / 1.5 of the theme the items with
+  // text (the CTMobile menu, the user name) grow to 45.5 px and the fixed header of v7 gets taller than the padding
+  // of #page. The dropdowns inside keep the typography of the theme.
+  #navbar > .navbar-nav {
+    font-size: 12px;
+    line-height: 1.4;
+
+    .dropdown-menu {
+      font-size: fs(13);
+      line-height: 1.5;
+    }
   }
 
   // Buttons of the header (#navbar of the core and extensions): one colour, the accent on hover, a visible ring.

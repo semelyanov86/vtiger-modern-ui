@@ -198,10 +198,12 @@ function menuItems(value: unknown, path: string): MenuItem[] {
 function menuGroup(value: unknown, path: string): MenuGroup {
   const group = record(value, path)
   const icon = group['icon']
+  const app = group['app']
   return {
     id: string(group['id'], `${path}.id`, /^[a-z0-9_-]{1,32}$/),
     label: string(group['label'], `${path}.label`, /^[^<>]{1,200}$/u),
     icon: isMenuIcon(icon) ? icon : bad(`${path}.icon`),
+    app: app === undefined || app === null ? null : string(app, `${path}.app`, /^[A-Z0-9_]{1,40}$/),
     items: menuItems(group['items'], `${path}.items`),
   }
 }
@@ -223,6 +225,8 @@ export function parseBootstrapMenu(value: unknown): Menu {
     favorites: menuItems(data['favorites'], 'menu.favorites'),
     favoritesEnabled: boolean(data['favoritesEnabled'], 'menu.favoritesEnabled'),
     compact: boolean(data['compact'], 'menu.compact'),
+    // The preview of the settings editor has no module list.
+    modules: data['modules'] === undefined ? [] : stringList(data['modules'], 'menu.modules').map((name, index) => string(name, `menu.modules[${String(index)}]`, MODULE)),
   }
 }
 

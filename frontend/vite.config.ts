@@ -82,6 +82,9 @@ export default defineConfig({
               test: /[\\/]src[\\/](?:settings|preferences)[\\/]|[\\/]src[\\/]i18n[\\/](?:editor\.ts|locales[\\/]editor[\\/])|[\\/]node_modules[\\/](?:vue-draggable-plus|sortablejs)[\\/]/,
               minShareCount: 2,
               priority: 2,
+              // Only the editors themselves: their dependencies (Vue, Reka, icons used by the shell too) stay in
+              // "common", otherwise "common" — and with it the shell — would import the editor chunk.
+              includeDependenciesRecursively: false,
             },
             { name: 'common', minShareCount: 2, priority: 1 },
           ],

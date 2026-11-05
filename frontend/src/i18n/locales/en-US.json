@@ -6,7 +6,8 @@
     "standardView": "Switch to the standard view",
     "safeMode": "Standard view for this session",
     "moduleSettings": "ModernUI settings",
-    "crmSettings": "CRM settings"
+    "crmSettings": "CRM settings",
+    "users": "Users"
   },
   "notify": {
     "standardViewOn": "The standard view is on. To switch the new interface back on, open your ModernUI preferences.",
@@ -71,9 +72,33 @@
       "TOOLS": "Tools"
     },
     "otherGroup": "Other modules",
-    "button": "Modules",
     "title": "Modules of the CRM",
     "favorites": "Favorites",
-    "empty": "No modules are available to you."
+    "empty": "No modules are available to you.",
+    "open": "Open the menu",
+    "close": "Close the menu",
+    "description": "Find a module or open one of the sections of the CRM.",
+    "search": "Search modules",
+    "searchPlaceholder": "Find a module…",
+    "searchResults": "Search results",
+    "results": "No modules | {n} module | {n} modules",
+    "noResults": "No module matches “{query}”.",
+    "sections": "Sections",
+    "service": "Service and settings",
+    "more": "More"
+  },
+  "favorites": {
+    "label": "Favorites",
+    "actions": "Favorites: add, remove, edit",
+    "add": "Add “{module}” to favorites",
+    "remove": "Remove “{module}” from favorites",
+    "full": "Favorites are full (30 modules)",
+    "edit": "Edit favorites",
+    "empty": "No favorites yet: open a module and add it with the star.",
+    "added": "“{module}” is in your favorites now.",
+    "removed": "“{module}” is no longer in your favorites."
+  },
+  "rail": {
+    "label": "Modules of the section {group}"
   }
 }

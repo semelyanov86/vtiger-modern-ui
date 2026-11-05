@@ -44,8 +44,11 @@ export interface IslandDefinition {
   /** Capability check and insertion point; null: this screen does not offer it, the island is skipped. */
   readonly place: () => IslandPlace | null
   readonly create: (scope: IslandScope) => App
-  /** Token added to html[data-mu-replaced] while the island is mounted (CSS hides the v7 original under it). */
-  readonly replaces?: string
+  /**
+   * Token added to html[data-mu-replaced] while the island is mounted (CSS hides the v7 original under it). A function
+   * decides at mount time (null: the original stays visible, for example when it has entries of an extension).
+   */
+  readonly replaces?: string | (() => string | null)
 }
 
 interface Mounted {
@@ -54,6 +57,8 @@ interface Mounted {
   readonly container: HTMLElement
   readonly owns: boolean
   readonly scope: Scope
+  /** Token of html[data-mu-replaced] this island may set (also later, through setReplaced()). */
+  readonly replaced: string | null
 }
 
 /** How many times an island may be mounted on one page (the first mount and remounts after v7 removed it). */
@@ -126,6 +131,14 @@ export function createContainer(id: string, className: string): HTMLElement {
 
 function tokenList(attribute: string): string[] {
   return (document.documentElement.getAttribute(attribute) ?? '').split(/\s+/).filter((token) => token !== '')
+}
+
+/**
+ * Shows or hides a replaced v7 original later in the life of a mounted island (an extension added a button to the v7
+ * menu after the start). The runtime removes the token anyway when the island unmounts.
+ */
+export function setReplaced(token: string, present: boolean): void {
+  setToken('data-mu-replaced', token, present)
 }
 
 function setToken(attribute: string, token: string, present: boolean): void {
@@ -287,11 +300,21 @@ export class IslandRuntime {
       }
       return
     }
-    this.mounted.set(id, { definition, app, container, owns, scope })
+    let replaced: string | null = null
+    if (typeof definition.replaces === 'function') {
+      try {
+        replaced = definition.replaces()
+      } catch (error) {
+        console.warn(`[ModernUI] island ${id}: replacement check failed, the original stays`, error)
+      }
+    } else if (definition.replaces !== undefined) {
+      replaced = definition.replaces
+    }
+    this.mounted.set(id, { definition, app, container, owns, scope, replaced })
     this.remounts.set(id, seen + 1)
     this.mountCount++
-    if (definition.replaces !== undefined) {
-      setToken('data-mu-replaced', definition.replaces, true)
+    if (replaced !== null) {
+      setToken('data-mu-replaced', replaced, true)
     }
     setToken('data-mu-islands', id, true)
   }
@@ -303,8 +326,8 @@ export class IslandRuntime {
     }
     this.mounted.delete(id)
     // The original comes back first, then the replacement goes: there is never a moment without either.
-    if (island.definition.replaces !== undefined) {
-      setToken('data-mu-replaced', island.definition.replaces, false)
+    if (island.replaced !== null) {
+      setToken('data-mu-replaced', island.replaced, false)
     }
     setToken('data-mu-islands', id, false)
     island.scope.dispose()

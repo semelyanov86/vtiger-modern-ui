@@ -1,0 +1,56 @@
+// Geometry of the navigation shell (docs/design.md §5.1, docs/architecture.md §7.5).
+//
+// The favorites bar (an island of the shell) lives in the fixed v7 header, above its rows. Its height comes from the
+// tokens stylesheet of the user (--mu-favorites-bar: 42px or 0px, render-blocking), so the space is reserved from the
+// first paint and nothing moves when the island mounts: the header grows by the bar, the page below it moves down by
+// the same amount (a block before the page content, additive to the padding v7 gives #page), and the fixed overlays
+// of v7 that are placed under the header follow.
+//
+// The space is reserved only when the shell can run: scripting enabled, not in the standard view, not after a failed
+// start of the shell (html[data-mu-failed]) and not on pages the shell only skins (html[data-mu-level="skin"]). The
+// shell sets the variable inline from what it really mounted, which corrects a stale or failed tokens stylesheet.
+@use '../styles/tokens' as *;
+
+@media (scripting: enabled) {
+  :root:not(.mu-off):not([data-mu-failed]):not([data-mu-level='skin']) {
+    --mu-shell-bar: var(--mu-favorites-bar, 0px);
+  }
+}
+
+:root:not(.mu-off) {
+  #page > nav.app-fixed-navbar {
+    padding-top: var(--mu-shell-bar, 0px);
+    // The band of the bar while the island is not mounted yet (same colours as the bar).
+    background-image: linear-gradient(
+      to bottom,
+      #{tok(surface-subtle)} 0,
+      #{tok(surface-subtle)} calc(var(--mu-shell-bar, 0px) - 1px),
+      #{tok(border)} calc(var(--mu-shell-bar, 0px) - 1px),
+      #{tok(border)} var(--mu-shell-bar, 0px),
+      transparent var(--mu-shell-bar, 0px)
+    );
+  }
+
+  #page:has(> nav.app-fixed-navbar)::before {
+    content: '';
+    display: block;
+    height: var(--mu-shell-bar, 0px);
+  }
+
+  .main-container {
+    min-height: calc(100vh - 108px - var(--mu-shell-bar, 0px));
+  }
+
+  // Fixed parts of v7 placed under the header (values of the v7 skin plus the bar).
+  #overlayPage {
+    top: calc(86px + var(--mu-shell-bar, 0px));
+  }
+
+  .overlayPageContent.fade.in {
+    top: calc(83px + var(--mu-shell-bar, 0px));
+  }
+
+  #helpMeNow {
+    top: calc(100px + var(--mu-shell-bar, 0px));
+  }
+}

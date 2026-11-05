@@ -1,0 +1,253 @@
+// List screen of v7 (docs/design.md §4, §5.2): the side panel of lists (filters) and tags, the action bar with the
+// mass actions and the pagination, the selection check boxes, the sort marks, the loading indicator. Only the look:
+// the DOM, the events of List.js (Post.ListRow.Checked, post.listViewFilter.click, pagination), the floating header
+// (floatThead), the scroll bars and the colours extensions give to rows stay as v7 has them. Tables themselves —
+// _tables.scss.
+@use '../styles/tokens' as *;
+
+$check: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' d='M3.5 8.5l3 3 6-7'/%3E%3C/svg%3E";
+// An inline "color" declaration (not "background-color"): the colour an extension gave to a row, a cell or a link.
+$own-color: "[style^='color'], [style*=';color'], [style*='; color'], [style*=' color:']";
+$dash: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' d='M4 8h8'/%3E%3C/svg%3E";
+
+:root:not(.mu-off) {
+  // The page behind the list: the light background of the design with the table as a white card.
+  .listViewPageDiv.content-area,
+  .listViewPageDiv .listview-actions-container {
+    background-color: tok(bg);
+  }
+
+  // Side panel: lists (filters) and tags.
+  .main-container .sidebar-essentials {
+    background-color: tok(surface);
+    border-right-color: tok(border);
+  }
+
+  .lists-menu-container {
+    .sidebar-header h5,
+    .lists-header {
+      color: tok(text-heading);
+      font-family: tok(font-family);
+      font-size: fs(12);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    hr {
+      border-top-color: tok(divider);
+    }
+
+    .lists-menu {
+      padding-left: 0;
+      list-style: none;
+    }
+  }
+
+  .search-list,
+  .search-folders {
+    height: tok(input-height);
+    border-color: tok(border-input);
+    border-radius: tok(radius-sm);
+    color: tok(text);
+    font-size: fs(13);
+
+    &::placeholder {
+      color: tok(text-muted);
+      opacity: 1;
+    }
+
+    &:focus {
+      border-color: tok(focus-border);
+      @include focus-ring;
+    }
+  }
+
+  .lists-menu > li {
+    margin: 2px 0;
+    border-radius: tok(radius-sm);
+    @include transition(background-color);
+
+    > a {
+      padding-top: 6px;
+      padding-bottom: 6px;
+      color: tok(text);
+      font-size: fs(13);
+
+      &:focus-visible {
+        border-radius: tok(radius-sm);
+        @include focus-ring(true);
+      }
+    }
+
+    &:hover {
+      background-color: tok(surface-readonly);
+    }
+
+    &.active {
+      background-color: tok(primary-soft);
+      box-shadow: inset 3px 0 0 tok(primary);
+
+      > a {
+        font-weight: 600;
+      }
+    }
+  }
+
+  // The toggle of the side panel (a tab on the edge of the list).
+  .essentials-toggle {
+    border-color: tok(border);
+    border-radius: 0 tok(radius-sm) tok(radius-sm) 0;
+    background-color: tok(surface);
+    color: tok(text-heading);
+  }
+
+  // Action bar of the list: one height for the buttons of v7 and of extensions, the pagination next to it.
+  .listview-actions-container {
+    .listViewActionsContainer > .btn,
+    .listViewMassActions > .btn,
+    .listViewActions .btn-group > .btn {
+      height: tok(button-height);
+      padding-top: 0;
+      padding-bottom: 0;
+      line-height: 1;
+    }
+
+    .listViewActions .btn-group > .btn {
+      min-width: 32px;
+    }
+
+    .pageNumbers {
+      color: tok(text-2);
+      font-size: fs(13);
+    }
+
+    #selectAllMsgDiv,
+    #deSelectAllMsgDiv {
+      color: tok(link);
+      font-weight: 500;
+    }
+  }
+
+  // Selection check boxes of lists, related lists and popups: 18 × 18, radius 4, the accent when checked.
+  .listview-table,
+  .listview-table-norecords,
+  .floatThead-table {
+    input[type='checkbox'] {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      border: 1px solid tok(border-input);
+      border-radius: tok(radius-sm);
+      background: tok(surface) center / 14px no-repeat;
+      vertical-align: middle;
+      cursor: pointer;
+      appearance: none;
+      @include transition(background-color, border-color, box-shadow);
+
+      &:checked {
+        border-color: tok(primary-strong);
+        background-color: tok(primary-strong);
+        background-image: url($check);
+      }
+
+      &:indeterminate {
+        border-color: tok(primary-strong);
+        background-color: tok(primary-strong);
+        background-image: url($dash);
+      }
+
+      &:focus-visible {
+        @include focus-ring;
+      }
+
+      &:disabled {
+        cursor: default;
+        opacity: 0.5;
+      }
+    }
+  }
+
+  // Sort marks of the header: the column the list is sorted by shows its direction in the accent.
+  .listViewContentHeaderValues,
+  .relatedListHeaderValues {
+    .fa-sort-asc,
+    .fa-sort-desc,
+    .fa-sort-up,
+    .fa-sort-down {
+      color: tok(primary-strong);
+    }
+
+    &:hover {
+      color: tok(primary-strong);
+      text-decoration: none;
+    }
+
+    &:focus-visible {
+      border-radius: tok(radius-sm);
+      @include focus-ring;
+    }
+  }
+
+  // Values that are links (the record name, references): the text colour of the design, the accent on hover
+  // (docs/design.md §4). Rows, cells and links coloured inline by extensions keep the colours of v7.
+  .listview-table tr.listViewEntries:not(#{$own-color}) > td.listViewEntryValue:not(#{$own-color}) a:not(#{$own-color}) {
+    color: tok(text);
+
+    &:hover,
+    &:focus {
+      color: tok(primary-strong);
+    }
+
+    &:focus-visible {
+      border-radius: tok(radius-sm);
+      @include focus-ring;
+    }
+  }
+
+  // Actions of a row (quick view, star, more): one colour, the accent on hover.
+  .listViewRecordActions .table-actions {
+    > span,
+    .dropdown > .dropdown-toggle {
+      color: tok(text-heading);
+    }
+
+    .fa-star,
+    .markStar.active .fa {
+      color: #c27c0e;
+    }
+  }
+
+  // Empty list.
+  .emptyRecordsDiv .emptyRecordsContent {
+    color: tok(text-2);
+    font-size: fs(16);
+    line-height: 1.5;
+
+    a {
+      color: tok(link);
+    }
+  }
+
+  // Loading indicator of v7 (app.helper.showProgress: the gif in #messageBar): centred on a card instead of the
+  // half-transparent page at 40 % from the left. Shown and hidden by v7 as before.
+  #messageBar {
+    background-color: rgba(255, 255, 255, 0.55);
+    opacity: 1;
+
+    > div {
+      top: 50% !important;
+      left: 50% !important;
+      padding: 16px 20px;
+      border-radius: tok(radius-md);
+      background-color: tok(surface);
+      box-shadow: tok(shadow-dropdown);
+      transform: translate(-50%, -50%);
+
+      .message {
+        margin-top: 8px;
+        color: tok(text);
+        font-size: fs(13);
+      }
+    }
+  }
+}

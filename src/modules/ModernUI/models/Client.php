@@ -45,8 +45,10 @@ class ModernUI_Client_Model {
 		}
 		$system[] = array('id' => 'safeMode', 'url' => 'index.php?modernui=off');
 		if ($context['isAdmin']) {
+			// The settings entries of the v7 app menu (CRM settings, users) stay reachable when the theme replaces it.
 			$system[] = array('id' => 'moduleSettings', 'url' => ModernUI_Lifecycle_Model::SETTINGS_URL);
 			$system[] = array('id' => 'crmSettings', 'url' => 'index.php?module=Vtiger&parent=Settings&view=Index');
+			$system[] = array('id' => 'users', 'url' => 'index.php?module=Users&parent=Settings&view=List');
 		}
 
 		return array(
@@ -107,12 +109,12 @@ class ModernUI_Client_Model {
 	 */
 	private static function menu(array $values, $locale, $isAdmin) {
 		try {
-			return ModernUI_Menu_Model::build($values, $locale, $isAdmin);
+			return array_merge(ModernUI_Menu_Model::build($values, $locale, $isAdmin), array('modules' => ModernUI_Menu_Model::modules()));
 		} catch (Throwable $e) {
 			if (class_exists('Vtiger_Utils')) {
 				Vtiger_Utils::Log('ModernUI: menu: ' . $e->getMessage());
 			}
-			return array('groups' => array(), 'favorites' => array(), 'favoritesEnabled' => false, 'compact' => false);
+			return array('groups' => array(), 'favorites' => array(), 'favoritesEnabled' => false, 'compact' => false, 'modules' => array());
 		}
 	}
 }

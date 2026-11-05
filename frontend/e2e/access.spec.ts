@@ -254,3 +254,57 @@ test('two administrators save at once: the second sees the conflict with the nam
   await dialog.locator('[data-mu-action="conflict-load"]').click()
   await expect(admin2.page.locator('[data-mu-field="mu-background"]')).toHaveValue('#f5f6f8')
 })
+
+test('navigation of a restricted user: mega menu, rail and favorites only with modules U may open, no administrator entries', async () => {
+  const page = limited.page
+  await page.goto('index.php?module=Contacts&view=List&app=MARKETING')
+  await waitForShell(page)
+  const data = await bootstrap(page)
+  const menu = data['menu'] as { modules: string[]; groups: { items: { module: string; id: string }[] }[]; system: { id: string }[] }
+  expect(menu.modules).not.toContain('Leads')
+  expect(menu.modules).not.toContain('Campaigns')
+  // Every entry of U's v7 app menu is covered by the theme; the v7 hamburger is replaced.
+  const v7 = await page.evaluate(() => Array.from(document.querySelectorAll('#app-menu a[href], #app-menu [data-default-url]'))
+    .map((element) => new URL(element.getAttribute('href') ?? element.getAttribute('data-default-url') ?? '#', document.baseURI).searchParams.get('module') ?? '')
+    .filter((name) => name !== ''))
+  for (const module of new Set(v7)) {
+    expect(menu.modules, module).toContain(module)
+  }
+  await expect(page.locator('#appnavigator')).toBeHidden()
+
+  // The mega menu shows exactly the modules of U's menu, section by section, and no settings entries.
+  await page.locator('[data-mu-trigger="mega-menu"]').click()
+  const panel = page.locator('[data-mu-panel="mega-menu"]')
+  const shown = new Set<string>()
+  for (const tab of await panel.locator('[role="tab"]').all()) {
+    await tab.click()
+    for (const id of await panel.locator('#mu-mega-panel [data-mu-item^="m:"]').evaluateAll((links) => links.map((link) => link.getAttribute('data-mu-item') ?? ''))) {
+      shown.add(id.slice(2))
+    }
+  }
+  expect([...shown].sort()).toEqual([...new Set(menuModules(data))].sort())
+  expect(shown.has('Leads')).toBe(false)
+  for (const id of ['moduleSettings', 'crmSettings', 'users']) {
+    await expect(panel.locator(`[data-mu-item="${id}"]`)).toHaveCount(0)
+  }
+  await page.keyboard.press('Escape')
+
+  // The rail: the section of the page, modules U may open.
+  for (const id of await page.locator('.mu-rail [data-mu-item]').evaluateAll((links) => links.map((link) => link.getAttribute('data-mu-item') ?? ''))) {
+    expect(menu.modules).toContain(id.slice(2))
+  }
+  // Favorites: the module of the page with the star, kept on the server, removed again.
+  await page.locator('[data-mu-trigger="favorites"]').click()
+  await page.locator('[data-mu-item="favorite-toggle"]').click()
+  await expect(page.locator('.mu-favbar__tab[data-mu-item="m:Contacts"]')).toBeVisible()
+  expect(((await bootstrap(page))['menu'] as { favorites: { module: string }[] }).favorites.map((item) => item.module)).toEqual(['Contacts'])
+  await clearPersonal(page)
+
+  // G (view all) sees Leads in the mega menu search.
+  await viewer.page.goto(HOME)
+  await waitForShell(viewer.page)
+  await viewer.page.locator('[data-mu-trigger="mega-menu"]').click()
+  await viewer.page.locator('[data-mu-field="menu-search"]').fill('Lead')
+  await expect(viewer.page.locator('#mu-mega-panel [data-mu-item="m:Leads"]').first()).toBeVisible()
+  await viewer.page.keyboard.press('Escape')
+})

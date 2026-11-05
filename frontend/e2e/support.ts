@@ -17,7 +17,8 @@ export const MODULE_IMPORT = 'index.php?module=ModuleManager&parent=Settings&vie
 export const SKIN = 'link[rel="stylesheet"][href*="modules/ModernUI/resources/dist/assets/skin-"]'
 export const LOADER = 'script[src*="modules/ModernUI/resources/loader.js"]'
 export const TOKENS = 'link[rel="stylesheet"][href*="module=ModernUI&action=Tokens"]'
-export const ISLAND = '#navbar > [data-mu-root="system-menu"]'
+/** The system menu of the theme: at the right end of the favorites bar, or in #navbar when there is no bar (stage 06). */
+export const ISLAND = '[data-mu-root="system-menu"]'
 
 /**
  * The clean stand must not talk to the internet: requests of the browser to other hosts than the CRM are

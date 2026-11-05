@@ -130,3 +130,18 @@ test('menu: compact and favorites switches, favorites off hides them', function 
 	assert_same(false, $menu['favoritesEnabled']);
 	assert_same(true, $menu['compact']);
 });
+
+test('menu: groups keep the app of the v7 menu for the shell (section of the page), custom groups have none', function () {
+	$menu = ModernUI_Menu_Model::assemble(ModernUI_Settings_Model::defaults(), 'en-US', false, mu_candidates(), 'mu_translate');
+	assert_same(array('MARKETING', 'SALES', null), array_map(function ($group) {
+		return $group['app'];
+	}, $menu['groups']));
+	$values = array_merge(ModernUI_Settings_Model::defaults(), array('navigation.groups' => array(
+		array('id' => 'mine', 'label' => array('*' => 'Mine'), 'icon' => null, 'collapsed' => false, 'items' => array(
+			array('type' => 'module', 'module' => 'Leads', 'label' => null, 'icon' => null),
+		)),
+	)));
+	$menu = ModernUI_Menu_Model::assemble($values, 'en-US', false, mu_candidates(), 'mu_translate');
+	assert_same(null, $menu['groups'][0]['app']);
+	assert_same(array('id', 'label', 'icon', 'app', 'items'), array_keys($menu['groups'][0]));
+});
