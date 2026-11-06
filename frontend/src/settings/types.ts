@@ -51,6 +51,22 @@ export interface CatalogModule {
   readonly defaultHidden: boolean
 }
 
+/** Status of an adapter of a public extension on this CRM (ModernUI_Adapters_Model). */
+export const ADAPTER_STATUSES = ['active', 'disabled', 'notInstalled', 'inactive', 'version', 'incomplete', 'error'] as const
+export type AdapterStatus = (typeof ADAPTER_STATUSES)[number]
+
+export interface AdapterInfo {
+  readonly id: string
+  readonly module: string
+  /** Product name (not translated). */
+  readonly title: string
+  readonly vendor: string
+  readonly versions: { readonly min: string | null; readonly below: string | null }
+  readonly status: AdapterStatus
+  /** Version of the extension on this CRM ('' when not installed). */
+  readonly version: string
+}
+
 export interface EditorData {
   readonly v: 1
   readonly schema: number
@@ -64,6 +80,7 @@ export interface EditorData {
   readonly users: readonly UserInfo[]
   readonly personal: readonly number[]
   readonly catalog: { readonly modules: readonly CatalogModule[]; readonly defaultGroups: readonly GroupConfig[] }
+  readonly adapters: readonly AdapterInfo[]
   readonly branding: { readonly companyName: string; readonly logoUrl: string | null }
 }
 

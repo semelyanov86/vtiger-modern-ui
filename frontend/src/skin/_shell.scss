@@ -54,3 +54,18 @@
     top: calc(100px + var(--mu-shell-bar, 0px));
   }
 }
+
+// Printing a page with the browser (a list, a record, a report): the paper gets what v7 prints — no favorites bar, no menu
+// buttons of the shell, no space reserved for them (stage 08). The same rule is in the stylesheet of the shell.
+@media print {
+  :root:not(.mu-off) {
+    --mu-shell-bar: 0px !important;
+
+    [data-mu-root='favorites'],
+    [data-mu-root='mega-menu'],
+    [data-mu-root='system-menu'],
+    #mu-overlay-root {
+      display: none !important;
+    }
+  }
+}

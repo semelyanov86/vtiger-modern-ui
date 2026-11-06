@@ -165,6 +165,24 @@ describe('v7 app menu against the theme menu', () => {
     expect(scan.foreign).toEqual(['button.ct-launcher'])
   })
 
+  it('another view of a known module is not covered: the calendar strip of v7 keeps its shared calendar and list', () => {
+    const strip = document.createElement('div')
+    strip.innerHTML = `
+      <div id="modules-menu" class="modules-menu"><ul>
+        <li class="module-qtip active"><a href="index.php?module=Calendar&view=Calendar"><i class="vicon-mycalendar"></i><span>My Calendar</span></a></li>
+        <li class="module-qtip"><a href="index.php?module=Calendar&view=SharedCalendar"><span>Shared Calendar</span></a></li>
+        <li class="module-qtip"><a href="index.php?module=Calendar&view=List"><span>List</span></a></li>
+      </ul></div>`
+    const scan = scanMenu(strip, coveredBy(['Calendar'], true, ['index.php?module=Calendar&view=Calendar']))
+    expect(scan.extras.map((extra) => extra.url)).toEqual(['index.php?module=Calendar&view=SharedCalendar'])
+    const filtered = coveredBy(['Accounts'], true)
+    expect(filtered('index.php?module=Accounts&view=List&app=MARKETING')).toBe(true)
+    expect(filtered('index.php?module=Accounts&view=List&viewname=12')).toBe(false)
+    expect(filtered('index.php?module=Accounts&view=Detail&record=5')).toBe(false)
+    // A module whose default view is not a list: covered by its default URL from the server.
+    expect(coveredBy(['RoutePlanner'], true, ['index.php?module=RoutePlanner&view=Board'])('index.php?module=RoutePlanner&view=Board&app=TOOLS')).toBe(true)
+  })
+
   it('settings entries are covered for administrators only', () => {
     const user = scanMenu(appMenu(), coveredBy(['Home', 'Leads', 'Contacts'], false))
     expect(user.extras.map((extra) => extra.url)).toEqual(expect.arrayContaining(['index.php?module=Vtiger&parent=Settings&view=Index', 'index.php?module=Users&parent=Settings&view=List']))

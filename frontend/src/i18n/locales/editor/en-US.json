@@ -253,7 +253,28 @@
       "recoveryTitle": "If something does not work",
       "safeMode": "Safe mode shows the CRM in the standard view until you sign out:",
       "classic": "This settings page also works without the editor:",
-      "classicLink": "page without the editor"
+      "classicLink": "page without the editor",
+      "adaptersTitle": "Adapters of extensions",
+      "adaptersIntro": "An adapter fits the new interface to the screens of one public extension. It only works while the extension is installed and enabled and its version has been checked; the files of the extension are never changed. Switch an adapter off if the screens of the extension look worse after an update of the extension — the common styling stays.",
+      "adaptersNone": "This version has no adapters.",
+      "adapterColumn": "Extension",
+      "adapterVersions": "Checked versions",
+      "adapterVersion": "On this CRM",
+      "adapterStatus": "Status",
+      "adapterOn": "Use the adapter “{name}”",
+      "versionRange": "from {min} to below {below}",
+      "versionFrom": "from {min}",
+      "versionAny": "any",
+      "adapterOnlyGlobal": "Adapters are switched on and off in the common settings.",
+      "status": {
+        "active": "Working",
+        "disabled": "Switched off",
+        "notInstalled": "Extension not installed",
+        "inactive": "Extension disabled",
+        "version": "Version of the extension not checked",
+        "incomplete": "Files or tables of the extension are missing",
+        "error": "Could not be checked"
+      }
     },
     "transfer": {
       "exportTitle": "Export",
@@ -319,7 +340,8 @@
     "navigation_compact": "Compact favorites: icons only",
     "navigation_favorites": "Favorites",
     "user_standardView": "Standard view",
-    "user_selfEnabled": "Trying the new interface"
+    "user_selfEnabled": "Trying the new interface",
+    "adapters_disabled": "Switched-off adapters"
   },
   "prefs": {
     "title": "My preferences of the new interface",

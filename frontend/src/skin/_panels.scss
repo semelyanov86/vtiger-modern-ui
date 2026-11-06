@@ -117,10 +117,17 @@
     border-bottom-color: tok(divider);
     background-color: tok(surface);
 
+    // v7 gives the title an inline width of 25em: with the text of the theme a long title ran out of the widget. It ends
+    // with an ellipsis inside the widget; the full title is in its title attribute (v7).
     .dashboardTitle {
+      max-width: 100%;
+      overflow: hidden;
       color: tok(text);
       font-family: tok(font-family);
+      font-size: fs(15);
       font-weight: 600;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
   }
 

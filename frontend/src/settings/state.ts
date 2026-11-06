@@ -19,7 +19,7 @@ export const SECTION_KEYS: Readonly<Record<Exclude<SectionId, 'transfer'>, reado
     'theme.mode', 'theme.pilot.users', 'theme.pilot.roles', 'theme.pilot.includeSubordinates', 'theme.allowSelfEnable',
     'theme.allowOptOut', 'policy.userOverrides',
   ],
-  compatibility: ['theme.excludedScreens'],
+  compatibility: ['theme.excludedScreens', 'adapters.disabled'],
 }
 
 /** "Reset section" never switches the theme off or empties the pilot (docs/settings.md §8: reset keeps theme.mode). */

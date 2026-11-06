@@ -422,6 +422,21 @@ class ModernUI_Menu_Model {
 	}
 
 	/**
+	 * Default URLs (Vtiger_Module_Model::getDefaultUrl()) of every module the user may open, hidden ones included: the
+	 * shell compares the entries of the v7 menus with them, so a module whose default view is not a list is recognised
+	 * as covered by the theme menu (docs/architecture.md §7.1).
+	 * @return array
+	 */
+	public static function entries() {
+		$candidates = self::candidates();
+		$urls = array();
+		foreach ($candidates['list'] as $candidate) {
+			$urls[] = $candidate['url'];
+		}
+		return array_values(array_unique($urls));
+	}
+
+	/**
 	 * Module catalog of the menu editor: the candidates of the current administrator (every active module with a
 	 * screen), with apps and the default configuration.
 	 * @return array {modules: [{module, label, apps, icon, defaultHidden}], defaultGroups}

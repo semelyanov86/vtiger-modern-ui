@@ -12,6 +12,7 @@ require_once 'modules/ModernUI/models/Schema.php';
 require_once 'modules/ModernUI/models/Settings.php';
 require_once 'modules/ModernUI/models/Assets.php';
 require_once 'modules/ModernUI/models/Locale.php';
+require_once 'modules/ModernUI/models/Adapters.php';
 
 class ModernUI_Activation_Model {
 
@@ -114,10 +115,12 @@ class ModernUI_Activation_Model {
 				'ancestors' => $ancestors,
 				'crmLanguage' => (string) $user->get('language'),
 				'settings' => $settings,
-				// Changes with every saved settings document of the user, the role whose settings apply, the schema and
-				// the build: the URL of the tokens stylesheet (cached for good by the browser) and the ETag rely on it.
+				// Changes with every saved settings document of the user, the role whose settings apply, the schema, the
+				// build and the active adapters of extensions (their stylesheets are part of the tokens stylesheet): the URL
+				// of the tokens stylesheet (cached for good by the browser) and the ETag rely on it.
 				'cacheKey' => substr(sha1($userId . '|' . $roleId . '|' . (string) $settings['roleSource'] . '|' . json_encode($settings['revisions'])
-					. '|' . ModernUI_Schema_Model::VERSION . '|' . ModernUI_Assets_Model::buildId()), 0, 12),
+					. '|' . ModernUI_Schema_Model::VERSION . '|' . ModernUI_Assets_Model::buildId()
+					. '|' . ModernUI_Adapters_Model::fingerprint($settings['values'])), 0, 12),
 			);
 		}
 		return self::$contexts[$userId];
@@ -232,7 +235,9 @@ class ModernUI_Activation_Model {
 		$decision['context'] = $context;
 		$values = $context['settings']['values'];
 		$reason = self::evaluateSettings($values, $context['userId'], $context['roleId'], $context['ancestors']);
-		if ($reason === self::OK && $checkScreen && self::isScreenExcluded($values['theme.excludedScreens'], $request)) {
+		if ($reason === self::OK && $checkScreen && (self::isScreenExcluded($values['theme.excludedScreens'], $request)
+				|| ModernUI_Adapters_Model::screenLevel($values, $request) === ModernUI_Adapters_Model::LEVEL_STANDARD)) {
+			// Excluded by the administrator, or a screen of an extension that its adapter keeps in the standard view.
 			$reason = self::SCREEN_EXCLUDED;
 		}
 		if ($reason === self::OK && !ModernUI_Assets_Model::isAvailable()) {

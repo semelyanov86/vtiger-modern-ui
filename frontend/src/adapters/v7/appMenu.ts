@@ -84,14 +84,46 @@ export function scanMenu(root: Element, covered: (link: string) => boolean): Men
   return { extras, foreign }
 }
 
-/** Whether the theme covers a CRM link: modules the user may open, and the settings entries of the system section. */
-export function coveredBy(modules: readonly string[], isAdmin: boolean): (link: string) => boolean {
+/**
+ * Views that open a module the way its menu entry does (Vtiger_Module_Model::getDefaultUrl() of the core and its
+ * modules: lists, the dashboard, the calendar).
+ */
+const DEFAULT_VIEWS = new Set(['', 'List', 'Index', 'DashBoard', 'Calendar'])
+
+/** Parameters of a menu link that do not change the destination: the app of the v7 menu. */
+function destination(link: string): string {
+  const query = new URLSearchParams(link.replace(/^index\.php\?/, ''))
+  query.delete('app')
+  query.sort()
+  return query.toString()
+}
+
+/**
+ * Whether the theme covers a CRM link: the entry of a module the user may open (its default view, or exactly the URL of
+ * an entry of the theme menu), and the settings entries of the system section. Another view of a known module — the
+ * shared calendar or the task list in the calendar strip of v7, a filter of a list — is not covered: the v7 element that
+ * offers it stays (docs/architecture.md §7.1).
+ * @param modules modules the user may open (Bootstrap menu.modules)
+ * @param isAdmin
+ * @param entries URLs of the entries of the theme menu (Bootstrap menu.groups[].items[].url)
+ */
+export function coveredBy(modules: readonly string[], isAdmin: boolean, entries: readonly string[] = []): (link: string) => boolean {
   const known = new Set(modules)
+  const exact = new Set(entries.map(destination))
   return (link) => {
-    const { module, parent } = linkTarget(link)
+    const { module, view, parent } = linkTarget(link)
     if (parent === 'Settings') {
       return module === 'ModernUI' || (isAdmin && (module === 'Vtiger' || module === 'Users'))
     }
-    return module !== '' && known.has(module)
+    if (module === '' || !known.has(module)) {
+      return false
+    }
+    if (exact.has(destination(link))) {
+      return true
+    }
+    const rest = new URLSearchParams(destination(link))
+    rest.delete('module')
+    rest.delete('view')
+    return rest.toString() === '' && DEFAULT_VIEWS.has(view)
   }
 }

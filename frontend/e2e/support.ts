@@ -135,10 +135,21 @@ export async function waitForShell(page: Page): Promise<void> {
  * @returns 'import' or 'update' — what the Module Manager offered
  */
 export async function importModuleZip(page: Page, zipPath: string): Promise<'import' | 'update'> {
-  await page.goto(MODULE_IMPORT)
   const form = page.locator('#importUserModule')
-  // The form itself has no height (floated columns): wait for its checkbox.
-  await expect(form.locator('input[name="acceptDisclaimer"]')).toBeVisible()
+  // Right after the source paths of a dev instance were unmounted, PHP-FPM may still believe the files of the module exist
+  // (OPcache file override until its revalidation) and the page fails on the link handler: try again for up to 45 s
+  // (stage 08: once longer than the 5 s the task waits).
+  for (let attempt = 0; ; attempt++) {
+    await page.goto(MODULE_IMPORT)
+    // The form itself has no height (floated columns): wait for its checkbox.
+    if (await form.locator('input[name="acceptDisclaimer"]').isVisible().catch(() => false)) {
+      break
+    }
+    if (attempt >= 15) {
+      await expect(form.locator('input[name="acceptDisclaimer"]')).toBeVisible()
+    }
+    await page.waitForTimeout(3000)
+  }
   await form.locator('input[name="acceptDisclaimer"]').check()
   await form.locator('input[name="moduleZip"]').setInputFiles(zipPath)
   // A multipart POST to index.php: the step is in the body, not in the URL.

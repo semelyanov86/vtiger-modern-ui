@@ -73,6 +73,7 @@ id, чтобы его можно было убрать. Раздел скрыт 
 | `theme.allowSelfEnable` | bool | `false` | да | — | — |
 | `theme.allowOptOut` | bool | `true` | да | — | — |
 | `theme.excludedScreens` | список `{module,view,parent}` (≤ 100) | `[]` | да | да | — |
+| `adapters.disabled` | список id адаптеров расширений (`^[a-z0-9][a-z0-9-]{0,39}$`, ≤ 50) | `[]` | да | — | — |
 | `policy.userOverrides` | подмножество ключей с отметкой «user» | `["locale","appearance.density","appearance.fontScale","navigation.compact","navigation.favorites"]` | да | — | — |
 | `locale.default` | `auto`/`ru-RU`/`en-US`/`de-DE` | `auto` (язык CRM пользователя) | да | да | — |
 | `locale` | `auto`/`ru-RU`/`en-US`/`de-DE` | `auto` | — | — | да* |
@@ -94,6 +95,11 @@ id, чтобы его можно было убрать. Раздел скрыт 
 
 `*` — только если ключ входит в `policy.userOverrides`. `user.standardView` и `user.selfEnabled`
 регулируются флагами `theme.*`. Пользователь не может включить себе тему при `mode=off`.
+
+`adapters.disabled` (этап 08, `architecture.md` §7.6): адаптеры публичных расширений, выключенные администратором («Совместимость»
+редактора). Неизвестный этой версии id сохраняется (файл новой версии не теряет выбор); выключенный адаптер не попадает ни в
+таблицу стилей токенов, ни в `Bootstrap`; меняется ключ кэша таблицы токенов. Новый ключ укладывается в документы `v:1` — версия
+схемы не меняется.
 
 **Реализовано на этапе 05** (`ModernUI_Settings_Model::spec()`):
 

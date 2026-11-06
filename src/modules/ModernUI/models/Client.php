@@ -10,6 +10,7 @@ require_once 'modules/ModernUI/models/Lifecycle.php';
 require_once 'modules/ModernUI/models/Tokens.php';
 require_once 'modules/ModernUI/models/Menu.php';
 require_once 'modules/ModernUI/models/Branding.php';
+require_once 'modules/ModernUI/models/Adapters.php';
 
 class ModernUI_Client_Model {
 
@@ -72,6 +73,8 @@ class ModernUI_Client_Model {
 			'appearance' => array_merge($appearance, array('tokens' => (object) ModernUI_Tokens_Model::forAppearance($appearance))),
 			'branding' => ModernUI_Branding_Model::forClient($values, $locale['locale']),
 			'menu' => array_merge(array('system' => $system), self::menu($values, $locale['locale'], (bool) $context['isAdmin'])),
+			// Adapters of the active extensions (docs/architecture.md §7.6): client parts and screen rules.
+			'adapters' => ModernUI_Adapters_Model::forClient($values),
 			'personal' => array(
 				'values' => (object) $personal,
 				'allowed' => $allowed,
@@ -109,12 +112,15 @@ class ModernUI_Client_Model {
 	 */
 	private static function menu(array $values, $locale, $isAdmin) {
 		try {
-			return array_merge(ModernUI_Menu_Model::build($values, $locale, $isAdmin), array('modules' => ModernUI_Menu_Model::modules()));
+			return array_merge(ModernUI_Menu_Model::build($values, $locale, $isAdmin), array(
+				'modules' => ModernUI_Menu_Model::modules(),
+				'entries' => ModernUI_Menu_Model::entries(),
+			));
 		} catch (Throwable $e) {
 			if (class_exists('Vtiger_Utils')) {
 				Vtiger_Utils::Log('ModernUI: menu: ' . $e->getMessage());
 			}
-			return array('groups' => array(), 'favorites' => array(), 'favoritesEnabled' => false, 'compact' => false, 'modules' => array());
+			return array('groups' => array(), 'favorites' => array(), 'favoritesEnabled' => false, 'compact' => false, 'modules' => array(), 'entries' => array());
 		}
 	}
 }

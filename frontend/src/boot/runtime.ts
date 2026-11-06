@@ -122,6 +122,16 @@ class Scope implements IslandScope {
   }
 }
 
+/** A scope of listeners, app.event subscriptions, timers and observers outside an island (adapters of extensions). */
+export function createScope(id: string): IslandScope & { dispose(): void } {
+  return new Scope(id)
+}
+
+/** Adds or removes a token of an attribute of <html> (data-mu-adapters and the like). */
+export function setHtmlToken(attribute: string, token: string, present: boolean): void {
+  setToken(attribute, token, present)
+}
+
 export function createContainer(id: string, className: string): HTMLElement {
   const container = document.createElement('div')
   container.className = `mu-root ${className}`

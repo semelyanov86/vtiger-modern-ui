@@ -253,7 +253,28 @@
       "recoveryTitle": "Wenn etwas nicht funktioniert",
       "safeMode": "Der abgesicherte Modus zeigt das CRM bis zur Abmeldung in der Standardansicht:",
       "classic": "Diese Einstellungsseite funktioniert auch ohne Editor:",
-      "classicLink": "Seite ohne Editor"
+      "classicLink": "Seite ohne Editor",
+      "adaptersTitle": "Adapter für Erweiterungen",
+      "adaptersIntro": "Ein Adapter passt die neue Oberfläche an die Seiten einer öffentlichen Erweiterung an. Er wirkt nur, solange die Erweiterung installiert und aktiviert ist und ihre Version geprüft wurde; die Dateien der Erweiterung werden nie geändert. Schalten Sie einen Adapter aus, wenn die Seiten der Erweiterung nach einem Update schlechter aussehen — die allgemeine Gestaltung bleibt.",
+      "adaptersNone": "Diese Version enthält keine Adapter.",
+      "adapterColumn": "Erweiterung",
+      "adapterVersions": "Geprüfte Versionen",
+      "adapterVersion": "In diesem CRM",
+      "adapterStatus": "Zustand",
+      "adapterOn": "Adapter „{name}“ verwenden",
+      "versionRange": "ab {min} bis unter {below}",
+      "versionFrom": "ab {min}",
+      "versionAny": "beliebig",
+      "adapterOnlyGlobal": "Adapter werden in den allgemeinen Einstellungen ein- und ausgeschaltet.",
+      "status": {
+        "active": "Aktiv",
+        "disabled": "Ausgeschaltet",
+        "notInstalled": "Erweiterung nicht installiert",
+        "inactive": "Erweiterung deaktiviert",
+        "version": "Version der Erweiterung nicht geprüft",
+        "incomplete": "Dateien oder Tabellen der Erweiterung fehlen",
+        "error": "Prüfung fehlgeschlagen"
+      }
     },
     "transfer": {
       "exportTitle": "Exportieren",
@@ -319,7 +340,8 @@
     "navigation_compact": "Kompakte Favoriten: nur Symbole",
     "navigation_favorites": "Favoriten",
     "user_standardView": "Standardansicht",
-    "user_selfEnabled": "Testet die neue Oberfläche"
+    "user_selfEnabled": "Testet die neue Oberfläche",
+    "adapters_disabled": "Ausgeschaltete Adapter"
   },
   "prefs": {
     "title": "Meine Einstellungen der neuen Oberfläche",

@@ -20,7 +20,7 @@ function data(): EditorData {
       { id: 'H5', name: 'Sales', parent: 'H2', path: ['Org', 'CEO', 'Sales'], depth: 2, users: 3, root: false, missing: false, profile: scope({ 'appearance.primaryColor': '#123456' }, 2, true) },
       { id: 'H6', name: 'Support', parent: 'H2', path: ['Org', 'CEO', 'Support'], depth: 2, users: 1, root: false, missing: false, profile: null },
     ],
-    users: [], personal: [], catalog: { modules: [], defaultGroups: [] }, branding: { companyName: '', logoUrl: null },
+    users: [], personal: [], catalog: { modules: [], defaultGroups: [] }, adapters: [], branding: { companyName: '', logoUrl: null },
   }
 }
 

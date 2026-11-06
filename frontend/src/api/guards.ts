@@ -8,6 +8,7 @@ import {
   ERROR_CODES,
   SYSTEM_ITEM_IDS,
   TOKEN_NAMES,
+  type ActiveAdapter,
   type Appearance,
   type Bootstrap,
   type Branding,
@@ -227,6 +228,7 @@ export function parseBootstrapMenu(value: unknown): Menu {
     compact: boolean(data['compact'], 'menu.compact'),
     // The preview of the settings editor has no module list.
     modules: data['modules'] === undefined ? [] : stringList(data['modules'], 'menu.modules').map((name, index) => string(name, `menu.modules[${String(index)}]`, MODULE)),
+    entries: data['entries'] === undefined ? [] : stringList(data['entries'], 'menu.entries').map((url, index) => string(url, `menu.entries[${String(index)}]`, CRM_URL)),
   }
 }
 
@@ -238,6 +240,41 @@ function branding(value: unknown): Branding {
     logoUrl: logoUrl === null ? null : string(logoUrl, 'branding.logoUrl', LOGO_URL),
     title: title === null ? null : string(title, 'branding.title', /^[^<>]{1,200}$/u),
   }
+}
+
+/** Adapters of the active extensions (absent in answers of older modules: none). */
+function adapters(value: unknown): readonly ActiveAdapter[] {
+  if (value === undefined) {
+    return []
+  }
+  if (!Array.isArray(value)) {
+    return bad('adapters')
+  }
+  const part = /^(\*|[A-Za-z0-9_]{0,50})$/
+  return value.map((entry, index) => {
+    const path = `adapters[${String(index)}]`
+    const item = record(entry, path)
+    const screens = item['screens']
+    if (!Array.isArray(screens)) {
+      return bad(`${path}.screens`)
+    }
+    return {
+      id: string(item['id'], `${path}.id`, /^[a-z0-9][a-z0-9-]{0,39}$/),
+      module: string(item['module'], `${path}.module`, MODULE),
+      version: string(item['version'], `${path}.version`, /^[0-9A-Za-z._-]{0,20}$/),
+      script: boolean(item['script'], `${path}.script`),
+      screens: screens.map((screen, position) => {
+        const screenPath = `${path}.screens[${String(position)}]`
+        const rule = record(screen, screenPath)
+        return {
+          module: string(rule['module'], `${screenPath}.module`, part),
+          view: string(rule['view'], `${screenPath}.view`, part),
+          parent: string(rule['parent'], `${screenPath}.parent`, part),
+          level: oneOf(rule['level'], ['skin', 'standard'] as const, `${screenPath}.level`),
+        }
+      }),
+    }
+  })
 }
 
 /** The "result" of a Bootstrap answer. */
@@ -278,6 +315,7 @@ export function parseBootstrap(value: unknown): Bootstrap {
     appearance: appearance(data['appearance'], 'appearance'),
     branding: branding(data['branding']),
     menu: parseBootstrapMenu(data['menu']),
+    adapters: adapters(data['adapters']),
     personal: {
       values: record(personal['values'], 'personal.values'),
       allowed: stringList(personal['allowed'], 'personal.allowed'),

@@ -20,6 +20,8 @@ import { pageContext } from '../adapters/v7/page'
 import { createThemeI18n } from '../i18n'
 import { createContainer, IslandRuntime, setReplaced } from '../boot/runtime'
 import { applyTokens, clearTokens } from '../boot/tokens'
+import { adapterScreenLevel, startAdapters, type RunningAdapters } from '../boot/adapters'
+import { CLIENT_ADAPTERS } from '../adapters/ext'
 import SystemMenu from './SystemMenu.vue'
 import MegaMenu from './MegaMenu.vue'
 import FavoritesBar from './FavoritesBar.vue'
@@ -44,6 +46,13 @@ class BootError extends Error {
 }
 
 const runtime = new IslandRuntime()
+/** Client parts of the adapters of extensions running on this page. */
+let adapters: RunningAdapters | null = null
+
+function stopAdapters(): void {
+  adapters?.stop()
+  adapters = null
+}
 
 function dispatch(name: 'mu:ready' | 'mu:failed', detail?: string): void {
   document.dispatchEvent(new CustomEvent(name, { detail }))
@@ -113,7 +122,7 @@ const BAR_VARIABLE = '--mu-favorites-bar'
  */
 function registerNavigation(data: Bootstrap, i18n: ReturnType<typeof createThemeI18n>, favorites: FavoritesStore): void {
   const page = pageContext()
-  const covered = coveredBy(data.menu.modules, data.user.isAdmin)
+  const covered = coveredBy(data.menu.modules, data.user.isAdmin, [...data.menu.entries, ...data.menu.groups.flatMap((group) => group.items.map((entry) => entry.url))])
   const extras = shallowRef<readonly ExtraLink[]>([])
   let appMenuForeign = false
 
@@ -181,6 +190,8 @@ function registerNavigation(data: Bootstrap, i18n: ReturnType<typeof createTheme
   }
 
   const group = currentGroup(data.menu.groups, page)
+  // The capability check runs again after every re-render of the page: tell about a kept v7 strip once per page.
+  let railNoticeShown = false
   if (group !== null) {
     runtime.register({
       id: 'module-rail',
@@ -192,7 +203,10 @@ function registerNavigation(data: Bootstrap, i18n: ReturnType<typeof createTheme
         }
         const scan = scanMenu(strip, covered)
         if (scan.foreign.length > 0 || scan.extras.length > 0) {
-          console.info('[ModernUI] the v7 module strip has entries the theme menu does not cover: it stays as it is')
+          if (!railNoticeShown) {
+            railNoticeShown = true
+            console.info('[ModernUI] the v7 module strip has entries the theme menu does not cover: it stays as it is')
+          }
           return null
         }
         return { kind: 'insert', parent: rail, before: strip, className: 'mu-rail-root hidden-xs hidden-sm' }
@@ -216,6 +230,7 @@ function removeMarkers(): void {
  * Used after "switch to the standard view".
  */
 export function teardown(): void {
+  stopAdapters()
   runtime.stop()
   clearTokens()
   removeMarkers()
@@ -248,7 +263,11 @@ export async function boot(): Promise<void> {
     // The tokens stylesheet already has these values; inline they also cover a failed or stale stylesheet.
     applyTokens(data.appearance.tokens)
     html.setAttribute('data-mu-locale', data.locale.effective)
-    const level = detectPageLevel()
+    // A screen rule of an adapter keeps the screen of an extension at the stylesheet only (its own page shell, scripts
+    // that rebuild the header); "standard" screens get no theme from the server at all.
+    const page = pageContext()
+    const ruled = adapterScreenLevel(data.adapters, page)
+    const level = ruled === null ? detectPageLevel() : 'skin'
     html.setAttribute('data-mu-level', level)
     if (level === 'islands') {
       registerIslands(data, createThemeI18n(data.locale.effective))
@@ -256,8 +275,11 @@ export async function boot(): Promise<void> {
       html.classList.add(READY_CLASS)
     }
     dispatch('mu:ready', level)
+    // Adapters of the active extensions: after the islands, each in its own scope; a failing one is only logged.
+    adapters = await startAdapters(data.adapters, page, CLIENT_ADAPTERS)
   } catch (error) {
     const code = error instanceof BootError ? error.code : error instanceof ApiError ? error.code : 'shell-error'
+    stopAdapters()
     runtime.stop()
     removeMarkers()
     if (error instanceof BootError || error instanceof ApiError) {

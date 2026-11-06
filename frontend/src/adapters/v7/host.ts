@@ -27,22 +27,39 @@ function jqueryReady(): ReadyFunction | null {
   }
 }
 
-/** Resolves after the host page is ready (after the v7 controller has registered its events). */
+/**
+ * Resolves after the host page is ready (after the v7 controller has registered its events).
+ *
+ * jQuery 1.x/2.x (v7 ships 1.x with Migrate) stops its whole ready queue when one ready handler throws — some v7 pages do
+ * that on their own (a page opened by its URL whose controller class does not exist). The ready callback of the shell then
+ * never runs; after the load event the page will not get any further, so the shell starts anyway: the islands live in
+ * their own containers and do not depend on the controller of the page.
+ */
 export function hostReady(): Promise<void> {
   return new Promise((resolve) => {
+    let done = false
+    const finish = (): void => {
+      if (!done) {
+        done = true
+        resolve()
+      }
+    }
     const ready = jqueryReady()
     if (ready !== null) {
-      ready(() => {
-        resolve()
-      })
+      ready(finish)
+      if (document.readyState === 'complete') {
+        window.setTimeout(finish, 0)
+      } else {
+        window.addEventListener('load', () => {
+          window.setTimeout(finish, 0)
+        }, { once: true })
+      }
       return
     }
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        resolve()
-      }, { once: true })
+      document.addEventListener('DOMContentLoaded', finish, { once: true })
     } else {
-      resolve()
+      finish()
     }
   })
 }

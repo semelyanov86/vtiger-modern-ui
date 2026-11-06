@@ -183,6 +183,8 @@ class ModernUI_Editor_Model {
 			'users' => array_values($users),
 			'personal' => $personal,
 			'catalog' => ModernUI_Menu_Model::catalog(),
+			// Adapters of public extensions with the status on this CRM (adapters.disabled of the stored global document).
+			'adapters' => ModernUI_Adapters_Model::catalog(ModernUI_Settings_Model::merge((array) $global['values'], array(), array())),
 			'branding' => array(
 				'companyName' => ModernUI_Branding_Model::companyName(),
 				'logoUrl' => $logo === 'company' ? null : ModernUI_Branding_Model::logoUrl($logo),

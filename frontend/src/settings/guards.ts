@@ -4,7 +4,7 @@
  */
 import { bad, boolean, integer, isRecord, moduleIcon, record, string, stringList } from '../api/guards'
 import { parseGroups } from '../menu/config'
-import type { CatalogModule, EditorData, ImportReport, Problem, ReportChange, RoleInfo, ScopeData, UserInfo } from './types'
+import { ADAPTER_STATUSES, type AdapterInfo, type CatalogModule, type EditorData, type ImportReport, type Problem, type ReportChange, type RoleInfo, type ScopeData, type UserInfo } from './types'
 
 function nullableString(value: unknown, path: string): string | null {
   return value === null ? null : string(value, path)
@@ -79,6 +79,22 @@ function list<T>(value: unknown, path: string, item: (entry: unknown, path: stri
   return Array.isArray(value) ? value.map((entry, index) => item(entry, `${path}[${String(index)}]`)) : bad(path)
 }
 
+function adapterInfo(value: unknown, path: string): AdapterInfo {
+  const item = record(value, path)
+  const versions = record(item['versions'], `${path}.versions`)
+  const status = item['status']
+  const known = ADAPTER_STATUSES.find((entry) => entry === status)
+  return {
+    id: string(item['id'], `${path}.id`),
+    module: string(item['module'], `${path}.module`),
+    title: string(item['title'], `${path}.title`),
+    vendor: string(item['vendor'], `${path}.vendor`),
+    versions: { min: nullableString(versions['min'], `${path}.versions.min`), below: nullableString(versions['below'], `${path}.versions.below`) },
+    status: known ?? bad(`${path}.status`),
+    version: string(item['version'], `${path}.version`),
+  }
+}
+
 export function parseEditorData(value: unknown): EditorData {
   const data = record(value, 'result')
   if (data['v'] !== 1) {
@@ -104,6 +120,8 @@ export function parseEditorData(value: unknown): EditorData {
       modules: list(catalog['modules'], 'catalog.modules', catalogModule),
       defaultGroups: parseGroups(catalog['defaultGroups']) ?? bad('catalog.defaultGroups'),
     },
+    // Editors of older module versions send no adapters.
+    adapters: data['adapters'] === undefined ? [] : list(data['adapters'], 'adapters', adapterInfo),
     branding: {
       companyName: string(branding['companyName'], 'branding.companyName'),
       logoUrl: nullableString(branding['logoUrl'], 'branding.logoUrl'),

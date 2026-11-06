@@ -2,7 +2,8 @@
 /*
  * GET index.php?module=ModernUI&action=Tokens&r=<cache key> — the design tokens of the current user as a
  * stylesheet (docs/architecture.md §5.1, variant B chosen on stage 04 by measurement). Printed by the second
- * HEADERCSS link, render-blocking, so the first paint has the user's colours, density and font size.
+ * HEADERCSS link, render-blocking, so the first paint has the user's colours, density and font size — and the
+ * stylesheets of the adapters of the extensions that are active (stage 08, docs/architecture.md §7.6).
  *
  * The URL carries the cache key of the user's settings (user, role, revisions, schema, build): when it matches,
  * the answer is cached by the browser for good; any change of the settings gives a new URL. A key that does not
@@ -12,6 +13,7 @@
 
 require_once 'modules/ModernUI/models/Activation.php';
 require_once 'modules/ModernUI/models/Tokens.php';
+require_once 'modules/ModernUI/models/Adapters.php';
 
 class ModernUI_Tokens_Action extends Vtiger_Action_Controller {
 
@@ -37,7 +39,9 @@ class ModernUI_Tokens_Action extends Vtiger_Action_Controller {
 			if ($decision['active'] && $context !== null) {
 				$values = $context['settings']['values'];
 				$tokens = ModernUI_Tokens_Model::forAppearance(ModernUI_Tokens_Model::appearanceOf($values));
-				$css = ModernUI_Tokens_Model::css(array_merge($tokens, ModernUI_Tokens_Model::layout($values)));
+				$css = ModernUI_Tokens_Model::css(array_merge($tokens, ModernUI_Tokens_Model::layout($values)))
+					// Stylesheets of the adapters of the active extensions (docs/architecture.md §7.6).
+					. ModernUI_Adapters_Model::styles($values);
 				$key = $request->get('r');
 				$cacheable = is_string($key) && $key !== '' && hash_equals($context['cacheKey'], $key);
 			}

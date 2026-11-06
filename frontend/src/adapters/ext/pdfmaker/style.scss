@@ -1,0 +1,19 @@
+// Adapter of IT-Solutions4You PDF Maker 4.x (ModernUI_Adapters_Model 'pdfmaker', docs/compatibility.md §6). The server appends
+// this stylesheet to the tokens stylesheet only while PDF Maker is installed, active and of a checked version.
+//
+// Template editor (module=PDFMaker&view=Edit): eight tabs above the editor. With the tab text of the theme (14 px) they took
+// two rows; v7 draws them at 12 px. The selectors stay on the editor's own markup (the form with .PDFMakerContentBlock), so a
+// changed editor gets the common skin only.
+@use '../../../styles/tokens' as *;
+
+:root:not(.mu-off) {
+  form#EditView:has(.PDFMakerContentBlock) > ul.layoutTabs > li > a {
+    padding-right: 12px;
+    padding-left: 12px;
+    font-size: fs(12);
+
+    strong {
+      font-weight: 600;
+    }
+  }
+}

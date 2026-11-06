@@ -35,6 +35,9 @@ class MU_Fake {
 		if (class_exists('ModernUI_Assets_Model', false)) {
 			ModernUI_Assets_Model::reset();
 		}
+		if (class_exists('ModernUI_Adapters_Model', false)) {
+			ModernUI_Adapters_Model::setRegistry(null);
+		}
 		ModernUI_Schema_Model_Cache::forget();
 	}
 

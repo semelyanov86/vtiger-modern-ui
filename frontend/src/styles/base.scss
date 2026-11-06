@@ -43,3 +43,17 @@
   position: relative;
   z-index: 1097;
 }
+
+// Printing a CRM page: the buttons and bars of the shell stay on the screen (the same rule is in _shell.scss of the skin).
+@media print {
+  :root {
+    --mu-shell-bar: 0px !important;
+  }
+
+  [data-mu-root='favorites'],
+  [data-mu-root='mega-menu'],
+  [data-mu-root='system-menu'],
+  #mu-overlay-root {
+    display: none !important;
+  }
+}

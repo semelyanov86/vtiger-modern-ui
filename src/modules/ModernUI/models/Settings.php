@@ -49,6 +49,7 @@ class ModernUI_Settings_Model {
 				'theme.allowSelfEnable' => array('type' => 'bool', 'default' => false, 'scopes' => array('global')),
 				'theme.allowOptOut' => array('type' => 'bool', 'default' => true, 'scopes' => array('global')),
 				'theme.excludedScreens' => array('type' => 'screens', 'max' => 100, 'default' => array(), 'scopes' => array('global', 'role'), 'merge' => 'union'),
+				'adapters.disabled' => array('type' => 'adapters', 'max' => 50, 'default' => array(), 'scopes' => array('global')),
 				'policy.userOverrides' => array('type' => 'keys', 'default' => array('locale', 'appearance.density', 'appearance.fontScale', 'navigation.compact', 'navigation.favorites'), 'scopes' => array('global')),
 				'locale.default' => array('type' => 'enum', 'values' => $locales, 'default' => 'auto', 'scopes' => array('global', 'role')),
 				'locale' => array('type' => 'enum', 'values' => $locales, 'default' => 'auto', 'scopes' => array('user')),
@@ -278,6 +279,12 @@ class ModernUI_Settings_Model {
 			case 'modules':
 				return self::normalizeList($value, $definition['max'], function ($item) {
 					return (is_string($item) && preg_match('/^[A-Za-z0-9_]{1,50}$/', $item)) ? $item : null;
+				}, $path);
+			case 'adapters':
+				// Ids of adapters (ModernUI_Adapters_Model); an id this version does not know is kept, so a file exported by a
+				// newer version keeps its choice.
+				return self::normalizeList($value, $definition['max'], function ($item) {
+					return (is_string($item) && preg_match('/^[a-z0-9][a-z0-9-]{0,39}$/', $item)) ? $item : null;
 				}, $path);
 			case 'keys':
 				$overridable = self::$userOverridable;

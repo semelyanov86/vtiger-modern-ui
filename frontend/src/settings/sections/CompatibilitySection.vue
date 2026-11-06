@@ -1,13 +1,14 @@
 <script setup lang="ts">
 /**
  * Compatibility (docs/settings.md §3): screens that always open in the standard view (module, view, parent; "*" for
- * any), the safe mode and the page without the editor. A role adds its own screens to the common ones.
+ * any), the adapters of public extensions with their status on this CRM and a switch (adapters.disabled, common settings
+ * only), the safe mode and the page without the editor. A role adds its own screens to the common ones.
  */
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Plus, Trash2 } from '@lucide/vue'
 import type { Editor } from '../state'
-import type { Problem } from '../types'
+import type { AdapterInfo, Problem } from '../types'
 import ScopedField from '../components/ScopedField.vue'
 
 const props = defineProps<{ editor: Editor; problems: readonly Problem[] }>()
@@ -39,6 +40,38 @@ function change(list: Screen[], index: number, part: keyof Screen, value: string
     row[part] = value.trim()
     update(next)
   }
+}
+
+const adapters = computed(() => props.editor.data.value.adapters)
+
+function disabledIds(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((id): id is string => typeof id === 'string') : []
+}
+
+/** Only an adapter whose extension is there and checked can be switched; the others show why they do not work. */
+function switchable(adapter: AdapterInfo): boolean {
+  return adapter.status === 'active' || adapter.status === 'disabled'
+}
+
+function setAdapter(value: unknown, id: string, on: boolean, update: (value: unknown) => void): void {
+  const ids = disabledIds(value).filter((entry) => entry !== id)
+  update(on ? ids : [...ids, id])
+}
+
+function versions(adapter: AdapterInfo): string {
+  const { min, below } = adapter.versions
+  if (min !== null && below !== null) {
+    return t('editor.compatibility.versionRange', { min, below })
+  }
+  return min !== null ? t('editor.compatibility.versionFrom', { min }) : t('editor.compatibility.versionAny')
+}
+
+/** Status shown for the draft: switching an adapter off or on is visible before saving. */
+function status(adapter: AdapterInfo, value: unknown): AdapterInfo['status'] {
+  if (!switchable(adapter)) {
+    return adapter.status
+  }
+  return disabledIds(value).includes(adapter.id) ? 'disabled' : 'active'
 }
 
 function valid(screen: Screen): boolean {
@@ -76,6 +109,32 @@ function valid(screen: Screen): boolean {
         <Plus :size="14" aria-hidden="true" /><span>{{ t('editor.compatibility.add') }}</span>
       </button>
       <p class="mu-help">{{ t('editor.compatibility.example') }}</p>
+    </ScopedField>
+
+    <h3 class="mu-section__heading">{{ t('editor.compatibility.adaptersTitle') }}</h3>
+    <p class="mu-help">{{ t('editor.compatibility.adaptersIntro') }}</p>
+    <p v-if="editor.isRole.value" class="mu-help">{{ t('editor.compatibility.adapterOnlyGlobal') }}</p>
+    <ScopedField v-else v-slot="{ value, disabled, update }" :editor="editor" field="adapters.disabled" :problems="problems" :legend="t('fields.adapters_disabled')">
+      <div class="mu-table-scroll">
+        <table class="mu-table" data-mu-table="adapters">
+          <caption class="mu-visually-hidden">{{ t('editor.compatibility.adaptersTitle') }}</caption>
+          <thead><tr><th scope="col">{{ t('editor.compatibility.adapterColumn') }}</th><th scope="col">{{ t('editor.compatibility.adapterVersions') }}</th><th scope="col">{{ t('editor.compatibility.adapterVersion') }}</th><th scope="col">{{ t('editor.compatibility.adapterStatus') }}</th></tr></thead>
+          <tbody>
+            <tr v-for="adapter in adapters" :key="adapter.id" :data-mu-adapter="adapter.id" :data-mu-status="status(adapter, value)">
+              <td>
+                <label class="mu-check">
+                  <input type="checkbox" :checked="status(adapter, value) === 'active'" :disabled="disabled || !switchable(adapter)" :aria-label="t('editor.compatibility.adapterOn', { name: adapter.title })" @change="setAdapter(value, adapter.id, ($event.target as HTMLInputElement).checked, update)" />
+                  <span><strong>{{ adapter.title }}</strong> ({{ adapter.vendor }}, {{ adapter.module }})</span>
+                </label>
+              </td>
+              <td>{{ versions(adapter) }}</td>
+              <td>{{ adapter.version || '—' }}</td>
+              <td>{{ t(`editor.compatibility.status.${status(adapter, value)}`) }}</td>
+            </tr>
+            <tr v-if="adapters.length === 0"><td colspan="4" class="mu-help">{{ t('editor.compatibility.adaptersNone') }}</td></tr>
+          </tbody>
+        </table>
+      </div>
     </ScopedField>
 
     <h3 class="mu-section__heading">{{ t('editor.compatibility.recoveryTitle') }}</h3>

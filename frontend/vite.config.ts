@@ -8,6 +8,7 @@
  */
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
+import { existsSync, readdirSync } from 'node:fs'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueI18n from '@intlify/unplugin-vue-i18n/vite'
@@ -17,6 +18,14 @@ import { thirdPartyLicenses } from './build/third-party-licenses.ts'
 const here = dirname(fileURLToPath(import.meta.url))
 const outDir = resolve(here, '../src/layouts/v7/modules/ModernUI/resources/dist')
 const tempManifest = '.manifest.tmp.json'
+
+/**
+ * Stylesheets of the adapters of public extensions (src/adapters/ext/<id>/style.scss, docs/architecture.md §7.6): one
+ * entry each, so the server appends only the stylesheets of the extensions that are active (action=Tokens).
+ */
+const adapterStyles = Object.fromEntries(readdirSync(resolve(here, 'src/adapters/ext'), { withFileTypes: true })
+  .filter((entry) => entry.isDirectory() && existsSync(resolve(here, 'src/adapters/ext', entry.name, 'style.scss')))
+  .map((entry) => [`adapter-${entry.name}`, resolve(here, 'src/adapters/ext', entry.name, 'style.scss')]))
 
 export default defineConfig({
   root: here,
@@ -68,6 +77,7 @@ export default defineConfig({
         settings: resolve(here, 'src/settings/main.ts'),
         preferences: resolve(here, 'src/preferences/main.ts'),
         skin: resolve(here, 'src/skin/skin.scss'),
+        ...adapterStyles,
       },
       output: {
         // Code used by several entries (Vue, vue-i18n, base styles) goes to one "common" chunk: every island

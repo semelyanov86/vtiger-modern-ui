@@ -246,10 +246,10 @@ export async function token(page: Page): Promise<string> {
  * Deletes a synthetic record through the standard delete action (DeleteAjax), only when its record view shows the
  * marker of the scenarios.
  */
-export async function deleteSynthetic(page: Page, module: string, record: string): Promise<void> {
+export async function deleteSynthetic(page: Page, module: string, record: string, mark: string = MARK): Promise<void> {
   await page.goto(`index.php?module=${module}&view=Detail&record=${record}`)
   const label = await page.locator('.detailview-header').first().textContent().catch(() => '')
-  if (!(label?.includes(MARK) ?? false)) {
+  if (!(label?.includes(mark) ?? false)) {
     throw new Error(`${module} ${record} is not a synthetic record of the scenarios — not deleted`)
   }
   const response = await page.request.post('index.php', {

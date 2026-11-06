@@ -24,6 +24,35 @@
     }
   }
 
+  // Dark header rows of v7 tables (tr.blockHeader: report results and their totals, sharing access, the profile view,
+  // the account hierarchy, settings pages of extensions such as the search configuration). v7 paints a dark gradient on
+  // the row and white text on its cells; the text colour of the theme's table headers made them unreadable (stage 08).
+  // The theme gives them its light table header, row and cells together.
+  tr.blockHeader {
+    background-color: tok(surface-subtle);
+    background-image: none;
+    filter: none;
+
+    > th {
+      border-color: tok(divider);
+      background-color: tok(surface-subtle);
+      color: tok(text-heading);
+      font-weight: 600;
+
+      a {
+        color: tok(text-heading);
+      }
+    }
+  }
+
+  // Links in rows and cells an extension coloured inline (the colour rules of Listview Colors in its settings, legends):
+  // the text colour of the row, as v7 shows it, instead of the link colour of the theme on a coloured background. A link
+  // with its own inline colour keeps it (inline wins); the list of records has its own rule (_lists.scss).
+  tr[style*='background'] a,
+  td[style*='background'] a {
+    color: inherit;
+  }
+
   .table-bordered {
     border-color: tok(border);
 

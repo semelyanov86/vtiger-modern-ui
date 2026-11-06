@@ -65,6 +65,12 @@
     }
   }
 
+  // A link that is a heading or part of one (titles of settings pages of extensions such as "Module Manager > Colors of
+  // lists"): the colour of the heading, the accent on hover — v7 shows such titles in the text colour.
+  :is(h1, h2, h3, h4) a:not(:hover, :focus) {
+    color: inherit;
+  }
+
   hr {
     border-top-color: tok(divider);
   }

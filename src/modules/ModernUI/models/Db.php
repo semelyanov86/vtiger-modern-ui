@@ -55,7 +55,24 @@ class ModernUI_Db_Model {
 	 * @return array
 	 */
 	public static function rows($sql, array $params = array()) {
-		$result = self::execute($sql, $params);
+		return self::rowsOf(self::execute($sql, $params));
+	}
+
+	/**
+	 * Rows of a SELECT that must succeed; throws when the statement failed.
+	 * @param string $sql
+	 * @param array $params
+	 * @return array
+	 */
+	public static function mustRows($sql, array $params = array()) {
+		return self::rowsOf(self::mustExecute($sql, $params));
+	}
+
+	/**
+	 * @param mixed $result
+	 * @return array
+	 */
+	private static function rowsOf($result) {
 		if ($result === false || !is_object($result)) {
 			return array();
 		}

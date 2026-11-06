@@ -86,12 +86,35 @@ export interface Menu {
   readonly compact: boolean
   /** Every module the user may open (hidden ones included): what the menu of the theme covers. */
   readonly modules: readonly string[]
+  /** Default URLs of those modules (the entries of the v7 menus the theme menu covers). */
+  readonly entries: readonly string[]
 }
 
 /** null: as in the CRM (the v7 header keeps the company logo, no title of the theme). */
 export interface Branding {
   readonly logoUrl: string | null
   readonly title: string | null
+}
+
+/** Level a screen rule of an adapter gives a screen (docs/compatibility.md §8): only the stylesheet, or no theme. */
+export type ScreenLevel = 'skin' | 'standard'
+
+export interface AdapterScreen {
+  /** Name or "*" (any). */
+  readonly module: string
+  readonly view: string
+  readonly parent: string
+  readonly level: ScreenLevel
+}
+
+/** An adapter of an active public extension (ModernUI_Adapters_Model::forClient(), docs/architecture.md §7.6). */
+export interface ActiveAdapter {
+  readonly id: string
+  readonly module: string
+  readonly version: string
+  /** The adapter has a client part (src/adapters/ext/<id>/). */
+  readonly script: boolean
+  readonly screens: readonly AdapterScreen[]
 }
 
 export interface Bootstrap {
@@ -112,6 +135,7 @@ export interface Bootstrap {
   readonly appearance: Appearance
   readonly branding: Branding
   readonly menu: Menu
+  readonly adapters: readonly ActiveAdapter[]
   readonly personal: {
     readonly values: Readonly<Record<string, unknown>>
     readonly allowed: readonly string[]
