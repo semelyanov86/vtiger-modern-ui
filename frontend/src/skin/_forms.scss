@@ -105,6 +105,36 @@
     border-bottom-right-radius: 0;
   }
 
+  // Inline edit of the record view (Detail.js adds the two addons after the field): "save" is the main action of the
+  // cell — the accent with a white tick (v7: green with a white tick), "cancel" a neutral addon.
+  .input-group-addon.input-group-addon-save,
+  .input-group-addon.inlineAjaxSave {
+    border-color: tok(primary-strong);
+    background-color: tok(primary-strong);
+    color: #ffffff;
+
+    .fa {
+      color: #ffffff;
+    }
+
+    &:hover {
+      border-color: tok(primary-hover);
+      background-color: tok(primary-hover);
+      color: #ffffff;
+    }
+  }
+
+  .input-group-addon.input-group-addon-cancel,
+  .input-group-addon.inlineAjaxCancel {
+    background-color: tok(btn-secondary);
+    color: tok(text);
+
+    &:hover {
+      background-color: tok(btn-secondary-hover);
+      color: tok(danger);
+    }
+  }
+
   .input-group-addon.cursorPointer:hover,
   .input-group-addon.relatedPopup:hover,
   .input-group-addon.createReferenceRecord:hover,
@@ -113,9 +143,66 @@
     color: tok(primary-strong);
   }
 
-  // A reference field of v7 keeps its border on the inner input (.input-group.inputElement input {border:none}).
+  // Date, time, currency and percent fields of v7 draw ONE border, on the wrapper .input-group.inputElement (its
+  // inputs have `border: none` in v7, the addon a 1 px left/right line). The theme keeps that structure: the wrapper
+  // is the field box, the inner input has no border of its own and the focus ring sits on the wrapper. Before
+  // stage 07 the inner .form-control got the field box too — a second, darker border inside the light one.
   .input-group.inputElement {
+    border: 1px solid tok(border-input);
     border-radius: tok(radius-sm);
+    background-color: tok(surface);
+    @include transition(border-color, box-shadow);
+
+    &:hover {
+      border-color: #6e7889;
+    }
+
+    &:focus-within {
+      border-color: tok(focus-border);
+      @include focus-ring;
+    }
+
+    &:has(> .input-error) {
+      border-color: tok(danger);
+      box-shadow: 0 0 0 1px tok(danger-ring);
+    }
+
+    > .input-group-addon {
+      border-width: 0;
+      border-left: 1px solid tok(border-input);
+      border-radius: 0;
+    }
+
+    > .input-group-addon-right,
+    > .input-group-addon:first-child {
+      border-left: 0;
+      border-right: 1px solid tok(border-input);
+    }
+  }
+
+  // Higher than the field box above (its selectors carry up to eight :not() each), so the inner input stays
+  // borderless whatever the order of the rules.
+  .input-group.inputElement > input.form-control:not(textarea):not(select):not([type='checkbox']):not([type='radio']):not([type='file']):not(.select2):not(.select2-container):not(.input-group),
+  .input-group.inputElement > input.inputElement:not(textarea):not(select):not([type='checkbox']):not([type='radio']):not([type='file']):not(.select2):not(.select2-container):not(.input-group) {
+    height: calc(#{tok(input-height)} - 2px);
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background-color: transparent;
+
+    &:focus {
+      box-shadow: none;
+    }
+
+    &.input-error {
+      border: 0 !important;
+      box-shadow: none;
+    }
+
+    &[readonly],
+    &[disabled] {
+      background-color: tok(surface-readonly);
+    }
   }
 
   select.inputElement:not(.select2),

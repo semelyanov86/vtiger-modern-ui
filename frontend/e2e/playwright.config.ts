@@ -11,6 +11,8 @@
  *              permissions, role profiles, personal keys, role change, refused administrator actions (access.spec.ts);
  * - settings — the settings editor and the preferences editor as an administrator (stage 05, both stands);
  * - navigation — the navigation shell (mega menu, favorites bar, module rail) and the list screens (stage 06, both stands);
+ * - records  — record views, forms, line items, saving, errors and rights compared with v7 (stage 07, both stands; writes
+ *              synthetic records MU07 and deletes them);
  * - baseline — behaviour of the CRM without the theme: pages, errors, timings (task baseline);
  * - import   — Settings → Module Manager → Import of MU_IMPORT_ZIP (task clean:import-zip, PACKAGE run);
  * - devcycle — edit → result on the dev instance for PHP, Smarty, Vue/CSS and translations (task test:devcycle);
@@ -50,6 +52,7 @@ export default defineConfig({
     { name: 'clean', testMatch: /(?:clean|access)\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'settings', testMatch: /settings\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'navigation', testMatch: /navigation\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
+    { name: 'records', testMatch: /records\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'baseline', testMatch: /baseline\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'import', testMatch: /tools\/module-import\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'devcycle', testMatch: /devcycle\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },

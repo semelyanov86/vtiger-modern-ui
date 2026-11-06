@@ -15,11 +15,11 @@
  * the browser of the scenario answers requests for the module's resources (loader, manifest, skin, chunks) with
  * the files of the local build in src/…/resources. Nothing on the stand changes; the result is not a PACKAGE proof.
  */
-import { existsSync, mkdirSync, readFileSync } from 'node:fs'
+import { mkdirSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { test, type BrowserContext, type Page } from '@playwright/test'
+import { test, type Page } from '@playwright/test'
 import { isClean, repoRoot, target } from './env'
-import { isolateNetwork, waitForShell } from './support'
+import { isolateNetwork, useLocalBuild, waitForShell } from './support'
 
 const shotsDir = process.env['MU_SHOTS_DIR'] ?? (isClean ? resolve(repoRoot, `.local/shots/${target}`) : '')
 const widths = (process.env['MU_SHOTS_WIDTHS'] ?? '1440,1024,768,412').split(',').map((value) => Number.parseInt(value, 10))
@@ -27,24 +27,6 @@ const onlyScreens = (process.env['MU_SHOTS_SCREENS'] ?? '').split(',').filter((v
 const modes = (process.env['MU_SHOTS_MODES'] ?? 'theme,standard').split(',')
 const zoom = Number.parseFloat(process.env['MU_SHOTS_ZOOM'] ?? '1')
 const localBuild = process.env['MU_SHOTS_LOCAL_BUILD'] === '1'
-const resources = resolve(repoRoot, 'src/layouts/v7/modules/ModernUI/resources')
-
-/** Serves the module's resources from the local build (see MU_SHOTS_LOCAL_BUILD). */
-async function useLocalBuild(context: BrowserContext): Promise<void> {
-  const manifest = JSON.parse(readFileSync(resolve(resources, 'dist/manifest.json'), 'utf8')) as Record<string, { file?: string }>
-  const skin = manifest['src/skin/skin.scss']?.file ?? ''
-  await context.route('**/modules/ModernUI/resources/**', async (route) => {
-    const path = new URL(route.request().url()).pathname.replace(/^.*\/modules\/ModernUI\/resources\//, '')
-    const local = /^dist\/assets\/skin-[^/]+\.css$/.test(path) ? `dist/${skin}` : path
-    const file = resolve(resources, local)
-    if (!file.startsWith(resources) || !existsSync(file)) {
-      await route.fallback()
-      return
-    }
-    const type = file.endsWith('.css') ? 'text/css' : file.endsWith('.js') ? 'text/javascript' : file.endsWith('.json') ? 'application/json' : file.endsWith('.woff2') ? 'font/woff2' : 'application/octet-stream'
-    await route.fulfill({ status: 200, contentType: type, body: readFileSync(file) })
-  })
-}
 
 interface Screen {
   id: string

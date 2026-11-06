@@ -44,17 +44,23 @@
     border-bottom-color: tok(primary);
   }
 
-  // Related tabs of v7 have a fixed width (90 px per tab): the size of v7 (13 px) keeps long labels such as
-  // "(Information)(View)" from running into the next tab.
+  // Related tabs of v7 have a fixed width (90 px per tab) and labels of 12 px (measured, stage 07): the theme keeps
+  // 12 px and the semi-bold labels at 500 — at 13 px/600 a long label of the first tab such as "(Information)(View)" ran
+  // into the next one (Inter is wider than OpenSans of v7). The active tab: underline and the main text colour.
   .related-tabs .nav-tabs > li {
     > a {
       color: tok(text-label);
-      font-size: fs(13);
+      font-size: fs(12);
     }
 
     &.active > a {
       color: tok(text);
       box-shadow: none;
+    }
+
+    // v7 sets every label in <strong> (OpenSans-Semibold); 600 of Inter is wider than that — 500 keeps the width.
+    .tab-label strong {
+      font-weight: 500;
     }
   }
 

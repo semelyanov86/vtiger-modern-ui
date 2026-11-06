@@ -2,8 +2,10 @@
  * Shared steps of the browser scenarios: sign-in, network isolation of the clean stand, the Module Manager
  * (import/update of a ZIP, enable/disable switch) and collection of page errors.
  */
+import { existsSync, readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { expect, type BrowserContext, type Page } from '@playwright/test'
-import { crmUrl, isClean, type Credentials } from './env'
+import { crmUrl, isClean, repoRoot, type Credentials } from './env'
 
 export const SETTINGS = 'index.php?module=ModernUI&parent=Settings&view=Index'
 export const PREFERENCES = 'index.php?module=ModernUI&view=Preferences'
@@ -186,4 +188,28 @@ export async function setModuleActive(page: Page, module: string, active: boolea
   )
   await toggle.click()
   expect((await saved).status()).toBe(200)
+}
+
+const resources = resolve(repoRoot, 'src/layouts/v7/modules/ModernUI/resources')
+
+/**
+ * Serves the module's resources (loader, manifest, skin, chunks) from the local build in src/…/resources to the browser
+ * of the scenario: review of a work in progress on the clean stand, which only gets the module by ZIP
+ * (MU_SHOTS_LOCAL_BUILD=1 of task shots, MU_E2E_LOCAL_BUILD=1 of the records scenarios). Nothing on the stand changes;
+ * a run with it is not a PACKAGE proof.
+ */
+export async function useLocalBuild(context: BrowserContext): Promise<void> {
+  const manifest = JSON.parse(readFileSync(resolve(resources, 'dist/manifest.json'), 'utf8')) as Record<string, { file?: string }>
+  const skin = manifest['src/skin/skin.scss']?.file ?? ''
+  await context.route('**/modules/ModernUI/resources/**', async (route) => {
+    const path = new URL(route.request().url()).pathname.replace(/^.*\/modules\/ModernUI\/resources\//, '')
+    const local = /^dist\/assets\/skin-[^/]+\.css$/.test(path) ? `dist/${skin}` : path
+    const file = resolve(resources, local)
+    if (!file.startsWith(resources) || !existsSync(file)) {
+      await route.fallback()
+      return
+    }
+    const type = file.endsWith('.css') ? 'text/css' : file.endsWith('.js') ? 'text/javascript' : file.endsWith('.json') ? 'application/json' : file.endsWith('.woff2') ? 'font/woff2' : 'application/octet-stream'
+    await route.fulfill({ status: 200, contentType: type, body: readFileSync(file) })
+  })
 }

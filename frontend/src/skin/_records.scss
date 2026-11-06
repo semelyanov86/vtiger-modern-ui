@@ -1,0 +1,80 @@
+// Record view (summary, details, related tabs) and edit forms of v7 (docs/design.md §5.3–5.4, stage 07). The
+// shared surfaces (blocks, labels, values, fields) are in _panels and _forms; here the parts that only these
+// screens have. Only appearance: structure of the tables, the inline edit of Detail.js, the order of the blocks
+// (SPDynamicBlocks shows them, Related Blocks & Lists inserts pseudo-blocks after a header), the submit of the
+// form and the line items of Inventory_Edit_Js stay with v7.
+@use '../styles/tokens' as *;
+
+:root:not(.mu-off) {
+  // Summary view: v7 cuts a value to one line (max-width 80 %, ellipsis, full text in title). The theme's 13 px
+  // cut more than the 12 px of v7 did (a responsible user's name, a long text field), so values wrap inside the
+  // same width instead: the whole value is readable, the pencil of the inline edit stays where v7 puts it.
+  .summaryViewEntries .fieldValue > .value.textOverflowEllipsis,
+  .summaryViewEntries .fieldValue > .row > .value.textOverflowEllipsis,
+  .summaryViewFields .fieldValue > .value.textOverflowEllipsis {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+  }
+
+  // Header of the record: key fields under the name are metadata (secondary text); links among them keep the
+  // link colour (phone, related record), as in the full detail view.
+  .detailview-header .recordBasicInfo .info-row {
+    color: tok(text-2);
+  }
+
+  .detailview-header .recordBasicInfo .recordLabel {
+    line-height: 1.5;
+  }
+
+  // Line items (#lineItemTab of Inventory): headers, the item name cell and the totals table read as one table of the
+  // theme; numbers stay right-aligned where v7 has them. The delete icon keeps its size and place.
+  #lineItemTab {
+    background-color: tok(surface);
+
+    .lineItemRow:hover > td {
+      background-color: tok(surface-subtle);
+    }
+
+    .fa-trash.deleteRow {
+      color: tok(text-heading);
+    }
+
+    .fa-trash.deleteRow:hover {
+      color: tok(danger);
+    }
+  }
+
+  .lineItemsTable,
+  #lineItemResult {
+    > tbody > tr > td {
+      border-color: tok(divider);
+    }
+  }
+
+  // Comments widget and the comments tab: the text box is a field of the theme, the authors and times readable.
+  .commentContainer textarea.commentcontent,
+  .commentContainer .commentTextArea textarea,
+  textarea.commentcontent {
+    border: 1px solid tok(border-input);
+    border-radius: tok(radius-sm);
+    font-family: tok(font-family);
+    font-size: fs(13);
+
+    &:focus {
+      border-color: tok(focus-border);
+      outline: none;
+      @include focus-ring;
+    }
+  }
+
+  .commentInfoContentBlock .commentTime {
+    color: tok(text-2);
+  }
+
+  // History (updates) of the record: the timeline of v7, readable dates.
+  .updates_timeline .update_time,
+  .recentActivitiesContainer .update_time {
+    color: tok(text-2);
+  }
+}

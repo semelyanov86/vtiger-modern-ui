@@ -29,6 +29,7 @@
 @use 'header';
 @use 'shell';
 @use 'lists';
+@use 'records';
 
 :root:not(.mu-off) {
   @each $name, $value in $defaults {
