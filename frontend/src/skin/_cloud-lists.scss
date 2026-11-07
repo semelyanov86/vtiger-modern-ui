@@ -35,6 +35,9 @@ $list: ':root:not(.mu-off):not([data-mu-failed]):not([data-mu-level="skin"])[dat
 
     #table-content {
       width: 100% !important;
+      // v7 measures this before the search disclosure opens. A stale short height can put the only record under
+      // floatThead when the browser scrolls its link into view. Let the table determine the height up to the viewport.
+      height: auto !important;
       max-height: calc(100dvh - var(--mu-shell-header) - var(--mu-shell-tools) - 24px);
       margin: 0;
       border: 0;
@@ -385,7 +388,7 @@ $list: ':root:not(.mu-off):not([data-mu-failed]):not([data-mu-level="skin"])[dat
   // Selecting records changes the toolbar to the mass actions, as in the reference. Pagination stays at the right.
   &:is(:has(#listview-table .listViewEntriesCheckBox:checked), :has(#listViewContent .listViewActionsContainer > button:not(:disabled):not([hidden]))) {
     .mu-list-controls,
-    #page > nav.app-fixed-navbar .module-action-content > :not(:first-child) { visibility: hidden; }
+    #page > nav.app-fixed-navbar .module-action-content { visibility: hidden; }
     #listViewContent #listview-actions {
       left: 24px;
       width: auto;

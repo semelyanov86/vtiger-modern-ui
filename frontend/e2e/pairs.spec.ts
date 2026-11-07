@@ -11,6 +11,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { repoRoot } from './env'
 import { globalScope, patchGlobal } from './settings-api'
 import { openListFilters, openListSearch, waitForShell } from './support'
+import { recordTab } from './cloud-records-support'
 
 interface StateSpec {
   readonly id: string
@@ -31,9 +32,14 @@ test.use({ viewport: spec.viewport, deviceScaleFactor: 1 })
 async function step(page: Page, name: string): Promise<void> {
   if (name === 'all-records') {
     // Native filter IDs differ between installations. Clear the previous test's search through its own All link.
-    const href = await page.locator('.lists-menu a.filterName').filter({ hasText: /^(All|Все|Alle)$/ }).first().getAttribute('href')
-    expect(href, 'native All filter').toBeTruthy()
-    await page.goto(`${href ?? ''}&search_params=%5B%5D&page=1&modernui=on`)
+    const filter = await page.locator('.lists-menu a.filterName').filter({ hasText: /^(All|Все|Alle)$/ }).first().getAttribute('data-filter-id')
+    expect(filter, 'native All filter').toBeTruthy()
+    const url = new URL(page.url())
+    url.searchParams.set('viewname', filter ?? '')
+    url.searchParams.set('search_params', '[]')
+    url.searchParams.set('page', '1')
+    url.searchParams.set('modernui', 'on')
+    await page.goto(url.href)
     await waitForShell(page)
   } else if (name === 'open-list-filters') {
     await openListFilters(page)
@@ -49,6 +55,15 @@ async function step(page: Page, name: string): Promise<void> {
     await input.press('Enter')
     await expect(page.locator('.emptyRecordsDiv')).toBeVisible()
     await page.locator('.mu-list-search').click()
+  } else if (name === 'open-direct-record') {
+    const href = await page.locator('#listViewContent tr.listViewEntries[data-id] a[href*="view=Detail"]:not([href*="mode="])').filter({ visible: true }).first().getAttribute('href')
+    expect(href).toBeTruthy()
+    const url = new URL(href ?? '', page.url())
+    url.searchParams.set('modernui', 'on')
+    await page.goto(url.href)
+    await waitForShell(page)
+    await page.locator('.related-tabs [data-link-key="LBL_RECORD_DETAILS"] a').click()
+    await expect(page.locator('.mu-record-search input')).toBeVisible()
   } else if (name === 'open-first-record') {
     await page.locator('#listViewContent tr.listViewEntries[data-id] a[href*="view=Detail"]:not([href*="mode="])').filter({ visible: true }).first().click()
     await expect(page.locator('html[data-mu-record]')).toHaveCount(1)
@@ -60,8 +75,18 @@ async function step(page: Page, name: string): Promise<void> {
   } else if (name === 'search-nothing') {
     await page.locator('[data-mu-field="menu-search"]').fill('zzqx')
     await expect(page.locator('.mu-mega__empty')).toBeVisible()
+  } else if (name.startsWith('record-')) {
+    const tabs: Record<string, string> = {
+      'record-summary': '[data-link-key="LBL_RECORD_SUMMARY"]',
+      'record-details': '[data-link-key="LBL_RECORD_DETAILS"]',
+      'record-documents': '[data-module="Documents"]',
+      'record-updates': '[data-label-key="LBL_UPDATES"]',
+    }
+    const selector = tabs[name]
+    if (selector === undefined) throw new Error(`unknown step ${name}`)
+    await recordTab(page, selector)
   } else if (name === 'open-edit') {
-    await page.locator('#overlayPageContent .editRelatedRecord').click()
+    await page.locator('#overlayPageContent [id$="_detailView_basicAction_LBL_EDIT"]').click()
     await expect(page.locator('#overlayPageContent form#EditView')).toBeVisible()
   } else {
     throw new Error(`unknown step ${name}`)

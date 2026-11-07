@@ -103,7 +103,16 @@
     "removed": "“{module}” is no longer in your favorites."
   },
   "record": {
-    "fallback": "The record could not open over the list — opening its page."
+    "fallback": "The record could not open over the list — opening its page.",
+    "sections": "Sections",
+    "search": "Search fields",
+    "empty": "No matching fields",
+    "close": "Back to list",
+    "open": "Open record in a new tab",
+    "actions": "Record actions",
+    "context": "Record information",
+    "more": "More",
+    "noRelated": "No related records yet"
   },
   "context": {
     "label": "Views of the module"

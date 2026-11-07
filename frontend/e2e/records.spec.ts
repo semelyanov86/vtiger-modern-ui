@@ -36,6 +36,7 @@ import {
   openIn, payload, pickInPopup, recordState, settle, type Mode,
 } from './records-support'
 import { bootstrap, clearPersonal, savePersonal } from './settings-api'
+import { openCloudRecord, recordTab } from './cloud-records-support'
 
 test.describe.configure({ mode: 'serial' })
 
@@ -460,12 +461,18 @@ test('documents of a record: the PDF of an extension (ITS4You PDFMaker, where ac
   const orders = created.filter((record) => record.module === 'SalesOrder')
   expect(orders.length, 'synthetic orders of the save test').toBeGreaterThanOrEqual(2)
   const texts: Record<string, string> = {}
-  for (const [index, mode] of MODES.entries()) {
-    const order = orders[index]
+  for (const variant of ['off', 'on', 'overlay'] as const) {
+    const mode = variant === 'off' ? 'off' : 'on'
+    const order = orders[mode === 'off' ? 0 : 1]
     if (order === undefined) {
       continue
     }
     await openIn(page, `index.php?module=SalesOrder&view=Detail&record=${order.id}&mode=showDetailViewByMode&requestMode=full`, mode)
+    if (variant === 'overlay') {
+      const query = `&search_params=${encodeURIComponent(JSON.stringify([[['subject', 'c', marker('on')]]]))}`
+      await openCloudRecord(page, 'SalesOrder', order.id, query)
+      await recordTab(page, '[data-link-key="LBL_RECORD_DETAILS"]')
+    }
     const pdf = page.locator('#PDFMakerContentDiv')
     test.skip((await pdf.count()) === 0, 'PDFMaker is not active on this instance')
     // The number of the order differs between the two records: taken from the details tab and replaced in the text.
@@ -476,15 +483,16 @@ test('documents of a record: the PDF of an extension (ITS4You PDFMaker, where ac
     await choose(page, '#use_common_template', [first])
     const download = page.waitForEvent('download', { timeout: 60_000 })
     await pdf.locator('.PDFMakerDownloadPDF').click()
-    const file = resolve(repoRoot, `.local/e2e-output/${target}/mu07-${mode}.pdf`)
+    const file = resolve(repoRoot, `.local/e2e-output/${target}/mu07-${variant}.pdf`)
     await (await download).saveAs(file)
     // pdftotext (poppler): the text of the document; the file holds data of the instance and is removed at once.
     const text = execFileSync('pdftotext', ['-layout', file, '-'], { encoding: 'utf8' })
     rmSync(file)
-    texts[mode] = normaliseText(text, mode).split(number === '' ? '\u0000' : number).join('NO').replace(/[ \t]+/g, ' ')
+    texts[variant] = normaliseText(text, mode).split(number === '' ? '\u0000' : number).join('NO').replace(/[ \t]+/g, ' ')
   }
   expect(texts['off']?.length ?? 0, 'text of the PDF').toBeGreaterThan(20)
   expect(texts['on']).toBe(texts['off'])
+  expect(texts['overlay']).toBe(texts['off'])
 })
 
 test('PDFMaker list integration: selected IDs, templates, language and the downloaded batch PDF match v7', async ({ page }) => {

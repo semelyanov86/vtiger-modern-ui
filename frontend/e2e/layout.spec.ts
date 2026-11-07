@@ -159,7 +159,7 @@ test('record over the list: open, Escape, Back/Forward, close button, double cli
   })
   const overlayRequests: string[] = []
   page.on('request', (request) => {
-    if (request.url().includes('displayMode=overlay')) {
+    if (request.url().includes('module=ModernUI&view=Record')) {
       overlayRequests.push(request.url())
     }
   })
@@ -177,7 +177,7 @@ test('record over the list: open, Escape, Back/Forward, close button, double cli
   expect(navigations, 'no page load').toEqual([])
   expect(await page.evaluate(() => (history.state as { muRecord?: { record?: string } } | null)?.muRecord?.record)).toBe(created[0])
   expect(await page.locator('#overlayPageContent .overlayDetail td.fieldValue').count(), 'fields of the record').toBeGreaterThan(0)
-  expect(await page.locator('#overlayPageContent .fullDetailsButton').count(), 'direct link to the full page').toBe(1)
+  expect(await page.locator('#overlayPageContent .mu-record-open').count(), 'direct link to the full page').toBe(1)
   expect(await page.evaluate(() => document.getElementById('overlayPageContent')?.contains(document.activeElement) ?? false), 'focus in the window').toBe(true)
   // The list is still there under the window, unchanged.
   expect((await listState(page)).rows).toEqual(before.rows)
@@ -197,7 +197,7 @@ test('record over the list: open, Escape, Back/Forward, close button, double cli
   await page.goForward()
   await expect(overlayOpen(page)).toHaveAttribute('data-mu-record', created[0] ?? '')
   // The close button of v7.
-  await page.locator('#overlayPageContent .overlayDetailHeader .close').click()
+  await page.locator('#overlayPageContent .mu-record-back').click()
   await expect(overlayOpen(page)).toHaveCount(0)
   expect(await page.evaluate(() => (history.state as { muRecord?: unknown } | null)?.muRecord ?? null)).toBeNull()
   expect(navigations, 'still no page load').toEqual([])
@@ -208,7 +208,7 @@ test('record over the list: open, Escape, Back/Forward, close button, double cli
   await recordLink(page, created[0] ?? '').click({ timeout: 2000 }).catch(() => undefined)
   await expect(overlayOpen(page)).toHaveAttribute('data-mu-record', created[1] ?? '')
   await page.waitForTimeout(1000)
-  expect(overlayRequests.filter((request) => request.includes('view=Detail')).length, 'one record request').toBe(1)
+  expect(overlayRequests.filter((request) => request.includes('view=Record')).length, 'one record request').toBe(1)
   expect(navigations, 'no page load').toEqual([])
   await page.keyboard.press('Escape')
   await expect(overlayOpen(page)).toHaveCount(0)
@@ -298,7 +298,7 @@ test('direct link of the record: the full page with all actions; Back returns to
       await waitForShell(page)
     }
     await settle(page)
-    return page.locator('.detailview-header .btn, .detailViewButtoncontainer .btn').evaluateAll((buttons) => buttons.map((button) => button.textContent.replace(/\s+/g, ' ').trim()))
+    return page.locator('.detailViewButtoncontainer .btn').evaluateAll((buttons) => buttons.map((button) => button.textContent.replace(/\s+/g, ' ').trim()))
   }
   const off = await actions('off')
   const on = await actions('on')
@@ -309,13 +309,15 @@ test('direct link of the record: the full page with all actions; Back returns to
   await openList(page, `&search_params=${search}&page=1`)
   const listUrl = page.url()
   await openRecord(page, id)
-  const overlayActions = await page.locator('#overlayPageContent .overlayDetailHeader .btn').count()
+  const overlayActions = await page.locator('#overlayPageContent .detailViewButtoncontainer .btn').count()
   test.info().annotations.push({ type: 'overlay-actions', description: String(overlayActions) })
-  await Promise.all([page.waitForURL(/view=Detail/), page.locator('#overlayPageContent .fullDetailsButton').click()])
-  expect(page.url()).toContain(`record=${id}`)
-  await waitForShell(page)
-  await page.goBack()
-  await waitForShell(page)
+  const opened = page.context().waitForEvent('page')
+  await page.locator('#overlayPageContent .mu-record-open').click()
+  const direct = await opened
+  await direct.waitForURL(/view=Detail/)
+  expect(direct.url()).toContain(`record=${id}`)
+  await waitForShell(direct)
+  await direct.close()
   expect(page.url()).toBe(listUrl)
   await expect(overlayOpen(page)).toHaveAttribute('data-mu-record', id)
   await page.keyboard.press('Escape')
@@ -341,10 +343,10 @@ test('edit over the list: validation of v7, cancel, one save with the fields of 
     })
   })
   await openRecord(page, id)
-  await page.locator('#overlayPageContent .editRelatedRecord').click()
+  await page.locator('#overlayPageContent [id$="_detailView_basicAction_LBL_EDIT"]').click()
   const form = page.locator('#overlayPageContent form#EditView')
   await expect(form).toBeVisible()
-  expect(await page.locator('html').getAttribute('data-mu-test-edit-loaded'), 'post.overLayEditView.loaded for the extensions').toBe('1')
+  await expect(page.locator('html'), 'post.overLayEditView.loaded for the extensions').toHaveAttribute('data-mu-test-edit-loaded', '1')
   const overlayForm = (await formData(page, '#overlayPageContent form#EditView')).map(([name]) => name)
   const ignore = new Set(['__vtrftk', 'returnmodule', 'returnview', 'returnrecord', 'returntab_label', 'returnrelatedModule', 'returnpage',
     'returnviewname', 'returnsearch_params', 'returnsearch_key', 'returnsearch_value', 'returnoperator', 'returnsortorder', 'returnorderby',
@@ -383,7 +385,7 @@ test('edit over the list: validation of v7, cancel, one save with the fields of 
 
   // A nested popup of a reference field over the form, Escape stays with it.
   await openRecord(page, id)
-  await page.locator('#overlayPageContent .editRelatedRecord').click()
+  await page.locator('#overlayPageContent [id$="_detailView_basicAction_LBL_EDIT"]').click()
   await expect(form).toBeVisible()
   const reference = form.locator('.referencefield-wrapper .relatedPopup').first()
   if ((await reference.count()) > 0) {
@@ -441,13 +443,13 @@ test('edit over the list: validation of v7, cancel, one save with the fields of 
 test('failures and the standard view: no overlay view or no Navigation API → the full page; safe mode → v7', async ({ page, context }) => {
   const id = created[1] ?? ''
   const search = encodeURIComponent(JSON.stringify([[['accountname', 'c', NAME]]]))
-  await page.route(/displayMode=overlay/, (route) => route.abort())
+  await page.route(/module=ModernUI&view=Record/, (route) => route.abort())
   await openList(page, `&search_params=${search}&page=1`)
   await Promise.all([
     page.waitForURL(new RegExp(`view=Detail&record=${id}`)),
     recordLink(page, id).click(),
   ])
-  await page.unroute(/displayMode=overlay/)
+  await page.unroute(/module=ModernUI&view=Record/)
 
   const other = await context.newPage()
   await other.addInitScript(() => {

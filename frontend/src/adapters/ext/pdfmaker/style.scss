@@ -7,6 +7,22 @@
 @use '../../../styles/tokens' as *;
 
 :root:not(.mu-off) {
+  // The extension appends these siblings after the native toolbar. Keep its two buttons and its own menu intact;
+  // compact icon buttons remain reachable even when the core toolbar is in the record's actions overflow.
+  .mu-cloud-record .detailview-header:has(#PDFMakerContentDiv) { padding-right: 216px; }
+  .mu-cloud-record #PDFMakerContentDiv {
+    position: absolute; top: 16px; right: 144px; padding: 0 !important;
+    > .clearfix > .btn-group > .btn {
+      display: inline-flex; align-items: center; justify-content: center; width: 32px; font-size: 0;
+      .fa { font-size: 15px; }
+    }
+    .dropdown-menu {
+      left: auto; right: 0; width: 320px; max-width: calc(100vw - 40px); max-height: 65vh; overflow: auto;
+      font-size: fs(13);
+    }
+    .select2-container { width: 100% !important; }
+  }
+
   .mu-pdfmaker-export[hidden] {
     display: none !important;
   }

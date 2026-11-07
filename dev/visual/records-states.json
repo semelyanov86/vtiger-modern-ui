@@ -1,0 +1,305 @@
+{
+  "_doc": "Stage 13 V05-V06. Shared chrome has pinned stage 09 measurements, rechecked in Chrome; contents are reviewed in image pairs because CRM features and fields differ. Private reference: stage 13 screenshots and measurements.json.",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "tolerance": {
+    "size": 2,
+    "position": 4
+  },
+  "states": [
+    {
+      "id": "V05-details",
+      "reference": "V05-account-details",
+      "screenshot": "V05-details.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": [
+        "all-records",
+        "open-first-record",
+        "record-details"
+      ],
+      "elements": {
+        "sections": {
+          "ref": [
+            "sectionsNav"
+          ],
+          "theme": ".mu-record-sections",
+          "check": [
+            "x",
+            "y",
+            "w"
+          ]
+        },
+        "search": {
+          "ref": [
+            "searchBox"
+          ],
+          "theme": ".mu-record-search input",
+          "check": [
+            "x",
+            "y",
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "radius"
+          ]
+        },
+        "blockCard": {
+          "ref": [
+            "blockCard"
+          ],
+          "theme": "#overlayPageContent #detailView > .block",
+          "check": [
+            "x",
+            "y"
+          ],
+          "styles": [
+            "bg",
+            "radius"
+          ]
+        },
+        "blockHeader": {
+          "ref": [
+            "blockHeaderText"
+          ],
+          "theme": "#overlayPageContent #detailView > .block h4",
+          "styles": [
+            "size",
+            "weight"
+          ]
+        },
+        "fieldLabel": {
+          "ref": [
+            "fieldLabel"
+          ],
+          "theme": "#overlayPageContent td.fieldLabel",
+          "styles": [
+            "size",
+            "color"
+          ]
+        },
+        "fieldValue": {
+          "ref": [
+            "fieldValue"
+          ],
+          "theme": "#overlayPageContent td.fieldValue > .value",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "radius"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V05-summary",
+      "reference": "V05-account-summary",
+      "screenshot": "V05-summary.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": [
+        "all-records",
+        "open-first-record",
+        "record-summary"
+      ],
+      "elements": {
+        "window": {
+          "ref": [
+            "modalBody"
+          ],
+          "theme": "#overlayPageContent",
+          "check": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "styles": [
+            "radius"
+          ]
+        },
+        "header": {
+          "ref": [
+            "header"
+          ],
+          "theme": "#overlayPageContent .detailview-header",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "title": {
+          "ref": [
+            "recordTitle"
+          ],
+          "theme": "#overlayPageContent .recordLabel",
+          "styles": [
+            "font",
+            "size",
+            "weight",
+            "color"
+          ]
+        },
+        "tabs": {
+          "ref": [
+            "tabsBar"
+          ],
+          "theme": "#overlayPageContent .related-tabs",
+          "check": [
+            "h"
+          ]
+        },
+        "button": {
+          "ref": [
+            "editBtn"
+          ],
+          "theme": "#overlayPageContent [id$=\"_detailView_basicAction_LBL_EDIT\"]",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "radius",
+            "font"
+          ]
+        },
+        "keyFields": {
+          "ref": [
+            "keyFieldsCard"
+          ],
+          "theme": ".summaryViewFields",
+          "check": [
+            "x",
+            "y",
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "radius"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V06-documents",
+      "reference": "V05-account-summary",
+      "screenshot": "V06-documents.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": [
+        "all-records",
+        "open-first-record",
+        "record-documents"
+      ],
+      "elements": {
+        "window": {
+          "ref": [
+            "modalBody"
+          ],
+          "theme": "#overlayPageContent",
+          "check": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "styles": [
+            "radius"
+          ]
+        },
+        "header": {
+          "ref": [
+            "header"
+          ],
+          "theme": "#overlayPageContent .detailview-header",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "tabs": {
+          "ref": [
+            "tabsBar"
+          ],
+          "theme": "#overlayPageContent .related-tabs",
+          "check": [
+            "y",
+            "h"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V06-updates",
+      "reference": "V05-account-summary",
+      "screenshot": "V06-updates.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": [
+        "all-records",
+        "open-first-record",
+        "record-updates"
+      ],
+      "elements": {
+        "window": {
+          "ref": [
+            "modalBody"
+          ],
+          "theme": "#overlayPageContent",
+          "check": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "styles": [
+            "radius"
+          ]
+        },
+        "header": {
+          "ref": [
+            "header"
+          ],
+          "theme": "#overlayPageContent .detailview-header",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "tabs": {
+          "ref": [
+            "tabsBar"
+          ],
+          "theme": "#overlayPageContent .related-tabs",
+          "check": [
+            "y",
+            "h"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V06-direct",
+      "reference": "V06-direct",
+      "screenshot": "V06-direct.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": [
+        "all-records",
+        "open-direct-record"
+      ],
+      "elements": {}
+    }
+  ]
+}

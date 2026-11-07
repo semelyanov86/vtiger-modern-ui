@@ -103,7 +103,16 @@
     "removed": "„{module}“ ist nicht mehr in Ihren Favoriten."
   },
   "record": {
-    "fallback": "Der Datensatz konnte nicht über der Liste geöffnet werden – seine Seite wird geöffnet."
+    "fallback": "Der Datensatz konnte nicht über der Liste geöffnet werden – seine Seite wird geöffnet.",
+    "sections": "Abschnitte",
+    "search": "Felder durchsuchen",
+    "empty": "Keine passenden Felder",
+    "close": "Zurück zur Liste",
+    "open": "Datensatz in neuem Tab öffnen",
+    "actions": "Datensatzaktionen",
+    "context": "Datensatzinformationen",
+    "more": "Mehr",
+    "noRelated": "Noch keine verknüpften Datensätze"
   },
   "context": {
     "label": "Ansichten des Moduls"

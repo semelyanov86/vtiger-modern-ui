@@ -31,6 +31,7 @@ import ContextNav from './ContextNav.vue'
 import Brand from './Brand.vue'
 import { createFavorites, type FavoritesStore } from './nav/favorites'
 import { startRecordOverlay, supportsRecordOverlay } from '../record/overlay'
+import { presentRecord } from '../record/presentation'
 
 const READY_CLASS = 'mu-shell-ready'
 const OFF_CLASS = 'mu-off'
@@ -300,9 +301,22 @@ export async function boot(): Promise<void> {
         })
       }
       html.classList.add(READY_CLASS)
+      const recordTexts = {
+        fallback: i18n.global.t('record.fallback'), sections: i18n.global.t('record.sections'),
+        search: i18n.global.t('record.search'), empty: i18n.global.t('record.empty'),
+        close: i18n.global.t('record.close'), open: i18n.global.t('record.open'),
+        actions: i18n.global.t('record.actions'), context: i18n.global.t('record.context'), more: i18n.global.t('record.more'),
+        noRelated: i18n.global.t('record.noRelated'),
+      }
       if (supportsRecordOverlay(page.module, page.view, data.layout.modules)) {
         recordOverlay = createScope('record-overlay')
-        startRecordOverlay(recordOverlay, page.module, { fallback: i18n.global.t('record.fallback') })
+        startRecordOverlay(recordOverlay, page.module, recordTexts)
+      } else if (page.view === 'Detail') {
+        const record = document.querySelector<HTMLElement>('.detailViewContainer')
+        if (record !== null) {
+          recordOverlay = createScope('record-presentation')
+          presentRecord(recordOverlay, record, recordTexts)
+        }
       }
     }
     dispatch('mu:ready', level)

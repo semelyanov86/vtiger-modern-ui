@@ -5,10 +5,21 @@ const ACTION = '.listViewActionsContainer a[onclick*="PDFMaker_Actions_Js.getPDF
 
 export const pdfmaker: ExtensionAdapter = {
   id: 'pdfmaker',
-  supports: ({ page }) => page.view === 'List' && document.querySelector(ACTION) !== null,
+  supports: ({ page }) => page.view === 'List',
   start: (scope) => {
+    // PDF Maker's own ready callback only sees the list on the initial page load. Its public controller renders the
+    // authorised templates and registers the native download/signature actions when a record opens later.
+    scope.onAppEvent('post.overlay.load', () => {
+      const header = document.querySelector('.mu-cloud-record .detailview-header')
+      const constructor: unknown = Reflect.get(window, 'PDFMaker_Actions_Js')
+      if (header?.querySelector('#PDFMakerContentDiv') !== null || typeof constructor !== 'function') return
+      const instance: unknown = Reflect.construct(constructor, [])
+      if (typeof instance !== 'object' || instance === null) return
+      const register: unknown = Reflect.get(instance, 'registerEvents')
+      if (typeof register === 'function') Reflect.apply(register, instance, [])
+    })
     const content = document.getElementById('listViewContent')
-    if (content === null) return
+    if (content?.querySelector(ACTION) == null) return
     const button = document.createElement('button')
     button.type = 'button'
     button.className = 'btn btn-default mu-pdfmaker-export'

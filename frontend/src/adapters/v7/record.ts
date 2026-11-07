@@ -1,13 +1,8 @@
 /**
- * The overlay record views of Vtiger 8.4 (docs/architecture.md A15): the core loads a record "over" a page with
- * view=Detail&mode=showDetailViewByMode&displayMode=overlay (OverlayDetailView.tpl) and view=Edit&displayMode=overlay
- * (OverlayEditView.tpl) into the page overlay #overlayPageContent (app.helper.loadPageContentOverlay) and runs the
- * handlers of Vtiger_Detail_Js / Vtiger_Edit_Js on them — the same steps Detail.js makes for a row of a related list
- * (registerRelatedRowClickEvent, showOverlayEditView). This file is the only place that touches these globals; every access
- * is checked and a missing piece throws, so the caller can fall back to the full page of the record.
- *
- * Requests of v7 content go through app.request (jQuery.ajax) on purpose: csrf-magic adds its token there and extensions
- * that re-scan the page on ajaxComplete see the record exactly as after a request of v7 itself.
+ * Bridge to the native Vtiger 8.4 Detail controller (docs/architecture.md A15). ModernUI composes the native view in
+ * the existing page overlay; subsequent tabs, inline saves and forms use the CRM routes, metadata and handlers.
+ * Native dependencies load once, and controller/metadata/handlers are scoped to the lifetime of the open record.
+ * Requests deliberately use app.request so csrf-magic and extension ajaxComplete hooks behave as in v7.
  */
 import { isRecord } from '../../api/guards'
 
@@ -157,25 +152,181 @@ export async function ensureRecordScripts(): Promise<void> {
   }
 }
 
-/**
- * Handlers of the overlay record view, as Detail.js (registerRelatedRowClickEvent) registers them for a related record:
- * inline edit with its validation and save, blocks, references, picklist dependencies. The Edit button and the save of the
- * edit form are handled by the caller (see overlay.ts): the core versions reload a related list of a parent record.
- * @returns the Vtiger_Detail_Js instance of the module
- */
-export function startDetail(module: string, container: unknown): unknown {
-  const factory = method(global('Vtiger_Detail_Js'), 'getInstanceByModuleName')
-  const detail = factory(module)
-  const holder = find(container, '.overlayDetail')
-  method(detail, 'showScroll')($('.overlayDetail .modal-body'))
+/** Load the same dependencies as the module's full Detail view, once, in the native order. */
+export async function ensureDetailDependencies(html: string): Promise<void> {
+  const parsed = new DOMParser().parseFromString(html, 'text/html')
+  const styles: unknown = JSON.parse(parsed.querySelector('[data-mu-record-styles]')?.getAttribute('data-mu-record-styles') ?? '[]')
+  if (!Array.isArray(styles) || !styles.every((href: unknown) => typeof href === 'string')) {
+    throw new Error('v7: invalid record styles')
+  }
+  const loadedStyles = new Set(Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]')).map((link) => new URL(link.href).pathname))
+  for (const href of styles) {
+    const url = new URL(href, document.baseURI)
+    if (loadedStyles.has(url.pathname)) continue
+    if (url.origin !== location.origin || !url.pathname.endsWith('.css')) throw new Error('v7: unsupported record style')
+    await new Promise<void>((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'; link.href = url.href
+      link.onload = () => { resolve() }
+      link.onerror = () => { link.remove(); reject(new Error(`v7: ${url.pathname} did not load`)) }
+      // Native dependencies precede the theme, just as on the full Detail page.
+      document.head.insertBefore(link, document.querySelector('link[href*="ModernUI/resources/dist/"]'))
+    })
+    loadedStyles.add(url.pathname)
+  }
+  const descriptor = parsed.querySelector('[data-mu-record-scripts]')?.getAttribute('data-mu-record-scripts')
+  if (descriptor === null || descriptor === undefined) {
+    throw new Error('v7: missing record dependencies')
+  }
+  const scripts: unknown = JSON.parse(descriptor)
+  if (!Array.isArray(scripts) || !scripts.every((src: unknown) => typeof src === 'string')) {
+    throw new Error('v7: invalid record dependencies')
+  }
+  const loaded = new Set(Array.from(document.scripts).filter((script) => script.src !== '').map((script) => new URL(script.src).pathname))
+  for (const src of scripts) {
+    const url = new URL(src, document.baseURI)
+    if (url.origin !== location.origin || !url.pathname.endsWith('.js')) {
+      throw new Error('v7: unsupported record dependency')
+    }
+    if (loaded.has(url.pathname)) {
+      continue
+    }
+    await new Promise<void>((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url.href
+      script.onload = () => { resolve() }
+      script.onerror = () => { script.remove(); reject(new Error(`v7: ${url.pathname} did not load`)) }
+      document.body.appendChild(script)
+    })
+    loaded.add(url.pathname)
+  }
+}
+
+/** Metadata generated by the native view, with the interface its validators use in Detail and OverlayEdit. */
+export function installRecordMeta(root: HTMLElement): () => void {
+  const fields: unknown = JSON.parse(root.dataset['muRecordFields'] ?? '{}')
+  if (!isRecord(fields)) throw new Error('missing native field metadata')
+  const original = global('uimeta')
+  const related = global('related_uimeta')
+  const field = (name: string): unknown => fields[name]
+  const property = (name: string, key: string): unknown => {
+    const value = field(name)
+    return isRecord(value) ? value[key] : undefined
+  }
+  const meta = { field: {
+    get: (name: string, key?: string): unknown => key === undefined ? field(name) : property(name, key),
+    isMandatory: (name: string): unknown => property(name, 'mandatory') ?? false,
+    getType: (name: string): unknown => property(name, 'type') ?? false,
+  } }
+  Reflect.set(window, 'uimeta', meta)
+  Reflect.set(window, 'related_uimeta', meta)
+  return () => { Reflect.set(window, 'uimeta', original); Reflect.set(window, 'related_uimeta', related) }
+}
+
+/** Native full-detail handlers against their native selectors, inside the page overlay. */
+export function startCloudDetail(module: string, container: unknown, failed: (error: unknown) => void): { instance: unknown; restore: () => void } {
+  const detailClass = global('Vtiger_Detail_Js') as object
+  const detail = method(detailClass, 'getInstanceByModuleName')(module)
+  const originalDetail = Reflect.get(detailClass, 'detailInstance') as unknown
+  const holder = find(container, '.mu-cloud-record')
+  // Legacy related-list helpers look up these hidden controls by a document-wide ID. A full Detail has only one
+  // set; the overlay also has the background list's set. Keep its values intact, but give the open record the IDs.
+  const backgroundIds = Array.from(document.querySelectorAll<HTMLElement>('#listViewContent input[id]'))
+    .filter((input) => ['currentSearchParams', 'orderBy', 'sortOrder', 'pageNumber', 'pageLimit', 'noFilterCache', 'noOfEntries', 'nextPageExist'].includes(input.id))
+    .map((input) => ({ input, id: input.id }))
+  backgroundIds.forEach(({ input }) => { input.removeAttribute('id') })
   method(detail, 'setModuleName')(module)
-  method(detail, 'setOverlayDetailMode')(true)
-  method(detail, 'setContentHolder')(holder)
+  method(detail, 'setContentHolder')(find(holder, '.details'))
   method(detail, 'setDetailViewContainer')(holder)
-  method(detail, 'registerBasicEvents')()
-  method(detail, 'registerClickEvent')()
-  method(detail, 'registerHeaderAjaxEditEvents')(find(container, '.overlayDetailHeader'))
-  return detail
+  // The core has one page-overlay container. Its related-row preview/edit would replace the parent card and its
+  // controller in place. Open these native URLs separately, keeping the parent, its tab and the underlying list alive.
+  // Business row actions (unlink, check boxes, reference popups) still go to their original handlers.
+  const separate = (url: string): void => {
+    const destination = new URL(url, document.baseURI)
+    if (destination.origin !== location.origin || destination.pathname !== new URL('index.php', document.baseURI).pathname) {
+      throw new Error('v7: unsupported related record URL')
+    }
+    window.open(destination.href, '_blank', 'noopener')
+  }
+  Reflect.set(detail as object, 'showOverlayEditView', (url: string) => { separate(url) })
+  Reflect.set(detail as object, 'registerRelatedRowClickEvent', () => {
+    method(find(holder, '.details'), 'on')('click', '.listViewEntries', (event: unknown) => {
+      if (!isRecord(event) || !(event['target'] instanceof Element) || !(event['currentTarget'] instanceof HTMLElement)) return
+      const target = event['target']
+      if (window.getSelection()?.toString() || target.closest('a, button, input, select, textarea, .js-reference-display-value') !== null) return
+      if (target.matches('td:first-child') && target.querySelector('input[type="checkbox"]') !== null) return
+      const url = event['currentTarget'].dataset['recordurl']
+      if (url !== undefined) separate(url)
+    })
+  })
+  const host = app() as Record<string, unknown>
+  const original = host['controller']
+  const originalView = host['view']
+  const indexClass = global('Vtiger_Index_Js') as object
+  const indexFactory = Reflect.get(indexClass, 'getInstance') as unknown
+  const newIndex = method(indexClass, 'getInstance')
+  const delayed = new Set<number>()
+  const asynchronousHandlers: AddedHandler[] = []
+  let active = true
+  let attachmentHover = false
+  // The native upload initializer polls forever while no upload field is visible. A page unload normally stops it;
+  // closing an overlay does not. Bound its retries to this record and keep the native uploader itself unchanged.
+  Reflect.set(indexClass, 'getInstance', () => {
+    const instance = newIndex() as object
+    const upload = method(instance, 'registerMultiUpload')
+    const hover = method(instance, 'registerHoverEventOnAttachment')
+    Reflect.set(instance, 'registerHoverEventOnAttachment', () => {
+      if (!active || attachmentHover) return
+      attachmentHover = true
+      asynchronousHandlers.push(...tracked(() => hover()).added)
+    })
+    const retry = (): void => {
+      if (!active) return
+      if (method($('input[type="file"].multi'), 'is')(':visible') === true) {
+        asynchronousHandlers.push(...tracked(() => upload()).added)
+      } else {
+        const timer = window.setTimeout(() => { delayed.delete(timer); retry() }, 50)
+        delayed.add(timer)
+      }
+    }
+    Reflect.set(instance, 'registerMultiUpload', retry)
+    return instance
+  })
+  const loadContents = method(detail, 'loadContents')
+  const requests = Reflect.get(host, 'request') as Record<string, unknown>
+  // Native tabs use PJAX for a full-page Detail. In an overlay that would replace the list URL/history and bind global
+  // pjax handlers on each click. Only during this synchronous native call, use its ordinary AJAX transport instead.
+  Reflect.set(detail as object, 'loadContents', (...args: unknown[]) => {
+    const pjax = requests['pjax']
+    requests['pjax'] = (params: unknown): unknown => {
+      const pending = method(requests, 'get')(params)
+      method(pending, 'then')((error: unknown) => { if (error != null) { failed(error) } })
+      return pending
+    }
+    try { return loadContents(...args) } finally { requests['pjax'] = pjax }
+  })
+  // Native links (delete, PDF, related lists) ask app.controller() for the current record. The list controller remains
+  // alive underneath and is restored before a list refresh. Global libraries and the underlying list instance remain unchanged.
+  host['controller'] = () => detail
+  host['view'] = () => 'Detail'
+  Reflect.set(detailClass, 'detailInstance', detail)
+  const restore = (): void => {
+    active = false
+    delayed.forEach((timer) => { window.clearTimeout(timer) })
+    release(asynchronousHandlers)
+    Reflect.set(indexClass, 'getInstance', indexFactory)
+    Reflect.set(detailClass, 'detailInstance', originalDetail)
+    host['controller'] = original; host['view'] = originalView
+    backgroundIds.forEach(({ input, id }) => { input.id = id })
+  }
+  try {
+    method(detail, 'registerEvents')()
+    method(detail, 'registerClickEvent')()
+  } catch (error) {
+    restore()
+    throw error
+  }
+  return { instance: detail, restore }
 }
 
 /**

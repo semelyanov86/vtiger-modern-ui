@@ -1,17 +1,15 @@
 /**
- * The record over the list (stage 09 prototype, docs/architecture.md A15; target of stage 13: V05/V06 of
- * docs/visual-parity.md).
+ * The cloud record over the list (stage 13, docs/architecture.md A15; V05/V06 of docs/visual-parity.md).
  *
  * On the list screen of a module of layout.modules, the navigation of v7 to a record of the list (List.js opens
  * index.php?module=…&view=Detail&record=… after its own checks: not the checkbox column, no selected text, no row in inline
  * edit, no double click) is cancelled through the Navigation API and the same record is opened in the page overlay of v7
- * with the overlay record view of the core: the list page — its filter, page, search, sort, selection and scroll — stays
+ * with a composition of the native Detail view: the list page — its filter, page, search, sort, selection and scroll — stays
  * as it is under the overlay. The decision when to navigate stays with v7 and its extensions; ModernUI only replaces the
  * full page load by the overlay.
  *
- * - The record: OverlayDetailView of the core with the handlers of Vtiger_Detail_Js (inline edit, validation and save of
- *   a field, blocks, references); its "Details" button opens the full page (the direct link) with every action of the
- *   record, including those extensions add to the full page only.
+ * - The record: ModernUI Record composes native header, tabs and contents with the full Detail controller. Summary,
+ *   Details and related data keep their original handlers. Direct Detail URLs remain available in a separate tab.
  * - Edit: OverlayEditView of the core (form#EditView, Vtiger_Edit_Js in overlay mode, post.overLayEditView.loaded for the
  *   extensions). The submit that v7 (validation, pre-save event) and extensions let through is a navigation: it is cancelled
  *   and the same form data (FormData of the navigation) go to the same action (Save) by app.request, so the user stays over
@@ -29,15 +27,17 @@
  *   intercepted at all.
  */
 import type { IslandScope } from '../boot/runtime'
+import { createScope } from '../boot/runtime'
+import { presentRecord, type RecordTexts } from './presentation'
 import {
-  $, ensureRecordScripts, handlerCount, hidePageOverlay, hideProgress, notifyError, onJQuery, release, reloadList, request, resetRowTimers,
-  showPageOverlay, startDetail, startEdit, tracked, trackedFocus, trigger, urlParams, withCsrf, type AddedHandler,
+  $, ensureRecordScripts, ensureDetailDependencies, installRecordMeta, handlerCount, hidePageOverlay, hideProgress, notifyError, onJQuery, release, reloadList, request, resetRowTimers,
+  showPageOverlay, startCloudDetail, startEdit, tracked, trackedFocus, trigger, urlParams, withCsrf, type AddedHandler,
 } from '../adapters/v7/record'
 import { recordTarget, recordUrl, stateRecord, withRecord, type RecordTarget } from './target'
 
 type State = 'closed' | 'opening' | 'detail' | 'edit'
 
-export interface RecordOverlayTexts {
+export interface RecordOverlayTexts extends RecordTexts {
   /** Shown before the full page opens instead of the overlay. */
   readonly fallback: string
 }
@@ -60,7 +60,7 @@ function navigationApi(): EventTarget | null {
 /** List screen of v7 whose records may open over it. */
 export function supportsRecordOverlay(module: string, view: string, modules: readonly string[]): boolean {
   return view === 'List'
-    && modules.includes(module)
+    && (modules.length === 0 || modules.includes(module))
     && navigationApi() !== null
     && document.getElementById('overlayPageContent') !== null
     && document.getElementById('listViewContent') !== null
@@ -99,6 +99,9 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
   /** history.back() issued by the overlay itself: the popstate it causes is not a user action. */
   let ownBack = false
   let restore: Restore | null = null
+  let restoreController: (() => void) | null = null
+  let restoreMetadata: (() => void) | null = null
+  let presentation: ReturnType<typeof createScope> | null = null
 
   const listRow = (record: string): Element | null => document.querySelector(`#listViewContent tr.listViewEntries[data-id="${record}"]`)
   const table = (): Element | null => document.querySelector('#listViewContent #table-content')
@@ -118,6 +121,8 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
 
   const mark = (on: boolean): void => {
     overlay.classList.toggle(OVERLAY_CLASS, on)
+    overlay.setAttribute('aria-hidden', on ? 'false' : 'true')
+    if (on) { overlay.setAttribute('aria-modal', 'true') } else { overlay.removeAttribute('aria-modal') }
     if (on && target !== null) {
       html.setAttribute(RECORD_ATTRIBUTE, target.record)
     } else {
@@ -127,8 +132,12 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
 
   /** The record view of v7 goes (another view replaces it or the overlay closed). */
   const leaveView = (): void => {
+    presentation?.dispose()
+    presentation = null
     release(added)
     added = []
+    restoreController?.()
+    restoreController = null
     if (beforeUnload !== undefined) {
       window.onbeforeunload = beforeUnload
       beforeUnload = undefined
@@ -141,6 +150,7 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
     leaving = true
     state = 'closed'
     leaveView()
+    restoreMetadata?.(); restoreMetadata = null
     mark(false)
     try {
       notifyError(texts.fallback)
@@ -151,7 +161,7 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
   }
 
   const focusIn = (): void => {
-    const close = overlay.querySelector<HTMLElement>('.overlayDetailHeader .close, .overlayHeader .close')
+    const close = overlay.querySelector<HTMLElement>('.mu-record-back, .overlayDetailHeader .close, .overlayHeader .close')
     ;(close ?? overlay).focus({ preventScroll: true })
   }
 
@@ -161,7 +171,7 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
     try {
       await ensureRecordScripts()
       const answer = await request('get', {
-        data: { module: record.module, view: 'Detail', record: record.record, mode: 'showDetailViewByMode', requestMode: 'full', displayMode: 'overlay' },
+        data: { module: 'ModernUI', view: 'Record', sourceModule: record.module, record: record.record },
       })
       if (typeof answer !== 'string' || !answer.includes('overlayDetail')) {
         throw new Error('unexpected answer of the overlay record view')
@@ -169,19 +179,28 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
       if (target !== record) {
         return
       }
+      await ensureDetailDependencies(answer)
+      if (target !== record) return
       leaveView()
       const shown = await trackedFocus(() => showPageOverlay(answer))
       focusHandlers.push(...shown.added)
       const container = shown.result
+      const root = overlay.querySelector<HTMLElement>('.mu-cloud-record')
+      if (root === null) { throw new Error('missing record container') }
+      restoreMetadata?.()
+      restoreMetadata = installRecordMeta(root)
       mark(true)
       const started = tracked(() => {
-        const instance = startDetail(record.module, container)
+        const started = startCloudDetail(record.module, container, (error) => { fullPage(record, error) })
+        restoreController = started.restore
         // Same event as Detail.js after the overlay of a related record (extensions that decorate record views listen to it).
         trigger('post.overlay.load', null, { module: record.module, record: record.record, displayMode: 'overlay' })
-        return instance
+        return started.instance
       })
       detail = started.result
       added = started.added
+      presentation = createScope('record-presentation')
+      presentRecord(presentation, root, texts, () => { hidePageOverlay() })
       if (push) {
         history.pushState(withRecord(history.state, record), '', window.location.href)
         ownEntry = true
@@ -216,6 +235,7 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
       if (typeof answer !== 'string' || !answer.includes('overlayEdit')) {
         throw new Error('unexpected answer of the overlay edit view')
       }
+      if (target !== record) return
       leaveView()
       const shown = await trackedFocus(() => showPageOverlay(answer))
       focusHandlers.push(...shown.added)
@@ -238,6 +258,7 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
     const was = restore
     const reload = dirty
     leaveView()
+    restoreMetadata?.(); restoreMetadata = null
     release(focusHandlers)
     focusHandlers = []
     html.dataset['muRecordHandlers'] = String(handlerCount())
@@ -320,6 +341,24 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
       return
     }
     if (state !== 'closed' && state !== 'opening') {
+      const destination: unknown = Reflect.get(event, 'destination')
+      const url: unknown = typeof destination === 'object' && destination !== null ? Reflect.get(destination, 'url') : null
+      if (state === 'detail' && target !== null && typeof url === 'string') {
+        const next = recordTarget(url, module)
+        if (next !== null && listRow(next.record) !== null) {
+          event.preventDefault()
+          history.replaceState(withRecord(history.state, next), '', location.href)
+          void showRecord(next, false)
+          return
+        }
+        const edit = new URL(url, document.baseURI)
+        if (edit.origin === location.origin && edit.pathname === new URL('index.php', document.baseURI).pathname
+          && edit.searchParams.get('view') === 'Edit' && edit.searchParams.get('module') === target.module
+          && edit.searchParams.get('record') === target.record) {
+          event.preventDefault()
+          void showEdit(url)
+        }
+      }
       return
     }
     const type: unknown = Reflect.get(event, 'navigationType')
@@ -383,6 +422,7 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
       hidePageOverlay()
     }
     leaveView()
+    restoreMetadata?.(); restoreMetadata = null
     release(focusHandlers)
     focusHandlers = []
     mark(false)

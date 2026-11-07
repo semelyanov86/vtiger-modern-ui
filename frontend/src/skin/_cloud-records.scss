@@ -1,0 +1,254 @@
+// V05/V06. Native fields and handlers keep their nodes; only the presentation is different.
+@use '../styles/tokens' as *;
+
+:root:not(.mu-off)[data-mu-record] { overflow: hidden; }
+
+:root:not(.mu-off).mu-shell-ready .mu-cloud-record {
+  --mu-record-nav: 272px;
+  position: relative;
+  background: #f6f7f8;
+  color: tok(text);
+  padding: 0;
+
+  > .content-area { padding: 0; }
+  .detailview-header-block { position: relative; background: #fff; padding: 0; margin: 0; border: 0; z-index: 4; }
+  .detailview-header {
+    position: relative;
+    padding: 16px 144px 16px 56px;
+    min-height: 69px;
+    height: 69px;
+    background: #fff;
+    border: 0;
+    margin: 0;
+    > .row { display: flex; align-items: center; margin: 0; gap: 12px; }
+    > .row::before, > .row::after { display: none; }
+    > .row > :first-child { flex: 1 1 auto; min-width: 0; width: auto; padding: 0; }
+    .record-header { display: flex; align-items: center; min-width: 0; min-height: 34px; padding: 0; width: auto; }
+    .recordImage { position: static; flex: 0 0 34px; width: 34px; height: 34px; border-radius: 6px; margin: 0 8px 0 0; }
+    .recordImage .name { display: flex; align-items: center; justify-content: center; font-size: 20px; line-height: 34px; height: 34px; width: 34px; }
+    .recordImage .name [class*='vicon-'] { font-size: 26px; line-height: 34px; }
+    .recordImage img { max-width: 34px; max-height: 34px; object-fit: contain; }
+    .recordBasicInfo { position: relative; width: auto; max-width: calc(100% - 42px); padding: 0; min-width: 0; margin: 0; }
+    .recordBasicInfo h4 { margin: 0; }
+    .recordBasicInfo .info-row:not(:first-child) { display: none; }
+    .recordLabel, .recordLabel .name { font-size: fs(20); line-height: 30px; font-weight: 400; margin: 0; }
+    .recordLabel { display: block; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; padding: 0; }
+    .detailViewButtoncontainer { position: static; flex: 0 0 auto; width: auto; padding: 0; }
+    .btn-toolbar, .btn-group { margin: 0; float: none !important; vertical-align: middle; }
+    .btn { border-radius: 4px; min-height: 36px; height: 36px; margin: 0; }
+    .detailViewButtoncontainer .btn { display: none; }
+    .btn[id$='_LBL_EDIT'] { display: inline-flex; align-items: center; border-radius: 4px !important; }
+    .dropdown-menu { max-width: 100%; }
+  }
+  .mu-record-back, .mu-record-open, .mu-record-actions-toggle, .mu-record-context-toggle {
+    position: absolute; top: 16px; width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    border: 0; border-radius: 4px; background: transparent; color: tok(primary); font-size: 23px;
+  }
+  .mu-record-back { left: 14px; }
+  .mu-record-open { right: 16px; }
+  .mu-record-actions-toggle { right: 56px; color: tok(text); }
+  .mu-record-context-toggle { right: 96px; font-size: 20px; }
+  &.mu-record-actions-open .detailview-header .btn-toolbar {
+    position: absolute; right: 56px; top: 58px; z-index: 6; width: 320px; max-width: calc(100vw - 100px);
+    max-height: 65vh; overflow: auto; padding: 8px; background: #fff; border: 1px solid tok(divider);
+    box-shadow: 0 8px 16px #0002; border-radius: 6px;
+    .btn-group { display: block; width: 100%; }
+    .btn { display: block; width: 100% !important; height: auto; min-height: 36px; text-align: left; white-space: normal; border: 0; }
+    .dropdown-menu { position: static; float: none; box-shadow: none; width: 100%; }
+    .dropdown-menu a { white-space: normal; }
+  }
+  &.mu-record-context-open .recordBasicInfo {
+    .info-row:not(:first-child) { display: block; padding: 8px 12px; background: #fff; border: 1px solid tok(divider); }
+  }
+  > .detailview-header-block > .tagContainer { display: none; margin: 0; padding: 0 24px 6px 56px; min-height: 0; font-size: 11px; }
+  &.mu-record-context-open > .detailview-header-block > .tagContainer { display: block; }
+  .tagContainer #addTagTriggerer { font-size: 11px; padding: 0; color: #7b7f85; background: transparent; }
+  .detailview-content { margin: 0; padding: 0; }
+  .related-tabs {
+    height: 52px;
+    position: relative; margin: 0; padding: 0 24px; background: #fff;
+    border-bottom: 1px solid tok(divider);
+    .navbar { border: 0; min-height: 51px; background: transparent; box-shadow: none; }
+    .navbar-header { display: none; }
+    #nav-tabs { display: block; padding: 0; border: 0; }
+    .nav-tabs { display: flex; flex-wrap: nowrap; border: 0; margin: 0; padding: 0; width: 100%; }
+    .nav-tabs > li { float: none; width: auto !important; margin: 0; flex: 0 0 auto; border: 0; }
+    .nav-tabs > li > a {
+      display: flex; align-items: center; gap: 6px; padding: 0 12px; min-height: 51px; height: 51px; box-sizing: border-box;
+      border: 0; border-bottom: 3px solid transparent; margin: 0; max-width: none; width: auto;
+      color: #7b7f85; font-size: fs(13); font-weight: 400; background: transparent; border-radius: 0;
+    }
+    strong { font-weight: 400; }
+    .nav-tabs > li.active > a { color: tok(text); border-bottom-color: tok(primary); }
+    .tab-icon { display: inline-flex; align-items: center; order: -1; min-width: 16px; }
+    .tab-icon i { font-size: 15px !important; }
+    .tab-icon .content { display: none; }
+    li[data-link-key] .tab-label::before,
+    li[data-label-key='LBL_UPDATES'] .tab-label::before { font-family: FontAwesome; margin-right: 8px; font-size: 15px; }
+    li[data-link-key='LBL_RECORD_SUMMARY'] .tab-label::before { content: '\f015'; }
+    li[data-link-key='LBL_RECORD_DETAILS'] .tab-label::before { content: '\f0f6'; }
+    li[data-label-key='LBL_UPDATES'] .tab-label::before { content: '\f017'; }
+    a[data-mu-tab-label]::before { content: attr(data-mu-tab-label); }
+    .numberCircle { position: static; font-size: 11px; }
+    .nav-tabs > .mu-tab-overflow, .nav-tabs > .related-tab-more-element { display: none; }
+  }
+  .mu-record-tab-overflow { position: absolute; top: 8px; right: 24px; z-index: 5; }
+  .mu-record-tab-overflow button { background: #fff; border: 0; border-radius: 4px; min-height: 36px; padding: 8px 12px; font: inherit; color: #7b7f85; }
+  .mu-record-tab-overflow > button { max-width: 132px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mu-record-tab-overflow > button.is-active { height: 43px; color: tok(text); border-bottom: 3px solid tok(primary); border-radius: 0; }
+  .mu-record-tab-menu { position: absolute; right: 0; width: 240px; max-height: 50vh; overflow: auto; padding: 8px; background: #fff; box-shadow: 0 8px 16px #0002; border: 1px solid tok(divider); border-radius: 6px; }
+  .mu-record-tab-menu button { display: block; width: 100%; text-align: left; }
+  .mu-record-tab-menu button:hover { background: #e7f1ff; }
+  .details { position: relative; padding: 16px 24px 24px; margin: 0 !important; background: #f8f9fa; }
+  &.mu-record-details .details { padding: 72px 16px 24px calc(var(--mu-record-nav) + 16px); background: #f6f7f8; }
+  .mu-record-sections {
+    position: absolute; top: 0; left: 0; width: var(--mu-record-nav); padding: 14px 24px;
+    h2 { margin: 8px 0 24px; font-size: fs(15); line-height: 22.5px; font-weight: 500; }
+    button {
+      width: 100%; min-height: 36px; text-align: left; border: 0; border-left: 4px solid transparent;
+      border-radius: 4px 0 0 4px; background: transparent; padding: 8px; color: #8e9093;
+      font: inherit; overflow-wrap: anywhere;
+    }
+    button.active { border-left-color: tok(primary); background: #e7f1ff; color: tok(text); }
+  }
+  .mu-record-search {
+    position: absolute; left: calc(var(--mu-record-nav) + 16px); top: 16px; width: 256px; max-width: calc(100% - 32px);
+    input { height: 40px; width: 100%; border: 1px solid #dfe1e6; border-radius: 4px; padding: 8px 16px; background: #fff; font: inherit; }
+  }
+  #detailView > .block {
+    margin: 0 0 16px; padding: 0; border: 1px solid #ebecf0; border-radius: 6px;
+    background: #fff; box-shadow: none; scroll-margin-top: 16px;
+    .blockHeader, > div:first-of-type > h4 { display: flex; align-items: center; min-height: 56px; padding: 16px; margin: 0; max-width: none !important; border-bottom: 1px solid #ebecf0; font-size: fs(15); font-weight: 500; background: transparent; white-space: normal; }
+    > hr { display: none; }
+    .blockData { padding: 8px 16px 16px; }
+    .blockData table.detailview-table { width: 100%; table-layout: fixed; margin: 0; }
+    .detailview-table td { border: 0; padding: 8px 4px; vertical-align: middle; }
+    td.fieldLabel { width: 17%; text-align: right; color: #7b7f85; font-size: fs(12); padding-right: 8px; white-space: normal; overflow-wrap: anywhere; }
+    td.fieldValue { width: 33%; padding-right: 12px; }
+    td.fieldValue > .value {
+      display: inline-block; width: calc(100% - 20px); max-width: none; min-height: 40px; padding: 10px 16px;
+      border: 1px solid #ebecf0; border-radius: 4px; background: #f9f9fa; line-height: 18px;
+      white-space: normal; overflow-wrap: anywhere; vertical-align: middle;
+    }
+    .fieldLabel label { font-weight: 400; margin: 0; }
+    .fieldLabel, .fieldLabel .muted { opacity: 1; }
+    td.fieldValue .action { vertical-align: middle; }
+  }
+  .mu-field-no-match { visibility: hidden; }
+  .mu-block-no-match { display: none; }
+  .mu-record-empty { margin: 0; padding: 24px; background: #fff; border-radius: 6px; }
+  #detailView > br { display: none; }
+  .resizable-summary-view {
+    display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px 24px; padding: 0;
+    > .left-block, > .middle-block, > .right-block { display: contents; }
+    .summaryView { grid-column: 1; grid-row: 1; margin: 0; }
+    #relatedActivities { grid-column: 1; grid-row: 2; }
+    .summaryWidgetContainer { grid-column: 2; margin: 0; padding: 16px; min-width: 0; }
+    .summaryWidgetContainer:has([data-name='ModComments']) { grid-column: 1; grid-row: 3; }
+    .summaryViewHeader { display: none; }
+    .summaryViewFields { background: #fff; border: 1px solid #ebecf0; border-radius: 4px; padding: 11px 16px; }
+    .summary-table { display: block; margin: 0; }
+    .summary-table tbody { display: flex; flex-wrap: wrap; gap: 16px; }
+    .summary-table tr { display: flex; flex-direction: column; flex: 1 0 120px; min-width: 0; max-width: 100%; }
+    .summary-table td { width: auto; display: block; padding: 0; height: auto !important; line-height: 18px; }
+    .summary-table td.fieldLabel { color: #7b7f85; font-size: fs(12); text-align: left; }
+    .summary-table td.fieldLabel label { font-weight: 400; line-height: 18px; height: auto; margin: 0; }
+    .summary-table .summaryViewEntries { width: auto; }
+    h4 { font-size: fs(15); font-weight: 500; }
+    .summaryWidgetContainer:has([data-name='Documents']) { grid-row: 1 / span 3; align-self: start; }
+  }
+  .summaryView { background: transparent; padding: 0; }
+  .summaryView .block, .summaryWidgetContainer { border: 1px solid #ebecf0; border-radius: 6px; background: #fff; box-shadow: none; }
+
+  .relatedContainer { border-radius: 6px; background: #fff; }
+  .relatedContainer .relatedHeader { padding: 16px; }
+  .relatedContainer .relatedHeader > .btn-toolbar > .btn-toolbar > .row {
+    display: flex; flex-wrap: wrap; gap: 8px; margin: 0;
+    > [class*='col-'] { width: auto !important; padding: 0; }
+  }
+  .relatedContainer .relatedContents { border: 0; padding: 0; }
+  .relatedContainer .listViewHeaders th { height: 40px; font-size: fs(13); font-weight: 400; }
+  .relatedContainer .listViewHeaders a { text-transform: none; font-weight: 400; }
+  .relatedContainer .listViewEntries td { height: 40px; border-bottom: 1px solid #ebecf0; }
+  .relatedContainer.mu-related-empty {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: calc(100vh - 220px); background: transparent;
+    .relatedContents, .relatedHeader > .btn-toolbar > :not(.btn-toolbar) { display: none; }
+    .relatedHeader { padding: 0; background: transparent; border: 0; width: auto; }
+    .relatedHeader .btn-toolbar { width: auto; margin: 0; padding: 0; float: none; text-align: center; }
+    .relatedHeader .btn-toolbar .btn-toolbar { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+    .relatedHeader .btn-group { width: auto; margin: 0; }
+    .relatedHeader .btn-toolbar .btn { background: tok(primary); color: #fff; border-color: tok(primary); border-radius: 4px; }
+    .mu-related-empty-note { margin: 0 0 24px; text-align: center; color: #7b7f85; font-size: fs(13); }
+    .mu-related-empty-note .fa { display: block; margin-bottom: 28px; font-size: 108px; line-height: 160px; color: #a3b7df; }
+  }
+  #updates {
+    margin: -16px -24px -24px; padding: 72px 8px 24px 24px; background: #fff;
+    .history { padding-left: 0; padding-right: 0; }
+    .updates_timeline { position: relative; margin: 0; padding: 0; list-style: none; }
+    .updates_timeline::before { left: 160px; width: 0; border-left: 1px dashed #dfe1e6; background: none; }
+    .updates_timeline > li { position: relative; min-height: 76px; margin: 0; padding: 0 0 16px 192px; }
+    .update_time { position: absolute; top: 8px; left: 0; width: 144px; text-align: right; font-style: normal; color: #7b7f85; }
+    .update_time small { font-size: fs(12); }
+    .update_icon:not(#moreLink) {
+      position: absolute; top: 22px; left: 157px; width: 6px; height: 6px; margin: 0; padding: 0;
+      background: #76a5ff; border: 0; border-radius: 50%; box-shadow: none;
+      .update_image { display: none; }
+    }
+    .update_info {
+      top: 0; min-height: 56px; margin: 0; padding: 16px 20px; background: #f7f8f9; border: 0; border-radius: 6px; color: #7b7f85;
+      h5 { margin: 0; font-size: fs(13); line-height: 24px; font-weight: 400; color: inherit; }
+      .field-name { color: inherit; font-weight: 400; }
+    }
+    #moreLink { position: static; width: auto; height: auto; margin: 0 0 0 192px; background: transparent; }
+  }
+}
+
+:root:not(.mu-off).mu-shell-ready #overlayPageContent.mu-record-overlay {
+  padding: 0 !important; // Bootstrap adds inline padding for the body's scrollbar when it opens a modal.
+  .mu-cloud-record { display: flex; flex-direction: column; width: 100%; max-width: none; padding: 0; height: 100%; overflow: hidden; }
+  .mu-cloud-record > .detailview-header-block { flex: 0 0 auto; }
+  .mu-cloud-record > .detailview-content { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  .mu-cloud-record .related-tabs { flex: 0 0 auto; }
+  .mu-cloud-record .details { flex: 1 1 auto; min-height: 0; overflow: auto; }
+}
+
+@media (max-width: 1100px) {
+  :root:not(.mu-off).mu-shell-ready .mu-cloud-record { --mu-record-nav: 220px; }
+}
+@media (max-width: 767px) {
+  :root:not(.mu-off).mu-shell-ready .mu-cloud-record {
+    --mu-record-nav: 0px;
+    .mu-record-sections { position: static; width: auto; display: flex; flex-wrap: wrap; padding: 0; margin-bottom: 12px; gap: 4px; }
+    .mu-record-sections h2 { width: 100%; margin: 0; }
+    .mu-record-sections button { width: auto; }
+    .detailview-header > .row { flex-wrap: wrap; }
+    .detailview-header { height: auto; }
+    .detailview-header .detailViewButtoncontainer { max-width: 100%; }
+    .related-tabs { padding: 0 8px; }
+    .detailview-header { padding-left: 44px; padding-right: 128px; }
+    .detailview-header .recordImage { display: none; }
+    .detailview-header .recordBasicInfo { max-width: 100%; }
+    .detailview-header .recordLabel { font-size: fs(16); }
+    .detailview-header .btn[id$='_LBL_EDIT'] { max-width: 90px; font-size: fs(12); }
+    .mu-record-open { right: 8px; }
+    .mu-record-actions-toggle { right: 44px; }
+    .mu-record-context-toggle { right: 80px; }
+    .resizable-summary-view { display: flex; flex-direction: column; }
+    #updates {
+      padding-top: 24px;
+      .updates_timeline::before { left: 90px; }
+      .updates_timeline > li { padding-left: 110px; }
+      .update_time { width: 76px; }
+      .update_icon:not(#moreLink) { left: 87px; }
+      .update_info { padding: 12px; }
+      #moreLink { margin-left: 110px; }
+    }
+    #detailView > .block .detailview-table {
+      tr { display: flex; flex-wrap: wrap; }
+      td.fieldLabel { width: 35%; }
+      td.fieldValue { width: 65%; }
+    }
+  }
+}

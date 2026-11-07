@@ -164,13 +164,16 @@ export async function recordState(page: Page): Promise<Record<string, string[]>>
     const text = (element: Element | null): string => (element?.textContent ?? '').replace(/\s+/g, ' ').trim()
     const all = (selector: string): Element[] => Array.from(document.querySelectorAll(selector))
     return {
-      header: all('.detailview-header button, .detailview-header a.btn, .detailview-header .btn-group > a').filter(shown)
+      // Stage 13 puts native actions/tabs in accessible overflow menus. Compare their native contract separately
+      // from presentation visibility (cloud-records tests open those menus and hit-test every available action).
+      header: all('.detailview-header button, .detailview-header a.btn, .detailview-header .btn-group > a')
+        .filter((element) => element.closest('[data-mu-root]') === null && !element.classList.contains('mu-record-back'))
         .map((element) => text(element) || (element.getAttribute('title') ?? '')),
       tabs: all('.related-tabs li[data-label-key], .related-tabs li[data-url]')
-        .map((element) => `${element.getAttribute('data-label-key') ?? ''}|${element.getAttribute('data-module') ?? ''}|${String(shown(element))}`),
+        .map((element) => `${element.getAttribute('data-label-key') ?? ''}|${element.getAttribute('data-module') ?? ''}|${String(element.closest('.hide, [hidden]') === null)}`),
       blocks: all('.detailview-content .block, .summaryView, .summaryWidgetContainer, .widgetContainer_comments').filter(shown)
         .map((element) => text(element.querySelector('h4, .blockHeader, .widget_header'))),
-      widgets: all('.widget_header, .summaryViewHeader').filter(shown).map((element) => text(element.querySelector('h4, h3')) || text(element)),
+      widgets: all('.widget_header').filter(shown).map((element) => text(element.querySelector('h4, h3')) || text(element)),
       fields: all('[id*="_detailView_fieldValue_"], .summaryViewEntries td.fieldValue')
         .map((element) => `${element.id}|${text(element.querySelector('.value') ?? element)}|${String(shown(element))}`),
       editable: all('.editAction, .fieldValue .action .fa-pencil').filter(shown).map((element) => element.closest('td')?.id ?? ''),
@@ -310,15 +313,15 @@ export async function pickInPopup(page: Page, opener: () => Promise<void>, searc
   await opener()
   const popup = page.locator('.modal.in .popupModal, .modal.in #popupPageContainer, .modal.in .popupEntriesDiv').first()
   await expect(popup).toBeVisible()
-  const search = page.locator(`.modal.in .searchRow [name="${searchName}"]`).first()
+  const search = page.locator(`#popupModal.in .searchRow [name="${searchName}"]`).first()
   if ((await search.count()) > 0) {
     await search.fill(searchValue)
     const done = page.waitForResponse((response) => response.url().includes('index.php') && response.request().method() === 'POST' || response.url().includes('view=Popup'))
-    await page.locator('.modal.in .searchRow [data-trigger="PopupListSearch"], .modal.in .searchRow button').first().click()
+    await page.locator('#popupModal.in .searchRow [data-trigger="PopupListSearch"], #popupModal.in .searchRow button').first().click()
     await done
     await settle(page)
   }
-  const row = page.locator('.modal.in .listViewEntries').filter({ hasText: searchValue }).first()
+  const row = page.locator('#popupModal.in .listViewEntries').filter({ hasText: searchValue }).first()
   await expect(row).toBeVisible()
   // The cell with the name: other cells of a popup row may hold links (an e-mail address opens the mail composer of v7).
   await row.locator('td').filter({ hasText: searchValue }).first().click()

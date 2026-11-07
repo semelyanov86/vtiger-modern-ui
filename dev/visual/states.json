@@ -88,13 +88,13 @@
       "screenshot": "V05-account-details.png",
       "module": "Accounts",
       "url": "index.php?module=Accounts&view=List",
-      "steps": ["open-first-record"],
+      "steps": ["open-first-record", "record-details"],
       "elements": {
         "window": {"ref": ["deepdiveBg"], "theme": "#overlayPageContent", "check": []},
         "blockCard": {"ref": ["blockCard"], "theme": "#overlayPageContent .overlayDetail .block, #overlayPageContent .overlayDetail .detailview-table", "styles": ["bg", "radius"]},
-        "blockHeader": {"ref": ["blockHeaderText"], "theme": "#overlayPageContent .overlayDetail .blockHeader, #overlayPageContent .overlayDetail h4", "styles": ["size", "weight"]},
+        "blockHeader": {"ref": ["blockHeaderText"], "theme": "#overlayPageContent #detailView > .block h4", "styles": ["size", "weight"]},
         "fieldLabel": {"ref": ["fieldLabel"], "theme": "#overlayPageContent .overlayDetail td.fieldLabel", "styles": ["size", "color"]},
-        "fieldValue": {"ref": ["fieldValue"], "theme": "#overlayPageContent .overlayDetail td.fieldValue", "check": ["h"], "styles": ["bg", "radius"]}
+        "fieldValue": {"ref": ["fieldValue"], "theme": "#overlayPageContent .overlayDetail td.fieldValue > .value", "check": ["h"], "styles": ["bg", "radius"]}
       }
     },
     {
@@ -103,13 +103,13 @@
       "screenshot": "V05-account-summary-a.png",
       "module": "Accounts",
       "url": "index.php?module=Accounts&view=List",
-      "steps": ["open-first-record"],
+      "steps": ["open-first-record", "record-summary"],
       "elements": {
-        "window": {"ref": ["dialog"], "theme": "#overlayPageContent", "check": ["x", "y", "w", "h"], "styles": ["radius"]},
-        "header": {"ref": ["header"], "theme": "#overlayPageContent .overlayDetailHeader", "check": ["h"], "styles": ["bg"]},
-        "title": {"ref": ["recordTitle"], "theme": "#overlayPageContent .overlayDetailHeader .recordLabel, #overlayPageContent .overlayDetailHeader .name", "styles": ["font", "size", "weight", "color"]},
-        "tabs": {"ref": ["tabsBar"], "theme": "#overlayPageContent .related-tabs, #overlayPageContent .nav-tabs", "check": ["h"]},
-        "button": {"ref": ["headerBtnSecondary"], "theme": "#overlayPageContent .overlayDetailHeader .btn", "check": ["h"], "styles": ["bg", "radius", "font"]}
+        "window": {"ref": ["modalBody"], "theme": "#overlayPageContent", "check": ["x", "y", "w", "h"], "styles": ["radius"]},
+        "header": {"ref": ["header"], "theme": "#overlayPageContent .detailview-header", "check": ["h"], "styles": ["bg"]},
+        "title": {"ref": ["recordTitle"], "theme": "#overlayPageContent .detailview-header .recordLabel, #overlayPageContent .detailview-header .name", "styles": ["font", "size", "weight", "color"]},
+        "tabs": {"ref": ["tabsBar"], "theme": "#overlayPageContent .related-tabs", "check": ["h"]},
+        "button": {"ref": ["headerBtnSecondary"], "theme": "#overlayPageContent .detailview-header .btn", "check": ["h"], "styles": ["bg", "radius", "font"]}
       }
     },
     {
