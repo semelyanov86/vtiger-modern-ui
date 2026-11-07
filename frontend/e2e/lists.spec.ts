@@ -179,6 +179,10 @@ test('RU EN DE, narrow screens and 200 percent: original controls stay reachable
         }
         const sizes = await geometry(page)
         expect(sizes['page']?.[1]).toBeLessThanOrEqual((sizes['page']?.[0] ?? 0) + 1)
+        if ((width ?? 1440) <= 1100) {
+          expect((sizes['add']?.[1] ?? 0) + (sizes['add']?.[3] ?? 0), 'module actions stay above the pagination row')
+            .toBeLessThanOrEqual(sizes['tail']?.[1] ?? 0)
+        }
         await openListFilters(page)
         await expect(page.locator('#createFilter')).toBeVisible()
         await page.keyboard.press('Escape')
@@ -221,6 +225,16 @@ test('native column configuration, tag dialog and page jump remain reachable wit
     await page.locator('#listview-table .listViewEntriesCheckBox:checked').uncheck()
     await page.locator('#PageJump').click()
     await expect(page.locator('#pageToJump')).toBeVisible()
+    if (mode === 'on') {
+      const field = await page.locator('#pageToJump').boundingBox()
+      const button = await page.locator('#pageToJumpSubmit').boundingBox()
+      expect(field).not.toBeNull()
+      expect(button).not.toBeNull()
+      expect(Math.abs((field?.y ?? 0) - (button?.y ?? 0))).toBeLessThan(1)
+      expect(Math.abs((field?.height ?? 0) - (button?.height ?? 0))).toBeLessThan(1)
+      expect(field?.height).toBeGreaterThanOrEqual(34)
+      expect((button?.x ?? 0) - (field?.x ?? 0) - (field?.width ?? 0)).toBeGreaterThanOrEqual(8)
+    }
     await page.locator('#pageToJump').fill('1')
     await page.locator('#pageToJumpSubmit').click()
     await settled(page)
@@ -228,6 +242,65 @@ test('native column configuration, tag dialog and page jump remain reachable wit
     states.push({ fields, options })
   }
   expect(states[1]).toEqual(states[0])
+})
+
+test('the whole user menu covers list actions, and pagination stays clickable after closing it', async ({ page }) => {
+  for (const width of [1920, 1024, 412]) {
+    await page.setViewportSize({ width, height: 1000 })
+    await open(page)
+    const headerToggle = page.locator('#page > nav.app-fixed-navbar .navbar-header [data-target="#navbar"]')
+    if (width < 768) await headerToggle.click()
+    await page.locator('#navbar a.userName').click()
+    const menu = page.locator('#navbar .logout-content')
+    await expect(menu).toBeVisible()
+    // Checking only Preferences misses the photo and user name: the toolbar used to paint above that part.
+    expect(await menu.evaluate((element) => {
+      const r = element.getBoundingClientRect()
+      return [16, 40, 64, 112, 160].every((dy) => [0.25, 0.5, 0.75].every((dx) =>
+        element.contains(document.elementFromPoint(r.x + r.width * dx, r.y + dy))))
+    }), `profile is unobstructed at ${String(width)}px`).toBe(true)
+    // On phones the native profile popup can cover its trigger; Escape is the Bootstrap dismissal path.
+    await page.keyboard.press('Escape')
+    await expect(menu).toBeHidden()
+    if (width < 768) await headerToggle.click()
+    await page.locator('#PageJump').click()
+    const popup = page.locator('#PageJumpDropDown')
+    await expect(popup).toBeVisible()
+    const box = await popup.boundingBox()
+    expect(box?.x).toBeGreaterThanOrEqual(0)
+    expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(width)
+    await page.locator('#pageToJump').fill('1')
+    await page.locator('#pageToJumpSubmit').click()
+    await settled(page)
+    expect(await page.locator('#pageNumber').inputValue()).toBe('1')
+  }
+})
+
+test('wide lists have one scrollbar per axis and the floating header follows horizontal scrolling', async ({ page }) => {
+  await page.setViewportSize({ width: 412, height: 900 })
+  await open(page, 'on', 'index.php?module=SalesOrder&view=List&app=SALES&page=1')
+  const container = page.locator('#table-content')
+  await expect(page.locator('#listview-table tr.listViewEntries').first()).toBeVisible()
+  expect(await container.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true)
+  // A short list's centre lies under the floating header, which is a sibling of the scrolling container.
+  await page.locator('#listview-table tr.listViewEntries .listViewEntryValue').first().hover()
+  // The browser's overflow:auto already supplies both rails; the plugin must not draw a second pair over them.
+  await expect(container.locator(':scope > .ps-scrollbar-x-rail')).toBeHidden()
+  await expect(container.locator(':scope > .ps-scrollbar-y-rail')).toBeHidden()
+  const table = page.locator('#listview-table')
+  const header = page.locator('.floatThead-table')
+  const before = { table: await table.boundingBox(), header: await header.boundingBox() }
+  await page.mouse.wheel(300, 0)
+  await expect.poll(() => container.evaluate((element) => element.scrollLeft)).toBeGreaterThan(100)
+  await expect.poll(async () => {
+    const bodyShift = (before.table?.x ?? 0) - ((await table.boundingBox())?.x ?? 0)
+    const headerShift = (before.header?.x ?? 0) - ((await header.boundingBox())?.x ?? 0)
+    return Math.abs(bodyShift - headerShift)
+  }).toBeLessThan(1)
+  await page.mouse.wheel(10_000, 0)
+  await expect.poll(() => container.evaluate((element) =>
+    Math.abs(element.scrollWidth - element.clientWidth - element.scrollLeft))).toBeLessThan(2)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
 })
 
 test('restricted user sees the same records, permissions and native column restrictions as v7', async ({ browser, page }) => {

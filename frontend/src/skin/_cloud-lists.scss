@@ -43,6 +43,9 @@ $list: ':root:not(.mu-off):not([data-mu-failed]):not([data-mu-level="skin"])[dat
       // keep the same container and scroll events; the document never becomes as wide as the business table.
       overflow: auto !important;
       overscroll-behavior: contain;
+      // perfectScrollbar still receives native scroll events for the floating header, but must not draw duplicate
+      // rails next to the browser's own scrollbars. Keep this local to the list's scrolling container.
+      > .ps-scrollbar-x-rail, > .ps-scrollbar-y-rail { display: none !important; }
     }
 
     .listview-table { margin-bottom: 0; }
@@ -256,7 +259,7 @@ $list: ':root:not(.mu-off):not([data-mu-failed]):not([data-mu-level="skin"])[dat
   // native ancestors (including #listViewContent) and delegated handlers stay unchanged.
   #listViewContent #listview-actions {
     position: fixed;
-    z-index: 1096;
+    z-index: 1094;
     top: var(--mu-shell-header);
     right: 24px;
     display: flex;
@@ -268,6 +271,20 @@ $list: ':root:not(.mu-off):not([data-mu-failed]):not([data-mu-level="skin"])[dat
     padding: 0;
     border: 0;
     background: transparent;
+
+    // The toolbar surface belongs below the global header's menus. Keeping it on the header itself would cover
+    // this lower layer, including pagination. Its fixed extent also covers wrapped toolbars on narrow screens.
+    &::before {
+      position: fixed;
+      z-index: -1;
+      top: var(--mu-shell-header);
+      right: 0;
+      left: 0;
+      height: var(--mu-shell-tools);
+      background-color: tok(bg);
+      pointer-events: none;
+      content: '';
+    }
 
     > .row {
       display: flex;
@@ -294,9 +311,37 @@ $list: ':root:not(.mu-off):not([data-mu-failed]):not([data-mu-level="skin"])[dat
     .listViewActions > .btn-group { order: 2; }
     .pageNumbers { position: static !important; margin: 0; padding: 0; white-space: nowrap; }
     .listViewActions .btn-group > .btn { width: 32px; min-width: 32px; padding: 0; border: 0; background: transparent; }
-    #PageJumpDropDown { right: 0; left: auto; }
+    #PageJumpDropDown {
+      right: 0;
+      left: auto;
+      width: 240px;
+      max-width: calc(100vw - 24px);
+      margin-top: 8px;
+      padding: 16px;
+      border: 1px solid tok(border);
+      border-radius: tok(radius-sm);
+      background-color: tok(surface);
+      box-shadow: tok(shadow-dropdown);
+      .listview-pagenum { margin: 0 0 12px; padding: 0; text-align: left; }
+      .listview-pagejump { display: flex; align-items: center; padding: 0; font-size: 0; }
+      #pageToJump {
+        @include field;
+        flex: 1 1 0;
+        width: 0;
+        min-width: 0;
+        height: tok(input-height);
+        margin: 0;
+        padding: 0 12px;
+      }
+      #pageToJumpSubmit { flex: 0 0 auto; width: auto; height: tok(input-height); margin: 0 0 0 8px; padding: 0 12px; }
+    }
   }
 
+  #page > nav.app-fixed-navbar .module-action-bar {
+    background: transparent;
+    pointer-events: none;
+    .module-action-content > * { pointer-events: auto; }
+  }
   #page > nav.app-fixed-navbar .module-action-content > :not(:first-child) {
     margin-right: calc(var(--mu-list-tail) + 12px) !important;
   }
@@ -357,7 +402,7 @@ $list: ':root:not(.mu-off):not([data-mu-failed]):not([data-mu-level="skin"])[dat
     --mu-shell-tools: 100px;
     .mu-list-controls { max-width: 42%; }
     #listViewContent #listview-actions { top: calc(var(--mu-shell-header) + 48px); height: 48px; }
-    #page > nav.app-fixed-navbar .module-action-content > :not(:first-child) { height: 52px; margin-right: 0 !important; }
+    #page > nav.app-fixed-navbar .module-action-content > :not(:first-child) { align-self: flex-start; height: 52px; margin-right: 0 !important; }
   }
 }
 @media screen and (scripting: enabled) and (max-width: 767px) {
