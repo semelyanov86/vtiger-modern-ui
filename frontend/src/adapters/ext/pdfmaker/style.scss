@@ -7,6 +7,38 @@
 @use '../../../styles/tokens' as *;
 
 :root:not(.mu-off) {
+  .mu-pdfmaker-export[hidden] {
+    display: none !important;
+  }
+
+  // Keep the extension's form, Select2, template permissions and native download/preview handlers.
+  .PDFMakerContainer:has(#exportSelectDFMakerForm) {
+    width: min(680px, calc(100vw - 32px));
+    margin-right: auto;
+    margin-left: auto;
+
+    > .modal-content {
+      width: 100% !important;
+    }
+
+    .modal-body .modal-body {
+      padding: 0;
+    }
+
+    .select2-container {
+      width: 100% !important;
+      min-width: 0;
+    }
+
+    .modal-footer center {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+
   form#EditView:has(.PDFMakerContentBlock) > ul.layoutTabs > li > a {
     padding-right: 12px;
     padding-left: 12px;

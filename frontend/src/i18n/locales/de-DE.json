@@ -107,5 +107,11 @@
   },
   "context": {
     "label": "Ansichten des Moduls"
+  },
+  "lists": {
+    "filters": "Liste oder Tag auswählen",
+    "search": "Spalten durchsuchen",
+    "more": "Weitere Optionen zum Hinzufügen",
+    "close": "Listen und Tags schließen"
   }
 }

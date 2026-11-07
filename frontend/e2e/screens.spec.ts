@@ -172,6 +172,8 @@ interface Result {
 
 async function adminPage(browser: Browser): Promise<Page> {
   const context = await browser.newContext({ baseURL: crmUrl(), viewport: { width: 1440, height: 900 }, storageState: stateFile('admin') })
+  context.setDefaultTimeout(15_000)
+  context.setDefaultNavigationTimeout(60_000)
   await isolateNetwork(context)
   return context.newPage()
 }
@@ -392,11 +394,24 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
   } finally {
     page.off('pageerror', onError)
   }
-  const state = await page.evaluate(() => {
+  // A module can have a nonstandard default view. Check the actual mega-menu links as well as the context bar,
+  // instead of assuming that every view outside a hardcoded list needs its own context entry.
+  let menuLinks: string[] = []
+  const menuTrigger = page.locator('[data-mu-trigger="mega-menu"]')
+  if (mode === 'on' && screen.prepare === undefined && await menuTrigger.isVisible()) {
+    await menuTrigger.click()
+    const panel = page.locator('[data-mu-panel="mega-menu"]')
+    await expect(panel).toBeVisible()
+    menuLinks = await panel.locator('a[href]').evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''))
+    await panel.press('Escape')
+    await expect(panel).toBeHidden()
+  }
+  const measure = async (region: string | null): Promise<Omit<Snapshot, 'status' | 'errors'>> => page.evaluate(({ region, menuLinks }) => {
     const html = document.documentElement
     // The navigation of v7 the shell may replace (app menu, module strip, logo) is compared separately: the module strip
     // below, the app menu by the navigation scenarios of stage 06. Links that switch the safe mode differ by design.
-    const skip = ['[data-mu-root]', '#mu-overlay-root', '#appnavigator', '#app-menu', '#modnavigator', '.company-logo', 'a[href*="modernui="]'].join(',')
+    // The current-filter breadcrumb duplicates the active link measured inside the original filter panel.
+    const skip = ['[data-mu-root]', '#mu-overlay-root', '#appnavigator', '#app-menu', '#modnavigator', '.company-logo', '.essentials-toggle', '.current-filter-name', 'a[href*="modernui="]'].join(',')
     // The v7 module strip is gone on the screens of the theme (stage 11): the entries that only the strip offers — the views
     // of the module of the page when it has several (the calendar: calendar, shared calendar, list), another view or a link
     // with its own parameters — must be in the context navigation of the toolbar. The other modules of the strip are
@@ -414,6 +429,7 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
     const strip = document.querySelector('#modnavigator > .mod-switcher-container')
     if (strip !== null && html.getAttribute('data-mu-level') === 'islands' && !html.hasAttribute('data-mu-keep-rail') && getComputedStyle(strip).display !== 'none' && strip.getBoundingClientRect().width === 0) {
       const context = new Set(Array.from(document.querySelectorAll('[data-mu-root="context-nav"] a[href]')).map((link) => destination(link.getAttribute('href') ?? '')))
+      const menu = new Set(menuLinks.map(destination))
       const links = Array.from(strip.querySelectorAll('a[href]')).map((link) => link.getAttribute('href') ?? '')
         .filter((href) => href !== '' && !href.startsWith('#') && !href.startsWith('javascript'))
       const views = links.filter((href) => new URL(href, document.baseURI).searchParams.get('module') === pageModule).length
@@ -422,7 +438,7 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
         const extra = Array.from(url.searchParams.keys()).filter((key) => !['module', 'view', 'app', 'parent'].includes(key))
         const ofPage = url.searchParams.get('module') === pageModule
         const own = (ofPage && views > 1) || extra.length > 0 || !['', 'List', 'Index', 'DashBoard', 'Calendar'].includes(url.searchParams.get('view') ?? '')
-        if (own && !context.has(destination(href))) {
+        if (own && !context.has(destination(href)) && !menu.has(destination(href))) {
           railMissing.push(`rail|${href}`)
         }
       }
@@ -442,13 +458,16 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
       const type = element.getAttribute('type') ?? ''
       const href = (element.getAttribute('href') ?? '').replace(/([?&])modernui=(?:on|off)&?/, '$1').replace(/[?&]$/, '')
       const text = element.textContent.replace(/\s+/g, ' ').trim().slice(0, 40)
-      const title = element.getAttribute('title') ?? element.getAttribute('aria-label') ?? ''
+      // Anonymous search fields in separate disclosures have different roles; do not merge them as one empty key.
+      const title = tag === 'input' && id === '' && name === '' ? element.className : element.getAttribute('title') ?? element.getAttribute('aria-label') ?? ''
       return [tag, id, name, type, href, id !== '' || name !== '' ? '' : text, id !== '' || name !== '' || text !== '' ? '' : title].join('|')
     }
     const actions: string[] = []
     const covered: string[] = []
     for (const element of Array.from(document.querySelectorAll('a[href], button, input:not([type="hidden"]), select, textarea, [role="button"], [onclick]'))) {
-      if (element.closest(skip) !== null || !visible(element)) {
+      // Stage 12 moves disabled mass actions out of the toolbar; they are unavailable in both views.
+      if (element.closest(skip) !== null || !visible(element) || (region !== null && element.closest(region) === null)
+        || element.matches('.listViewActionsContainer > button:disabled')) {
         continue
       }
       const key = keyOf(element)
@@ -512,7 +531,44 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
       covered,
       railMissing,
     }
-  })
+  }, { region, menuLinks })
+  const state = await measure(null)
+  // Controls inside native disclosures are reachable after one click. Measure each panel on its own so that its
+  // intentional overlap with the table does not count as a covered table action. Preserve duplicate action counts.
+  if (mode === 'on' && screen.prepare === undefined) {
+    const maximum = (left: string[], right: string[]): string[] => {
+      const counts = (items: string[]): Map<string, number> => {
+        const result = new Map<string, number>()
+        for (const item of items) result.set(item, (result.get(item) ?? 0) + 1)
+        return result
+      }
+      const result = counts(left)
+      for (const [key, value] of counts(right)) result.set(key, Math.max(value, result.get(key) ?? 0))
+      return [...result].flatMap(([key, value]) => Array<string>(value).fill(key))
+    }
+    const globalSearch = page.locator('.search-link .keyword-input')
+    if (await globalSearch.isVisible()) {
+      await globalSearch.click()
+      const panel = await measure('.search-link')
+      state.actions = maximum(state.actions, panel.actions)
+      state.covered = maximum(state.covered, panel.covered)
+      await globalSearch.press('Escape')
+    }
+    for (const [trigger, region] of [
+      ['.mu-list-search', '#listViewContent .searchRow'],
+      ['.mu-list-filter', '#sidebar-essentials'],
+      ['.mu-list-more', '[data-mu-list-import]'],
+    ] as const) {
+      const button = page.locator(trigger)
+      if (!await button.isVisible()) continue
+      if (await button.getAttribute('aria-expanded') !== 'true') await button.click()
+      await expect(page.locator(region).first()).toBeVisible()
+      const panel = await measure(region)
+      state.actions = maximum(state.actions, panel.actions)
+      state.covered = maximum(state.covered, panel.covered)
+      await button.click()
+    }
+  }
   if (shotsDir !== '') {
     await page.screenshot({ path: resolve(shotsDir, `${screen.id.replace(/[^A-Za-z0-9_-]+/g, '_')}-${mode}.png`) }).catch(() => undefined)
   }
@@ -556,6 +612,7 @@ test('every screen keeps its actions under the theme', async ({ browser }) => {
   expect(screens.length, 'screens found on the instance').toBeGreaterThan(only.length > 0 ? 0 : isClean ? 20 : 40)
   const results: Result[] = []
   for (const screen of screens) {
+    console.log(`[screens] ${screen.id}`)
     const result: Result = { id: screen.id, url: screen.url, off: null, on: null, missing: [], newlyCovered: [], newErrors: [], overflow: 0, problem: null }
     try {
       result.off = await snapshot(page, screen, 'off')
@@ -584,7 +641,6 @@ test('every screen keeps its actions under the theme', async ({ browser }) => {
     }
     results.push(result)
   }
-  await page.goto('index.php?module=Home&view=DashBoard&modernui=on')
   await page.context().close()
 
   mkdirSync(reportDir(), { recursive: true })

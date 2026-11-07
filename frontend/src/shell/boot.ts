@@ -17,6 +17,7 @@ import type { Bootstrap } from '../api/types'
 import { detectPageLevel, hostReady } from '../adapters/v7/host'
 import { contextEntries, coveredBy, scanMenu, type ExtraLink } from '../adapters/v7/appMenu'
 import { startHeader } from '../adapters/v7/header'
+import { startLists } from '../adapters/v7/lists'
 import { pageContext } from '../adapters/v7/page'
 import { createThemeI18n } from '../i18n'
 import { createContainer, createScope, IslandRuntime, setReplaced } from '../boot/runtime'
@@ -53,8 +54,11 @@ let adapters: RunningAdapters | null = null
 let recordOverlay: ReturnType<typeof createScope> | null = null
 /** The v7 header in the cloud layout: initials, Escape of the search, room of the title (adapters/v7/header.ts). */
 let header: ReturnType<typeof createScope> | null = null
+let lists: ReturnType<typeof createScope> | null = null
 
 function stopHeader(): void {
+  lists?.dispose()
+  lists = null
   header?.dispose()
   header = null
 }
@@ -288,6 +292,13 @@ export async function boot(): Promise<void> {
       runtime.start()
       header = createScope('header')
       startHeader(header)
+      if (page.view === 'List') {
+        lists = createScope('lists')
+        startLists(lists, {
+          filters: i18n.global.t('lists.filters'), search: i18n.global.t('lists.search'),
+          more: i18n.global.t('lists.more'), close: i18n.global.t('lists.close'),
+        })
+      }
       html.classList.add(READY_CLASS)
       if (supportsRecordOverlay(page.module, page.view, data.layout.modules)) {
         recordOverlay = createScope('record-overlay')

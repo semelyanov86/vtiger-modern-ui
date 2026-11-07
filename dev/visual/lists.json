@@ -1,0 +1,568 @@
+{
+  "_doc": "Stage 12 V03-V04. Cloud measurements are captured in Chrome with Playwriter; reference paths/data stay private. Widths of text columns and text buttons depend on fields/locale. Summary areas are verified separately against v7, so inventory table y is not compared when instance counters precede it.",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "banner": 0,
+  "tolerance": {
+    "size": 2,
+    "position": 4
+  },
+  "states": [
+    {
+      "id": "V03-list",
+      "reference": "V03-list",
+      "screenshot": "V03-list.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": [
+        "all-records"
+      ],
+      "elements": {
+        "toolbar": {
+          "ref": [
+            "toolbar"
+          ],
+          "theme": "#page > nav.app-fixed-navbar .module-action-bar",
+          "check": [
+            "y",
+            "h"
+          ]
+        },
+        "table": {
+          "ref": [
+            "table"
+          ],
+          "theme": "#table-content",
+          "check": [
+            "x",
+            "w",
+            "y"
+          ]
+        },
+        "head": {
+          "ref": [
+            "head"
+          ],
+          "theme": ".floatThead-table .listViewContentHeader th:nth-child(3)",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "font",
+            "size",
+            "weight",
+            "color",
+            "tt"
+          ]
+        },
+        "row": {
+          "ref": [
+            "row"
+          ],
+          "theme": "#listview-table tr.listViewEntries td:nth-child(3)",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "font",
+            "size",
+            "color"
+          ]
+        },
+        "filter": {
+          "ref": [
+            "filter"
+          ],
+          "theme": ".mu-list-filter",
+          "check": [
+            "x",
+            "y",
+            "h"
+          ],
+          "styles": [
+            "radius",
+            "font",
+            "size"
+          ]
+        },
+        "add": {
+          "ref": [
+            "add"
+          ],
+          "theme": "#appnav button[id$=\"_LBL_ADD_RECORD\"]",
+          "check": [
+            "y",
+            "h"
+          ],
+          "styles": [
+            "radius",
+            "bg",
+            "color",
+            "font"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V03-filter",
+      "reference": "V03-filter",
+      "screenshot": "V03-filter.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": [
+        "all-records",
+        "open-list-filters"
+      ],
+      "elements": {
+        "toolbar": {
+          "ref": [
+            "toolbar"
+          ],
+          "theme": "#page > nav.app-fixed-navbar .module-action-bar",
+          "check": [
+            "y",
+            "h"
+          ]
+        },
+        "table": {
+          "ref": [
+            "table"
+          ],
+          "theme": "#table-content",
+          "check": [
+            "x",
+            "w",
+            "y"
+          ]
+        },
+        "head": {
+          "ref": [
+            "head"
+          ],
+          "theme": ".floatThead-table .listViewContentHeader th:nth-child(3)",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "font",
+            "size",
+            "weight",
+            "color",
+            "tt"
+          ]
+        },
+        "row": {
+          "ref": [
+            "row"
+          ],
+          "theme": "#listview-table tr.listViewEntries td:nth-child(3)",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "font",
+            "size",
+            "color"
+          ]
+        },
+        "filter": {
+          "ref": [
+            "filter"
+          ],
+          "theme": ".mu-list-filter",
+          "check": [
+            "x",
+            "y",
+            "h"
+          ],
+          "styles": [
+            "radius",
+            "font",
+            "size"
+          ]
+        },
+        "add": {
+          "ref": [
+            "add"
+          ],
+          "theme": "#appnav button[id$=\"_LBL_ADD_RECORD\"]",
+          "check": [
+            "y",
+            "h"
+          ],
+          "styles": [
+            "radius",
+            "bg",
+            "color",
+            "font"
+          ]
+        },
+        "panel": {
+          "ref": [
+            "panel"
+          ],
+          "theme": "#sidebar-essentials",
+          "check": [
+            "x",
+            "y",
+            "w"
+          ]
+        },
+        "input": {
+          "ref": [
+            "input"
+          ],
+          "theme": "#sidebar-essentials .search-list",
+          "check": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ]
+        },
+        "panelTitle": {
+          "ref": [
+            "panelTitle"
+          ],
+          "theme": "#sidebar-essentials .sidebar-header h5",
+          "styles": [
+            "font",
+            "size",
+            "weight",
+            "color",
+            "tt"
+          ],
+          "check": [
+            "x",
+            "y",
+            "h"
+          ]
+        },
+        "groupTitle": {
+          "ref": [
+            "groupTitle"
+          ],
+          "theme": "#sidebar-essentials .lists-header",
+          "styles": [
+            "font",
+            "size",
+            "weight",
+            "color",
+            "tt"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V03-selected",
+      "reference": "V03-selected",
+      "screenshot": "V03-selected.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": [
+        "all-records",
+        "select-first"
+      ],
+      "elements": {
+        "toolbar": {
+          "ref": [
+            "toolbar"
+          ],
+          "theme": "#page > nav.app-fixed-navbar .module-action-bar",
+          "check": [
+            "y",
+            "h"
+          ]
+        },
+        "table": {
+          "ref": [
+            "table"
+          ],
+          "theme": "#table-content",
+          "check": [
+            "x",
+            "w",
+            "y"
+          ]
+        },
+        "head": {
+          "ref": [
+            "head"
+          ],
+          "theme": ".floatThead-table .listViewContentHeader th:nth-child(3)",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "font",
+            "size",
+            "weight",
+            "color",
+            "tt"
+          ]
+        },
+        "row": {
+          "ref": [
+            "row"
+          ],
+          "theme": "#listview-table tr.listViewEntries td:nth-child(3)",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "font",
+            "size",
+            "color"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V04-list",
+      "reference": "V04-list",
+      "screenshot": "V04-list.png",
+      "module": "SalesOrder",
+      "url": "index.php?module=SalesOrder&view=List",
+      "steps": [
+        "all-records"
+      ],
+      "elements": {
+        "toolbar": {
+          "ref": [
+            "toolbar"
+          ],
+          "theme": "#page > nav.app-fixed-navbar .module-action-bar",
+          "check": [
+            "y",
+            "h"
+          ]
+        },
+        "table": {
+          "ref": [
+            "table"
+          ],
+          "theme": "#table-content",
+          "check": [
+            "x",
+            "w"
+          ]
+        },
+        "head": {
+          "ref": [
+            "head"
+          ],
+          "theme": ".floatThead-table .listViewContentHeader th:nth-child(3)",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "font",
+            "size",
+            "weight",
+            "color",
+            "tt"
+          ]
+        },
+        "row": {
+          "ref": [
+            "row"
+          ],
+          "theme": "#listview-table tr.listViewEntries td:nth-child(3)",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "font",
+            "size",
+            "color"
+          ]
+        },
+        "filter": {
+          "ref": [
+            "filter"
+          ],
+          "theme": ".mu-list-filter",
+          "check": [
+            "x",
+            "y",
+            "h"
+          ],
+          "styles": [
+            "radius",
+            "font",
+            "size"
+          ]
+        },
+        "add": {
+          "ref": [
+            "add"
+          ],
+          "theme": "#appnav button[id$=\"_LBL_ADD_RECORD\"]",
+          "check": [
+            "y",
+            "h"
+          ],
+          "styles": [
+            "radius",
+            "bg",
+            "color",
+            "font"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V03-sort",
+      "reference": "V03-sort",
+      "screenshot": "V03-sort.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": [
+        "all-records",
+        "sort-first"
+      ],
+      "elements": {
+        "toolbar": {
+          "ref": [
+            "toolbar"
+          ],
+          "theme": "#page > nav.app-fixed-navbar .module-action-bar",
+          "check": [
+            "y",
+            "h"
+          ]
+        },
+        "table": {
+          "ref": [
+            "table"
+          ],
+          "theme": "#table-content",
+          "check": [
+            "x",
+            "w",
+            "y"
+          ]
+        },
+        "head": {
+          "ref": [
+            "head"
+          ],
+          "theme": ".floatThead-table .listViewContentHeader th:nth-child(3)",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "font",
+            "size",
+            "weight",
+            "color",
+            "tt"
+          ]
+        },
+        "row": {
+          "ref": [
+            "row"
+          ],
+          "theme": "#listview-table tr.listViewEntries td:nth-child(3)",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "font",
+            "size",
+            "color"
+          ]
+        },
+        "filter": {
+          "ref": [
+            "filter"
+          ],
+          "theme": ".mu-list-filter",
+          "check": [
+            "x",
+            "y",
+            "h"
+          ],
+          "styles": [
+            "radius",
+            "font",
+            "size"
+          ]
+        },
+        "add": {
+          "ref": [
+            "add"
+          ],
+          "theme": "#appnav button[id$=\"_LBL_ADD_RECORD\"]",
+          "check": [
+            "y",
+            "h"
+          ],
+          "styles": [
+            "radius",
+            "bg",
+            "color",
+            "font"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V03-empty",
+      "reference": "V03-empty",
+      "screenshot": "V03-empty.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": [
+        "all-records",
+        "search-empty"
+      ],
+      "elements": {
+        "toolbar": {
+          "ref": [
+            "toolbar"
+          ],
+          "theme": "#page > nav.app-fixed-navbar .module-action-bar",
+          "check": [
+            "y",
+            "h"
+          ]
+        },
+        "filter": {
+          "ref": [
+            "filter"
+          ],
+          "theme": ".mu-list-filter",
+          "check": [
+            "x",
+            "y",
+            "h"
+          ],
+          "styles": [
+            "radius",
+            "font",
+            "size"
+          ]
+        },
+        "add": {
+          "ref": [
+            "add"
+          ],
+          "theme": "#appnav button[id$=\"_LBL_ADD_RECORD\"]",
+          "check": [
+            "y",
+            "h"
+          ],
+          "styles": [
+            "radius",
+            "bg",
+            "color",
+            "font"
+          ]
+        }
+      }
+    }
+  ]
+}

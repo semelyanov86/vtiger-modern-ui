@@ -28,7 +28,7 @@
 import { execFileSync } from 'node:child_process'
 import { rmSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { expect, test, type Browser, type BrowserContext, type Locator, type Page } from '@playwright/test'
+import { expect, test, type Browser, type BrowserContext, type Locator, type Page, type Request } from '@playwright/test'
 import { adminCredentials, cleanUserCredentials, crmUrl, isClean, repoRoot, stateFile, target } from './env'
 import { SETTINGS_FORMS, isolateNetwork, signIn, useLocalBuild } from './support'
 import {
@@ -49,7 +49,7 @@ interface Item {
 
 /**
  * Line items of the inventory scenarios: products and a service of the seed on the clean stand; on the dev instance only
- * services (no stock moves), the first three of its list, read at run time (names of a real instance stay out of git).
+ * active services (no stock moves), read at run time (names of a real instance stay out of git).
  */
 let ITEMS: Item[] = isClean
   ? [
@@ -60,7 +60,9 @@ let ITEMS: Item[] = isClean
   : []
 
 async function serviceItems(page: Page): Promise<Item[]> {
-  await page.goto('index.php?module=Services&view=List&modernui=on')
+  // Inventory popups exclude inactive services. A previous list test may have changed the default sort/filter.
+  const search = encodeURIComponent(JSON.stringify([[['discontinued', 'e', '1']]]))
+  await page.goto(`index.php?module=Services&view=List&search_params=${search}&page=1&modernui=on`)
   const names = await page.locator('tr.listViewEntries[data-id] td.listViewEntryValue[data-name="servicename"], tr.listViewEntries[data-id] td[data-name="servicename"]')
     .evaluateAll((cells) => cells.map((cell) => (cell.getAttribute('data-rawvalue') ?? cell.textContent).replace(/\s+/g, ' ').trim()).filter((name) => name !== ''))
   const unique = [...new Set(names)].slice(0, 3)
@@ -483,6 +485,70 @@ test('documents of a record: the PDF of an extension (ITS4You PDFMaker, where ac
   }
   expect(texts['off']?.length ?? 0, 'text of the PDF').toBeGreaterThan(20)
   expect(texts['on']).toBe(texts['off'])
+})
+
+test('PDFMaker list integration: selected IDs, templates, language and the downloaded batch PDF match v7', async ({ page }) => {
+  const orders = created.filter((record) => record.module === 'SalesOrder')
+  expect(orders.length).toBeGreaterThanOrEqual(2)
+  const results: unknown[] = []
+  for (const mode of MODES) {
+    await openIn(page, 'index.php?module=SalesOrder&view=List', mode)
+    const native = page.locator('.listViewActionsContainer a[onclick*="PDFMaker_Actions_Js.getPDFListViewPopup2"]')
+    test.skip(await native.count() === 0, 'PDFMaker is not installed on this instance')
+    const all = await page.locator('.lists-menu a.filterName').filter({ hasText: /^(All|Все|Alle)$/ }).first().getAttribute('href')
+    const search = encodeURIComponent(JSON.stringify([[['subject', 'c', MARK]]]))
+    await openIn(page, `${all ?? 'index.php?module=SalesOrder&view=List'}&search_params=${search}`, mode)
+    if (mode === 'on') await expect(page.locator('.mu-pdfmaker-export')).toBeHidden()
+    for (const order of orders) await page.locator(`tr[data-id="${order.id}"] .listViewEntriesCheckBox`).check()
+    const requests: [string, string][][] = []
+    const listener = (request: Request): void => {
+      const params = new URLSearchParams(`${new URL(request.url()).search.slice(1)}&${request.postData() ?? ''}`)
+      if (params.get('module') === 'PDFMaker' && ['IndexAjax', 'CreatePDFFromTemplate'].includes(params.get('view') ?? params.get('action') ?? '')) {
+        requests.push([...params].filter(([key]) => !['__vtrftk', '_'].includes(key)).sort(([a], [b]) => a.localeCompare(b)))
+      }
+    }
+    page.on('request', listener)
+    if (mode === 'on') {
+      await expect(page.locator('.mu-pdfmaker-export')).toHaveCount(1)
+      await page.setViewportSize({ width: 412, height: 900 })
+      for (const selector of ['.mu-pdfmaker-export', '#PageJump', '.listViewMassActions > button']) {
+        expect(await page.locator(selector).evaluate((element) => {
+          const r = element.getBoundingClientRect()
+          return r.x >= 0 && r.right <= innerWidth && element.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2))
+        }), selector).toBe(true)
+      }
+      await page.locator('.mu-pdfmaker-export').click()
+    } else {
+      await page.locator('.listViewMassActions > button').click()
+      await native.click()
+    }
+    const modal = page.locator('.PDFMakerContainer:has(#exportSelectDFMakerForm)')
+    await expect(modal).toBeVisible()
+    const templates = await modal.locator('#use_common_template option').evaluateAll((options) => options.map((option) => ({ id: option.getAttribute('value'), label: option.textContent })))
+    expect(templates.length).toBeGreaterThan(0)
+    await choose(page, '#use_common_template', [])
+    await expect(modal.locator('.PDFMakerDownloadPDF')).toBeDisabled()
+    await choose(page, '#use_common_template', [templates[0]?.id ?? ''])
+    await expect(modal.locator('.PDFMakerDownloadPDF')).toBeEnabled()
+    if (mode === 'on') {
+      await page.setViewportSize({ width: 412, height: 900 })
+      const box = await modal.locator('.modal-content').boundingBox()
+      expect(box?.x).toBeGreaterThanOrEqual(0)
+      expect((box?.x ?? 0) + (box?.width ?? 999)).toBeLessThanOrEqual(412)
+      await page.setViewportSize({ width: 1440, height: 900 })
+    }
+    const download = page.waitForEvent('download', { timeout: 60_000 })
+    await modal.locator('.PDFMakerDownloadPDF').click()
+    const file = resolve(repoRoot, `.local/e2e-output/${target}/mu12-batch-${mode}.pdf`)
+    await (await download).saveAs(file)
+    let text = ''
+    try { text = execFileSync('pdftotext', ['-layout', file, '-'], { encoding: 'utf8' }) } finally { rmSync(file) }
+    expect(text.length).toBeGreaterThan(20)
+    page.off('request', listener)
+    expect(requests).toHaveLength(2)
+    results.push({ templates, requests, text })
+  }
+  expect(results[1]).toEqual(results[0])
 })
 
 test('field widgets: autocomplete of a reference, date picker and rich text editor work as in v7', async ({ page }) => {

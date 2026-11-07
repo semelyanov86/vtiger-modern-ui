@@ -10,7 +10,7 @@ import { resolve } from 'node:path'
 import { expect, test, type Page } from '@playwright/test'
 import { repoRoot } from './env'
 import { globalScope, patchGlobal } from './settings-api'
-import { waitForShell } from './support'
+import { openListFilters, openListSearch, waitForShell } from './support'
 
 interface StateSpec {
   readonly id: string
@@ -20,7 +20,7 @@ interface StateSpec {
   readonly elements: Readonly<Record<string, { readonly theme: string }>>
 }
 
-const spec = JSON.parse(readFileSync(resolve(repoRoot, 'dev/visual/states.json'), 'utf8')) as {
+const spec = JSON.parse(readFileSync(resolve(repoRoot, process.env['MU_VISUAL_STATES'] ?? 'dev/visual/states.json'), 'utf8')) as {
   viewport: { width: number; height: number }
   states: readonly StateSpec[]
 }
@@ -29,7 +29,27 @@ const dir = process.env['MU_VISUAL_DIR'] ?? ''
 test.use({ viewport: spec.viewport, deviceScaleFactor: 1 })
 
 async function step(page: Page, name: string): Promise<void> {
-  if (name === 'open-first-record') {
+  if (name === 'all-records') {
+    // Native filter IDs differ between installations. Clear the previous test's search through its own All link.
+    const href = await page.locator('.lists-menu a.filterName').filter({ hasText: /^(All|Все|Alle)$/ }).first().getAttribute('href')
+    expect(href, 'native All filter').toBeTruthy()
+    await page.goto(`${href ?? ''}&search_params=%5B%5D&page=1&modernui=on`)
+    await waitForShell(page)
+  } else if (name === 'open-list-filters') {
+    await openListFilters(page)
+  } else if (name === 'select-first') {
+    await page.locator('#listview-table .listViewEntriesCheckBox').first().check()
+  } else if (name === 'sort-first') {
+    await page.locator('.listViewContentHeaderValues').first().click()
+    await page.waitForLoadState('networkidle')
+  } else if (name === 'search-empty') {
+    await openListSearch(page)
+    const input = page.locator('.searchRow input.listSearchContributor:visible').first()
+    await input.fill('MU12-no-such-record')
+    await input.press('Enter')
+    await expect(page.locator('.emptyRecordsDiv')).toBeVisible()
+    await page.locator('.mu-list-search').click()
+  } else if (name === 'open-first-record') {
     await page.locator('#listViewContent tr.listViewEntries[data-id] a[href*="view=Detail"]:not([href*="mode="])').filter({ visible: true }).first().click()
     await expect(page.locator('html[data-mu-record]')).toHaveCount(1)
     await expect(page.locator('#overlayPageContent.in .overlayDetail')).toBeVisible()

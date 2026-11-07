@@ -81,7 +81,7 @@ class ModernUI_Adapters_Model {
 				'files' => array('modules/PDFMaker/PDFMaker.php', 'layouts/v7/modules/PDFMaker/Edit.tpl'),
 				'tables' => array('vtiger_pdfmaker'),
 				'style' => true,
-				'script' => false,
+				'script' => true,
 				'screens' => array(),
 			),
 		);

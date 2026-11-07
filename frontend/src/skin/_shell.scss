@@ -660,7 +660,7 @@ $rail-strip: '#modnavigator > .mod-switcher-container';
 }
 
 @media screen and (scripting: enabled) and (min-width: 992px) {
-  #{$gate}:not([data-mu-keep-rail]) .main-container:has(> #{$rail-strip}) {
+  #{$gate}:not([data-mu-keep-rail]):not([data-mu-lists]) .main-container:has(> #{$rail-strip}) {
     > .sidebar-essentials {
       left: 0;
     }

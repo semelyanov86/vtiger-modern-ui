@@ -25,7 +25,7 @@
  */
 import { expect, test, type Browser, type Page, type Request } from '@playwright/test'
 import { crmUrl, isClean, stateFile } from './env'
-import { HOME, SETTINGS_FORMS, isolateNetwork, waitForShell } from './support'
+import { HOME, SETTINGS_FORMS, isolateNetwork, openListFilters, openListSearch, waitForShell } from './support'
 import { bootstrap, clearPersonal, globalScope, patchGlobal, saveGlobal, savePersonal, type Scope } from './settings-api'
 
 test.describe.configure({ mode: 'serial' })
@@ -439,10 +439,12 @@ test('lists: filter → sort → select rows → action → back to the list, wi
     await page.waitForSelector('#listview-table tr.listViewEntries')
     const otherFilter = page.locator('.lists-menu > li.listViewFilter:not(.active) a.filterName').first()
     const filter = await requestsDuring(page, async () => {
+      await openListFilters(page)
       await otherFilter.click()
     })
     await waitForList(page)
     const allFilter = page.locator('.lists-menu > li.listViewFilter a.filterName').filter({ hasText: /^(All|Все)$/ }).first()
+    await openListFilters(page)
     await allFilter.click()
     await waitForList(page)
     const sort = await requestsDuring(page, async () => {
@@ -530,9 +532,13 @@ test('lists: filter → sort → select rows → action → back to the list, wi
 })
 
 test('lists of the core and a custom module: the same actions, filters, columns and rows as v7; select and sort work', async ({ page }) => {
-  const modules = ['Leads', 'Contacts', 'Accounts', 'SalesOrder', ...(isClean ? ['Gadgets'] : [])]
+  const modules = ['Leads', 'Contacts', 'Accounts', 'SalesOrder', 'Invoice', 'Quotes', 'PurchaseOrder', 'Products', 'Services', 'PriceBooks', 'Vendors', ...(isClean ? ['Gadgets'] : []), ...(process.env['MU_LIST_MODULES'] ?? '').split(',').filter(Boolean)]
   const shape = async (): Promise<Record<string, unknown>> => page.evaluate(() => ({
-    actions: Array.from(document.querySelectorAll('.listViewActionsContainer [id], .listViewMassActions [id], .module-action-content [id]')).map((element) => element.id).sort(),
+    summaries: Array.from(document.querySelectorAll('#listViewContent div:has(> a[href]):has(> dd)')).map((card) => ({
+      text: card.textContent.trim(), href: card.querySelector('a')?.getAttribute('href'),
+      color: getComputedStyle(card).getPropertyValue('--mu-summary-accent').trim() || getComputedStyle(card).backgroundColor,
+    })),
+    actions: Array.from(document.querySelectorAll('.listViewActionsContainer [id], .listViewMassActions [id], .module-action-content [id]')).map((element) => element.id).filter((id) => !id.startsWith('mu-')).sort(),
     filters: document.querySelectorAll('.lists-menu > li.listViewFilter').length,
     columns: Array.from(document.querySelectorAll('.floatThead-table tr.listViewContentHeader th, #listview-table tr.listViewContentHeader th')).map((th) => th.textContent.trim()).filter((text) => text !== ''),
     rows: Array.from(document.querySelectorAll('#listview-table tr.listViewEntries')).map((row) => [row.getAttribute('data-id'), getComputedStyle(row).backgroundColor]),
@@ -574,6 +580,7 @@ test('lists: search → record → back, empty result, loading indicator, row me
     const cell = link.closest('td')
     return cell?.parentElement !== null && cell !== null ? Array.from(cell.parentElement.children).indexOf(cell) : -1
   })
+  await openListSearch(page)
   const input = page.locator(`tr.searchRow:visible > th:nth-child(${String(column + 1)}) input.listSearchContributor`).first()
   await input.fill(word)
   await input.press('Enter')

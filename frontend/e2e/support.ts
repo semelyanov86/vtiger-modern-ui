@@ -224,3 +224,14 @@ export async function useLocalBuild(context: BrowserContext): Promise<void> {
     await route.fulfill({ status: 200, contentType: type, body: readFileSync(file) })
   })
 }
+
+/** Stage 12 disclosures; on an unthemed list the original sidebar/search are already present. */
+export async function openListFilters(page: Page): Promise<void> {
+  const trigger = page.locator('.mu-list-filter')
+  if (await trigger.isVisible() && await trigger.getAttribute('aria-expanded') === 'false') await trigger.click()
+}
+
+export async function openListSearch(page: Page): Promise<void> {
+  const trigger = page.locator('.mu-list-search')
+  if (await trigger.isVisible() && await trigger.getAttribute('aria-expanded') === 'false') await trigger.click()
+}

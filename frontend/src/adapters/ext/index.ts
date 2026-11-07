@@ -4,4 +4,6 @@
  */
 import type { ExtensionAdapter } from './types'
 
-export const CLIENT_ADAPTERS: Readonly<Partial<Record<string, () => Promise<ExtensionAdapter>>>> = {}
+export const CLIENT_ADAPTERS: Readonly<Partial<Record<string, () => Promise<ExtensionAdapter>>>> = {
+  pdfmaker: async () => (await import('./pdfmaker')).pdfmaker,
+}

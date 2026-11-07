@@ -1,0 +1,411 @@
+// Stage 12: existing v7 nodes in the cloud composition. Reserve the geometry from the first paint when the loader can
+// run; the adapter owns disclosures. No JS, teardown or failure restores v7. No module or field-specific selectors.
+@use '../styles/tokens' as *;
+@use '../styles/components' as *;
+
+// Some extensions embed list markup in a different view, or include the table inside their action wrapper.
+// Those pages retain their native layout; this must match the adapter's contract before JavaScript starts.
+$list: ':root:not(.mu-off):not([data-mu-failed]):not([data-mu-level="skin"])[data-mu-build]:has(#view[value="List"]):has(#listViewContent.listViewPageDiv #listview-actions .listViewActionsContainer):not(:has(#listview-actions #table-content))';
+
+@media screen and (scripting: enabled) {
+#{$list} {
+  --mu-shell-tools: 52px;
+  --mu-list-tail: 250px;
+
+  .main-container { display: flow-root; }
+
+  .main-container #listViewContent.listViewPageDiv {
+    position: relative;
+    display: flow-root;
+    top: -4px;
+    width: 100%;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    transition: none;
+
+    > .col-sm-12 {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    .essentials-toggle { display: none; }
+
+    #table-content {
+      width: 100% !important;
+      max-height: calc(100dvh - var(--mu-shell-header) - var(--mu-shell-tools) - 24px);
+      margin: 0;
+      border: 0;
+      border-radius: tok(radius-md);
+      // Native scrolling also works without perfectScrollbar, by touch and with keyboard. The plugin and floatThead
+      // keep the same container and scroll events; the document never becomes as wide as the business table.
+      overflow: auto !important;
+      overscroll-behavior: contain;
+    }
+
+    .listview-table { margin-bottom: 0; }
+
+    // Keep the native empty-state text and its Create/Import handlers. The table header still exposes column setup
+    // and search (unlike the SaaS placeholder). Use the page surface and a neutral icon from the existing icon font.
+    #table-content:has(.emptyRecordsDiv),
+    .listview-table:has(.emptyRecordsDiv),
+    .emptyRecordsDiv > td { background-color: tok(bg) !important; }
+    .emptyRecordsDiv { height: calc(100dvh - var(--mu-shell-header) - var(--mu-shell-tools) - 76px); padding: 0; }
+    .emptyRecordsDiv > td { padding: 24px; border: 0; vertical-align: middle; }
+    .emptyRecordsContent {
+      position: static;
+      width: auto;
+      max-width: 640px;
+      margin: 0 auto;
+      color: tok(text-2);
+      font-size: fs(16);
+      line-height: 24px;
+      text-align: center;
+      &::before {
+        display: block;
+        margin-bottom: 24px;
+        color: tok(text-muted);
+        font-family: FontAwesome;
+        font-size: 96px;
+        line-height: 180px;
+        content: '\f016';
+      }
+    }
+
+    .listview-table tr.listViewEntries > td {
+      height: tok(row-height);
+      padding: 4px 12px;
+      border-top: 0;
+      border-bottom: 1px solid tok(divider);
+      line-height: 20px;
+      vertical-align: middle;
+    }
+
+    // A long value must not enlarge the whole page. The text/title of the native cell remains accessible, and its
+    // inline editor is outside .value. The table still uses v7 column sizing and scrolls when columns do not fit.
+    td.listViewEntryValue .fieldValue > .value {
+      display: block;
+      max-width: 320px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .listViewRecordActions .table-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 112px;
+      height: 24px;
+      margin: 0;
+      line-height: 24px;
+
+      > * { margin: 0; }
+      .dropdown { float: none !important; }
+      input[type='checkbox'] { margin: 0; }
+    }
+
+    .listViewContentHeader > th {
+      height: tok(table-head-height);
+      padding: 12px 12px 8px;
+      border-top: 0;
+      line-height: 20px;
+    }
+
+    [data-mu-list-summary] {
+      margin: 8px 24px 12px;
+      padding: 12px;
+      border: 1px solid tok(divider);
+      border-radius: tok(radius-md);
+      background-color: tok(surface);
+    }
+
+    [data-mu-list-counters] {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    [data-mu-list-counter] {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      min-width: 144px;
+      max-width: 100%;
+      margin: 0 !important;
+      padding: 10px 16px !important;
+      border: 1px solid tok(divider);
+      border-left: 4px solid var(--mu-summary-accent, var(--mu-primary));
+      border-radius: tok(radius-sm);
+      background: tok(surface-subtle) !important;
+      text-align: left;
+
+      > a {
+        color: tok(text-2);
+        font-size: fs(12);
+        font-weight: 400;
+        line-height: 18px;
+        overflow-wrap: anywhere;
+
+        &::after { position: absolute; inset: 0; content: ''; }
+        &:focus-visible::after { @include focus-ring; border-radius: tok(radius-sm); }
+      }
+
+      > dd { margin: 0; color: tok(text); font-size: fs(20); font-weight: 600; line-height: 24px; }
+      &:hover { border-color: tok(border-input); border-left-color: var(--mu-summary-accent, var(--mu-primary)); }
+    }
+  }
+
+  &:not([data-mu-list-search]) #listViewContent .searchRow { display: none; }
+
+  // The original sidebar becomes the disclosure panel. .hide reflects the unrelated v7 leftpanelhide preference:
+  // disclosure has its own state, without writing that preference or triggering the v7 sidebar toggle.
+  .main-container #sidebar-essentials {
+    position: fixed;
+    z-index: 1097;
+    top: calc(var(--mu-shell-header) + 54px);
+    left: 24px;
+    display: none !important;
+    width: 288px;
+    max-width: calc(100vw - 48px);
+    height: auto;
+    min-height: 0;
+    max-height: calc(100dvh - var(--mu-shell-header) - 66px);
+    margin: 0;
+    padding: 16px 0;
+    border: 1px solid tok(border);
+    border-radius: 8px;
+    background-color: tok(surface);
+    box-shadow: tok(shadow-dropdown);
+    overflow: auto;
+    transition: none;
+
+    .sidebar-container { padding: 0 24px; }
+    .sidebar-header { margin: 0; padding-right: 20px; text-transform: none; }
+    .sidebar-header h5 { margin: 0 0 10px; color: #000; font-size: fs(16.25); font-weight: 500; line-height: 1.2; letter-spacing: normal; }
+    .sidebar-menu { height: auto; padding-top: 0; }
+    .sidebar-menu > .module-filters { margin-bottom: 16px; }
+    .menu-scroller { height: auto !important; max-height: none !important; overflow: visible !important; }
+    .lists-menu { max-height: none !important; overflow: visible !important; }
+    .list-menu-content { padding: 0; }
+    .list-group { margin-bottom: 16px; }
+    .search-list, .search-folders { width: 100%; height: 36px; margin: 8px 0 16px; }
+    .lists-header { margin: 8px 0; color: tok(text); font-size: fs(14); font-weight: 500; line-height: 21px; letter-spacing: normal; text-transform: none; }
+    .listViewFilter { min-height: 40px; padding: 8px 0; }
+    .listViewFilter.active { background-color: tok(primary-soft); box-shadow: none; }
+    .filterName { max-width: calc(100% - 28px); padding-left: 8px; }
+    .listViewFilter .pull-right { margin-right: 6px; }
+    .listViewFilter:focus-within .js-popover-container { display: inline; }
+    hr { display: none; }
+    [role='button']:focus-visible { @include focus-ring; }
+  }
+  &[data-mu-list-filters] .main-container #sidebar-essentials { display: block !important; }
+
+  .mu-list-controls {
+    position: absolute;
+    z-index: 1002;
+    top: 100%;
+    left: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 52px;
+    max-width: 32%;
+  }
+
+  .mu-list-filter,
+  .mu-list-search,
+  .mu-list-close,
+  .mu-list-more {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex: none;
+    height: 36px;
+    padding: 0 8px;
+    border: 1px solid transparent;
+    border-radius: tok(radius-sm);
+    background-color: tok(surface);
+    color: tok(text);
+    font-family: tok(font-family);
+    font-size: fs(13);
+    font-weight: 400;
+    line-height: 20px;
+    cursor: pointer;
+
+    &:hover, &[aria-expanded='true'] { background-color: tok(border-input); }
+    &:focus-visible { @include focus-ring; }
+    &[hidden] { display: none; }
+  }
+  .mu-list-filter {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 260px;
+  }
+  .mu-list-filter-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mu-list-search { width: 36px; }
+  .mu-list-close { position: absolute; top: 8px; right: 4px; width: 28px; height: 28px; }
+
+  // Original mass actions and pagination share the toolbar with #appnav, which stays under the fixed header. Their
+  // native ancestors (including #listViewContent) and delegated handlers stay unchanged.
+  #listViewContent #listview-actions {
+    position: fixed;
+    z-index: 1096;
+    top: var(--mu-shell-header);
+    right: 24px;
+    display: flex;
+    align-items: center;
+    width: max-content;
+    max-width: calc(100vw - 48px);
+    height: 52px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+
+    > .row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0;
+      &::before, &::after { content: none; }
+      > div { width: auto; margin: 0; padding: 0; float: none; }
+      > div:has(> .messageContainer) {
+        position: absolute;
+        top: 52px;
+        right: 0;
+        z-index: 1;
+        background-color: tok(surface);
+        border-radius: tok(radius-sm);
+        box-shadow: tok(shadow-dropdown);
+        .messageContainer:not(.hide) { height: auto !important; padding: 6px 12px; }
+      }
+    }
+    .listViewActionsContainer { display: flex; align-items: center; gap: 0; }
+    .listViewActionsContainer > button:disabled { display: none; }
+    .listViewMassActions > button { border-radius: tok(radius-sm); }
+    .listViewActions { display: flex; align-items: center; gap: 8px; }
+    .listViewActions > .btn-group { order: 2; }
+    .pageNumbers { position: static !important; margin: 0; padding: 0; white-space: nowrap; }
+    .listViewActions .btn-group > .btn { width: 32px; min-width: 32px; padding: 0; border: 0; background: transparent; }
+    #PageJumpDropDown { right: 0; left: auto; }
+  }
+
+  #page > nav.app-fixed-navbar .module-action-content > :not(:first-child) {
+    margin-right: calc(var(--mu-list-tail) + 12px) !important;
+  }
+  #appnavcontent > ul.navbar-nav {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    > li { margin: 0; padding: 0; float: none; }
+    > li:has([data-mu-list-add]) { display: flex; align-items: center; }
+    .module-buttons { margin: 0; }
+    [data-mu-list-add] { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+    .mu-list-more {
+      width: 27px;
+      height: 34px;
+      padding: 0;
+      border-left: 1px solid rgba(255, 255, 255, .25);
+      border-radius: 0 tok(radius-sm) tok(radius-sm) 0;
+      background-color: tok(primary-strong);
+      color: #fff;
+      &:hover { background-color: tok(primary-hover); }
+    }
+    > [data-mu-list-import] {
+      position: absolute;
+      z-index: 1003;
+      top: 100%;
+      left: 0;
+      display: none;
+      min-width: 180px;
+      padding: 8px;
+      border: 1px solid tok(border);
+      border-radius: tok(radius-sm);
+      background-color: tok(surface);
+      box-shadow: tok(shadow-dropdown);
+      > button { width: 100%; text-align: left; }
+    }
+  }
+  &[data-mu-list-more] #appnavcontent > ul.navbar-nav > [data-mu-list-import] { display: block; }
+
+  // Selecting records changes the toolbar to the mass actions, as in the reference. Pagination stays at the right.
+  &:is(:has(#listview-table .listViewEntriesCheckBox:checked), :has(#listViewContent .listViewActionsContainer > button:not(:disabled):not([hidden]))) {
+    .mu-list-controls,
+    #page > nav.app-fixed-navbar .module-action-content > :not(:first-child) { visibility: hidden; }
+    #listViewContent #listview-actions {
+      left: 24px;
+      width: auto;
+      > .row { width: 100%; }
+      > .row > div:last-child { margin-left: auto; }
+    }
+  }
+}
+}
+
+// On narrow screens actions wrap to a second band, without putting pagination or extension actions outside the page.
+@media screen and (scripting: enabled) and (max-width: 1100px) {
+  #{$list} {
+    --mu-shell-tools: 100px;
+    .mu-list-controls { max-width: 42%; }
+    #listViewContent #listview-actions { top: calc(var(--mu-shell-header) + 48px); height: 48px; }
+    #page > nav.app-fixed-navbar .module-action-content > :not(:first-child) { height: 52px; margin-right: 0 !important; }
+  }
+}
+@media screen and (scripting: enabled) and (max-width: 767px) {
+  #{$list} {
+    --mu-shell-tools: 144px;
+    .mu-list-controls { left: 12px; max-width: calc(100% - 24px); }
+    #listViewContent #listview-actions { top: calc(var(--mu-shell-header) + 96px); right: 12px; max-width: calc(100vw - 24px); }
+    #listViewContent #listview-actions > .row { gap: 8px; }
+    #page > nav.app-fixed-navbar .module-action-content > :not(:first-child) {
+      position: absolute;
+      top: 52px;
+      right: 12px;
+      left: 12px;
+      display: flex;
+      justify-content: flex-end;
+      width: auto;
+      max-width: none;
+      height: 44px;
+      padding: 0;
+    }
+    #appnav .navbar-header { display: none; }
+    #appnav { width: 100%; }
+    #appnav .container-fluid { padding: 0; }
+    #appnavcontent.collapse {
+      position: static;
+      display: block !important;
+      width: 100%;
+      height: auto !important;
+      max-height: none;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      overflow: visible;
+    }
+    #appnavcontent > ul.navbar-nav { justify-content: flex-end; gap: 8px; }
+    #appnavcontent > ul.navbar-nav .module-buttons { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+    .main-container #sidebar-essentials { left: 12px; max-width: calc(100vw - 24px); }
+    &:is(:has(#listview-table .listViewEntriesCheckBox:checked), :has(#listViewContent .listViewActionsContainer > button:not(:disabled):not([hidden]))) {
+      #listViewContent #listview-actions {
+        top: var(--mu-shell-header);
+        left: 12px;
+        height: 144px;
+        padding: 8px 0;
+        > .row { height: 100%; flex-wrap: wrap; align-content: space-between; }
+        > .row > div:first-child { width: 100%; }
+        .listViewActionsContainer { flex-wrap: wrap; gap: 4px; }
+      }
+    }
+  }
+}

@@ -20,7 +20,7 @@ import { tokensFor } from '../src/boot/tokens'
 import { reportDir, target } from './env'
 import { defaultTokens, reference } from './foundation-reference'
 import { bootstrap, clearPersonal, globalScope, patchGlobal, savePersonal } from './settings-api'
-import { SETTINGS, waitForShell } from './support'
+import { SETTINGS, openListSearch, waitForShell } from './support'
 
 test.use({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 })
 test.beforeAll(() => {
@@ -133,6 +133,7 @@ async function openList(page: Page): Promise<void> {
     await openPage(page, `${href ?? ''}&page=1&modernui=on`)
   }
   await expect(page.locator('#listview-table tbody tr.listViewEntries[data-id]').first()).toBeVisible()
+  await openListSearch(page)
 }
 
 test('tokens: the server prints the measured cloud values and the same map as the preview of the editor', async ({ page }) => {
@@ -272,7 +273,7 @@ test('list: page, primary and toolbar buttons, check boxes, rows, header, menu â
 
   // The other actions of the module header are buttons of the toolbar of the page since stage 11 (Import, Customize): white
   // buttons of the cloud toolbar, no change on hover (the secondary role is measured on the record header below).
-  const moduleTool = page.locator('.module-action-content .module-buttons.btn-default:not([id$="_basicAction_LBL_ADD_RECORD"])').first()
+  const moduleTool = page.locator('.module-action-content .module-buttons.btn-default:visible:not([id$="_basicAction_LBL_ADD_RECORD"])').first()
   await check('button.toolbar', moduleTool)
   await moduleTool.hover()
   await settle(page)
@@ -460,6 +461,7 @@ test('settings editor of ModernUI: buttons, fields, tabs, disabled Save in the s
 
 test('densities and 200 % zoom: sizes follow the density, the page does not scroll sideways', async ({ page }) => {
   await openPage(page, LIST)
+  const personal = ((await bootstrap(page))['personal'] as { values: Record<string, unknown> }).values
   const measures: Record<string, Measured> = {}
   try {
     for (const [density, input, row] of [['compact', 30, 32], ['standard', 36, 40], ['comfortable', 40, 48]] as const) {
@@ -481,6 +483,8 @@ test('densities and 200 % zoom: sizes follow the density, the page does not scro
     }
   } finally {
     await clearPersonal(page)
+    if (Object.keys(personal).length > 0) expect((await savePersonal(page, personal)).ok).toBe(true)
+    expect(((await bootstrap(page))['personal'] as { values: Record<string, unknown> }).values).toEqual(personal)
   }
   record('density', Object.fromEntries(Object.entries(measures).map(([key, value]) => [key, `${String(value['input'])} / ${String(value['row'])}`])))
   // 200 % of a 1440 px window: 720 CSS px.
@@ -497,6 +501,7 @@ test('densities and 200 % zoom: sizes follow the density, the page does not scro
 
 test('languages: the texts of the theme in RU, EN and DE use the cloud font and the pinned Cyrillic, long labels fit', async ({ page }) => {
   await openPage(page, SETTINGS)
+  const personal = ((await bootstrap(page))['personal'] as { values: Record<string, unknown> }).values
   const results: Measured = {}
   try {
     for (const locale of ['ru-RU', 'en-US', 'de-DE'] as const) {
@@ -526,6 +531,8 @@ test('languages: the texts of the theme in RU, EN and DE use the cloud font and 
     }
   } finally {
     await clearPersonal(page)
+    if (Object.keys(personal).length > 0) expect((await savePersonal(page, personal)).ok).toBe(true)
+    expect(((await bootstrap(page))['personal'] as { values: Record<string, unknown> }).values).toEqual(personal)
   }
   record('languages', results)
 })

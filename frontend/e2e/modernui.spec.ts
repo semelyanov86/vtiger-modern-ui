@@ -6,10 +6,36 @@
  * teardown, failures of the frontend that must leave the v7 interface working, "disable for me".
  */
 import { expect, test, type Page } from '@playwright/test'
-import { isClean } from './env'
-import { HOME, ISLAND, LOADER, PREFERENCES, PREFERENCES_FORM, SETTINGS, SKIN, TOKENS, isolateNetwork, themeOnPage, waitForShell } from './support'
+import { isClean, stateFile } from './env'
+import { bootstrap, clearPersonal, savePersonal } from './settings-api'
+import { HOME, ISLAND, LOADER, PREFERENCES, PREFERENCES_FORM, SETTINGS, SKIN, TOKENS, isolateNetwork, openListSearch, themeOnPage, waitForShell } from './support'
 
 test.describe.configure({ mode: 'serial' })
+
+let originalPersonal: Record<string, unknown> | undefined
+test.beforeAll(async ({ browser }) => {
+  const context = await browser.newContext({ storageState: stateFile('admin') })
+  await isolateNetwork(context)
+  const page = await context.newPage()
+  await page.goto(SETTINGS)
+  originalPersonal = ((await bootstrap(page))['personal'] as { values: Record<string, unknown> }).values
+  await context.close()
+})
+
+test.afterAll(async ({ browser }) => {
+  if (originalPersonal === undefined) return
+  const context = await browser.newContext({ storageState: stateFile('admin') })
+  await isolateNetwork(context)
+  const page = await context.newPage()
+  try {
+    await page.goto(SETTINGS)
+    await clearPersonal(page)
+    if (Object.keys(originalPersonal).length > 0) expect((await savePersonal(page, originalPersonal)).ok).toBe(true)
+    expect(((await bootstrap(page))['personal'] as { values: Record<string, unknown> }).values).toEqual(originalPersonal)
+  } finally {
+    await context.close()
+  }
+})
 
 test.beforeEach(async ({ context }) => {
   // The clean stand must not reach the internet (no-op on the dev instance).
@@ -341,6 +367,7 @@ test('runtime: one island after PJAX reloads of the list, a re-rendered header a
   expect(await page.evaluate(() => document.documentElement.getAttribute('data-mu-level'))).toBe('islands')
 
   // PJAX reload of the list by v7 (search row): nothing of the islands changes.
+  await openListSearch(page)
   const firstColumn = page.locator('tr.searchRow input.listSearchContributor').first()
   if ((await firstColumn.count()) > 0) {
     for (const value of ['a', '']) {

@@ -145,7 +145,8 @@ test('lists without the permanent module rail from the first paint, Accounts and
     expect(late.rail, `${module}: rail after the shell`).toBe(0)
     expect(early.sidebar, module).toBe(late.sidebar)
     expect(late.sidebar, module).toBe(0)
-    expect(late.content, module).toBe('241px')
+    expect(late.content, module).toBe('0px')
+    await expect(page.locator('#sidebar-essentials')).toBeHidden()
   }
 })
 

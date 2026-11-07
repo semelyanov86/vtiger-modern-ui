@@ -107,5 +107,11 @@
   },
   "context": {
     "label": "Views of the module"
+  },
+  "lists": {
+    "filters": "Select list or tag",
+    "search": "Search columns",
+    "more": "More create options",
+    "close": "Close lists and tags"
   }
 }
