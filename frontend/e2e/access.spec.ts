@@ -255,7 +255,7 @@ test('two administrators save at once: the second sees the conflict with the nam
   await expect(admin2.page.locator('[data-mu-field="mu-background"]')).toHaveValue('#f5f6f8')
 })
 
-test('navigation of a restricted user: mega menu, rail and favorites only with modules U may open, no administrator entries', async () => {
+test('navigation of a restricted user: mega menu and favorites only with modules U may open, no rail, no administrator entries', async () => {
   const page = limited.page
   await page.goto('index.php?module=Contacts&view=List&app=MARKETING')
   await waitForShell(page)
@@ -289,10 +289,8 @@ test('navigation of a restricted user: mega menu, rail and favorites only with m
   }
   await page.keyboard.press('Escape')
 
-  // The rail: the section of the page, modules U may open.
-  for (const id of await page.locator('.mu-rail [data-mu-item]').evaluateAll((links) => links.map((link) => link.getAttribute('data-mu-item') ?? ''))) {
-    expect(menu.modules).toContain(id.slice(2))
-  }
+  // No permanent module rail (stage 11): the modules of U's v7 strip are in the mega menu above.
+  await expect(page.locator('#modnavigator')).toBeHidden()
   // Favorites: the module of the page with the star, kept on the server, removed again.
   await page.locator('[data-mu-trigger="favorites"]').click()
   await page.locator('[data-mu-item="favorite-toggle"]').click()

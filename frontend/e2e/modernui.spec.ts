@@ -226,7 +226,8 @@ test('failures keep the standard interface: blocked entry, broken manifest, Boot
     expect(state.failed ?? '', failure.name).toMatch(failure.failed)
     expect(await page.evaluate(() => document.documentElement.classList.contains('mu-pending')), failure.name).toBe(false)
     await expect(page.locator(ISLAND), failure.name).toHaveCount(0)
-    // v7 keeps working: the app menu and the header actions respond.
+    // v7 keeps working: its own two-row header (the cloud layout needs the shell), the app menu and the header actions.
+    expect(await page.evaluate(() => document.querySelector('#page > nav.app-fixed-navbar > .app-nav')?.getBoundingClientRect().height ?? 0), failure.name).toBeGreaterThanOrEqual(40)
     await expect(page.locator('#navbar ul.nav.navbar-nav > li').first()).toBeVisible()
     await page.locator('#appnavigator').click()
     await expect(page.locator('#app-menu')).toBeVisible()
@@ -246,6 +247,9 @@ test('standard view from the system menu: in-place teardown, kept after reload, 
     overlay: document.getElementById('mu-overlay-root') !== null,
   }))
   expect(after).toEqual({ off: true, ready: false, overlay: false })
+  // The header of v7 is back in place (two rows, the hamburger), the cloud layout is gone with the theme.
+  expect(await page.evaluate(() => document.querySelector('#page > nav.app-fixed-navbar > .app-nav')?.getBoundingClientRect().height ?? 0)).toBeGreaterThanOrEqual(40)
+  await expect(page.locator('#appnavigator')).toBeVisible()
   await expect(page.locator(SKIN)).toHaveCount(0)
   await expect(page.locator(TOKENS)).toHaveCount(0)
   expect(await page.evaluate(() => document.documentElement.style.getPropertyValue('--mu-primary'))).toBe('')
@@ -450,7 +454,15 @@ test('failures: without JavaScript the skin and the tokens style a working v7 pa
     rows: document.querySelectorAll('tr.listViewEntries').length,
     navbar: document.getElementById('navbar') !== null,
     font: getComputedStyle(document.body).fontFamily,
+    // Without scripts the shell cannot run: the header of v7 keeps its two rows and the module rail (no space is
+    // reserved for a favorites bar or a toolbar that would never come).
+    secondRow: document.querySelector('#page > nav.app-fixed-navbar > .app-nav')?.getBoundingClientRect().height ?? 0,
+    rail: document.getElementById('modnavigator')?.getBoundingClientRect().width ?? 0,
+    padding: getComputedStyle(document.getElementById('page') ?? document.body).paddingTop,
   }))
+  expect(state.secondRow).toBeGreaterThanOrEqual(40)
+  expect(state.rail).toBe(42)
+  expect(state.padding).toBe('84px')
   expect(state.pending).toBe(false)
   expect(state.navbar).toBe(true)
   expect(state.rows).toBeGreaterThan(0)

@@ -7,6 +7,12 @@
 $check-mark: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' d='M3.5 8.5l3 3 6-7'/%3E%3C/svg%3E";
 $check-dash: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' d='M4 8h8'/%3E%3C/svg%3E";
 
+// "Add record" — the main action of a module whatever class v7 gives it (docs/design.md §13.4): the basic action of the
+// module header and of the list (id <Module>_listView_basicAction_LBL_ADD_RECORD; the calendar list …_LBL_ADD_EVENT /
+// …_LBL_ADD_TASK) and the two add buttons of the calendar view (CalendarHeader.tpl). v7 gives the class .addButton to
+// every basic action (Import too), so the class cannot tell the main action.
+$add-record-ids: "[id$='_basicAction_LBL_ADD_RECORD'], [id$='_basicAction_LBL_ADD_EVENT'], [id$='_basicAction_LBL_ADD_TASK'], #calendarview_basicaction_addevent, #calendarview_basicaction_addtask";
+
 // ---- Buttons: 13/19.5 regular, radius 4, 1 px border in the fill colour, 6/12 padding (33.5 px with the border) ----
 
 @mixin button-base {

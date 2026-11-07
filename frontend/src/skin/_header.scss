@@ -1,8 +1,34 @@
-// Header of v7 (nav.app-fixed-navbar, docs/design.md §5.1, docs/architecture.md §7.1): the header stays, with
-// every button of the core and of extensions in its place and order; the skin changes colours, the search
-// field and focus only. Geometry of the header and the module strip (heights, paddings of #page) stays until
-// the navigation of the theme replaces the app menu (stage 06).
+// Header of v7 drawn as the header of the cloud (docs/design.md §13.2 V01, §13.7). The geometry (one main row, the title
+// in it, the toolbar) is _shell.scss; this file is the look of the v7 elements: the title, the icons of the core and of
+// extensions, the search, the user menu. Order and handlers of every element stay; extensions keep their inline styles.
 @use '../styles/tokens' as *;
+@use '../styles/components' as *;
+
+// Line icons of the cloud for the actions of the core header (Lucide, ISC: frontend/build/third-party-licenses.ts). The
+// glyph of Font Awesome / vtiger-icons of the same element is replaced by a mask in its colour; the element, its class,
+// title and handlers stay. Icons of extensions keep their own glyphs.
+@function lucide($paths) {
+  @return url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E#{$paths}%3C/svg%3E");
+}
+
+$icon-search: lucide("%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E");
+$icon-plus: lucide("%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M8 12h8'/%3E%3Cpath d='M12 8v8'/%3E");
+$icon-calendar: lucide("%3Crect width='18' height='18' x='3' y='4' rx='2'/%3E%3Cpath d='M16 2v4'/%3E%3Cpath d='M8 2v4'/%3E%3Cpath d='M3 10h18'/%3E");
+$icon-reports: lucide("%3Cpath d='M3 3v16a2 2 0 0 0 2 2h16'/%3E%3Cpath d='M18 17V9'/%3E%3Cpath d='M13 17V5'/%3E%3Cpath d='M8 17v-3'/%3E");
+$icon-tasks: lucide("%3Cpath d='m3 17 2 2 4-4'/%3E%3Cpath d='m3 7 2 2 4-4'/%3E%3Cpath d='M13 6h8'/%3E%3Cpath d='M13 12h8'/%3E%3Cpath d='M13 18h8'/%3E");
+$icon-user: lucide("%3Cpath d='M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E");
+
+@mixin line-icon($icon, $size: 18px) {
+  &::before {
+    content: '';
+    display: block;
+    width: $size;
+    height: $size;
+    background-color: currentColor;
+    -webkit-mask: $icon center / contain no-repeat;
+    mask: $icon center / contain no-repeat;
+  }
+}
 
 :root:not(.mu-off) {
   .app-fixed-navbar {
@@ -11,8 +37,8 @@
   }
 
   // The font of the theme for the texts of the header (search, dropdowns of the core and extensions), not for the row of
-  // action icons: the line boxes of its <li> would follow the metrics of Inter and make the fixed header of v7 ~2 px
-  // taller than the padding of #page (stage 06, measured on the stock 8.4 header).
+  // action icons: the line boxes of its <li> would follow the metrics of the font and make the fixed header of v7 taller
+  // than the padding of #page while the v7 layout is in place (stage 06, measured on the stock 8.4 header).
   .global-nav .search-link,
   .global-nav .dropdown-menu,
   .global-nav .logout-content {
@@ -20,8 +46,7 @@
   }
 
   // The row of action icons keeps the line metrics of v7 (12 px / 1.4): with the 13 px / 1.5 of the theme the items with
-  // text (the CTMobile menu, the user name) grow to 45.5 px and the fixed header of v7 gets taller than the padding
-  // of #page. The dropdowns inside keep the typography of the theme.
+  // text (the CTMobile menu, the user name) grow to 45.5 px. The dropdowns inside keep the typography of the theme.
   #navbar > .navbar-nav {
     font-size: 12px;
     line-height: 1.4;
@@ -32,7 +57,8 @@
     }
   }
 
-  // Buttons of the header (#navbar of the core and extensions): one colour, the accent on hover, a visible ring.
+  // Buttons of the header (#navbar of the core and extensions): the icon colour of the cloud, the link colour on hover, a
+  // visible ring for the keyboard.
   #navbar .navbar-nav > li > a,
   #navbar .navbar-nav > li > div > a,
   #navbar .navbar-nav > li .dropdown-toggle > a {
@@ -41,7 +67,7 @@
 
     &:hover,
     &:focus {
-      color: tok(primary-strong);
+      color: tok(link);
       background-color: transparent;
     }
 
@@ -51,12 +77,13 @@
     }
   }
 
-  // Global search of the header: the box of a field around the v7 input.
+  // Global search of the header: the box of a field around the v7 input (the v7 layout; the cloud layout opens it from a
+  // button, _shell.scss).
   .global-nav .search-link {
     border: 1px solid tok(border-input);
     border-radius: tok(radius-sm);
     background-color: tok(surface);
-    color: tok(text-2);
+    color: tok(text-heading);
     @include transition(border-color, box-shadow);
 
     &:focus-within {
@@ -94,7 +121,8 @@
     box-shadow: none;
   }
 
-  // App switcher (hamburger) and the module strip on the left: the dark navigation colour of the design.
+  // App switcher (hamburger of v7, back only while the v7 app menu has buttons of extensions) and the module strip of v7
+  // (back only while it has entries the theme does not offer).
   .global-nav .app-switcher-container .app-navigator:hover,
   .modules-menu ul li:hover {
     background-color: tok(nav-dark-2);
@@ -124,8 +152,344 @@
     }
   }
 
-  // Menu of the user (avatar) and the other dropdowns of the header.
+  // Menu of the user and the other dropdowns of the header.
   .global-actions .dropdown-menu {
     margin-top: 4px;
+  }
+
+  // The title of the module (h4.module-title of the module header): 19.5 / 500 in the main row of the cloud, as written
+  // (v7 writes it in capitals).
+  .module-action-bar .module-title {
+    margin: 0;
+    font-family: tok(font-family);
+    font-size: fs(19.5);
+    font-weight: 500;
+    line-height: 1.2;
+    color: tok(text);
+    text-transform: none;
+  }
+
+  .module-action-bar .module-breadcrumb,
+  .module-action-bar .module-breadcrumb a {
+    color: tok(text);
+  }
+
+  .module-action-bar .module-breadcrumb a:hover {
+    color: tok(text);
+    text-decoration: none;
+  }
+}
+
+// The title: the module only. The rest of the v7 breadcrumb repeats what the page shows itself (the selected filter or
+// folder in the list, the record in its header, "Editing" in the form). The breadcrumb of the settings stays: it is their
+// navigation until stage 15 (pages with the settings menu, .settingsgroup).
+@media screen and (scripting: enabled) {
+  :root:not(.mu-off):not([data-mu-failed]):not([data-mu-level='skin']) #page:not(:has(.settingsgroup)) > nav.app-fixed-navbar .module-action-content > :first-child > :is(.current-filter-name, .filter-name) {
+    display: none;
+  }
+}
+
+// ---- The cloud row (the gate of _shell.scss, desktop layout) ----
+@media screen and (scripting: enabled) and (min-width: 768px) {
+  :root:not(.mu-off):not([data-mu-failed]):not([data-mu-level='skin']) #page > nav.app-fixed-navbar {
+    // Action icons: 36 px boxes, line icons of 18 px in #2c3e50 (cloud: search, history, quick create, inbox, …).
+    #navbar > .navbar-nav > li {
+      > div,
+      > div > .dropdown-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        float: none;
+      }
+
+      > div > a,
+      > div > .dropdown-toggle > a,
+      > a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 36px;
+        height: 36px;
+        margin: 0;
+        padding: 0 9px;
+        float: none;
+        border-radius: tok(radius-sm);
+        font-size: 18px;
+        line-height: 1;
+      }
+    }
+
+    // The icons of the core header get the line icons of the cloud.
+    #menubar_quickCreate.fa-plus-circle {
+      @include line-icon($icon-plus);
+    }
+
+    #navbar a.fa-calendar[href*='module=Calendar'] {
+      @include line-icon($icon-calendar);
+    }
+
+    #navbar a.fa-bar-chart[href*='module=Reports'] {
+      @include line-icon($icon-reports);
+    }
+
+    #navbar a.taskManagement {
+      @include line-icon($icon-tasks);
+    }
+
+    .search-link > .fa-search {
+      width: 18px;
+      height: 18px;
+      @include line-icon($icon-search);
+    }
+
+    // The user: a 36 px round avatar (initials from the shell when it knows the name, the user glyph before that).
+    #navbar > .navbar-nav > li > div > a.userName {
+      position: relative;
+      width: 36px;
+      min-width: 36px;
+      height: 36px;
+      padding: 0;
+      border-radius: 50%;
+      background-color: #fe8d49;
+      color: #ffffff;
+
+      > .fa-user {
+        font-size: 0;
+
+        @include line-icon($icon-user, 18px);
+      }
+
+      > .link-text-xs-only {
+        display: none;
+      }
+
+      &[data-mu-initials] > .fa-user {
+        display: none;
+      }
+
+      &[data-mu-initials]::before {
+        content: attr(data-mu-initials);
+        font-family: tok(font-family);
+        font-size: 15px;
+        line-height: 1;
+      }
+
+      &:hover,
+      &:focus {
+        color: #ffffff;
+      }
+    }
+
+    // The menu of the user as the profile menu of the cloud: 260 px, radius 6, the person centred above the actions.
+    #navbar .logout-content {
+      right: 0;
+      left: auto;
+      width: 260px;
+      min-width: 260px;
+      margin-top: 0;
+      padding: 16px;
+      border: 0;
+      border-radius: tok(radius-md);
+      background-color: tok(surface);
+      box-shadow: tok(shadow-dropdown-lg);
+      color: tok(text-body);
+      font-size: fs(13);
+
+      > .row {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0;
+        padding-bottom: 12px;
+        border-bottom: 1px solid tok(divider);
+        text-align: center;
+
+        > [class*='col-'] {
+          width: 100%;
+          padding: 0;
+          float: none;
+        }
+      }
+
+      .profile-img-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 56px;
+        height: 56px;
+        margin: 0 auto 4px;
+        overflow: hidden;
+        border-radius: 50%;
+        background-color: tok(surface-readonly);
+
+        img {
+          width: 56px;
+          height: 56px;
+          object-fit: cover;
+        }
+
+        .vicon-vtigeruser {
+          font-size: 40px !important;
+          color: tok(text-label);
+        }
+      }
+
+      .profile-container {
+        h4 {
+          margin: 0;
+          overflow: hidden;
+          color: tok(text-body);
+          font-family: tok(font-family);
+          font-size: fs(16);
+          font-weight: 400;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        h5,
+        p {
+          margin: 2px 0 0;
+          color: tok(text-muted);
+          font-family: tok(font-family);
+          font-size: fs(12);
+        }
+      }
+
+      .logout-footer {
+        padding-top: 8px;
+
+        hr {
+          display: none;
+        }
+
+        > div {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .pull-left,
+        .pull-right {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          min-height: 36px;
+          margin: 0 -16px;
+          padding: 8px 16px;
+          float: none;
+
+          &:hover {
+            background-color: tok(menu-hover);
+          }
+
+          > .fa {
+            width: 16px;
+            color: tok(text-body);
+            font-size: 14px;
+            text-align: center;
+          }
+
+          > a {
+            flex: 1;
+            margin: 0;
+            padding: 0;
+            float: none;
+            color: tok(text-body);
+            font-size: fs(13);
+            line-height: 1.5;
+            text-decoration: none;
+          }
+        }
+      }
+    }
+
+    // The menu button stands where the cloud puts it: 36 × 36 at the left edge of the row.
+    .mu-mega-root {
+      width: 36px;
+      height: 36px;
+      margin-right: 8px;
+    }
+
+    // The title in the row: one line, cut with an ellipsis before the actions.
+
+    .module-action-content > :first-child > a {
+      display: block;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .module-action-content > :first-child .module-title {
+      float: none;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    // The actions of the module header in the toolbar: the white buttons of the cloud toolbar (Sync, settings), the main
+    // action ("Add record") primary, 36 px.
+    .module-action-bar .navbar-right,
+    #appnav {
+      margin: 0;
+      float: none;
+    }
+
+    #appnav > .navbar {
+      min-height: 0;
+      margin: 0;
+      border: 0;
+      background: transparent;
+
+      > .container-fluid {
+        padding: 0;
+      }
+
+      .navbar-header {
+        display: none;
+      }
+
+      .navbar-collapse {
+        height: auto !important;
+        padding: 0;
+        border: 0;
+        box-shadow: none;
+      }
+    }
+
+    .module-action-bar .navbar-nav,
+    #appnav .navbar-nav {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 12px;
+      margin: 0;
+      float: none;
+
+      > li {
+        float: none;
+      }
+    }
+
+    // (not "Add record": it stays the primary button, _buttons.scss)
+    .module-action-bar .module-buttons.btn-default:not(:is(#{$add-record-ids})) {
+      min-height: 36px;
+      @include button-toolbar;
+    }
+
+    // Two buttons in one item of the module header (the add buttons of the calendar view).
+    .module-action-bar .navbar-nav > li > .module-buttons + .module-buttons {
+      margin-left: 12px;
+    }
+
+    .module-action-bar .module-buttons {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0;
+      white-space: nowrap;
+
+      > .fa:first-child {
+        margin: 0;
+      }
+    }
   }
 }

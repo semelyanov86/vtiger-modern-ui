@@ -14,7 +14,10 @@
 // What is hidden or replaced by the islands (app menu, …) is done only under html.mu-shell-ready with the
 // data-mu-replaced token of the mounted island, never here. Exception of stage 09 (docs/architecture.md A15): _layout.scss
 // places the page overlay of v7 as the record window, only while the shell marks it (.mu-record-overlay).
-// The layout of list screens without the module rail comes from the tokens stylesheet (ModernUI_Tokens_Model::layoutCss).
+// Stage 11 (docs/visual-parity.md, docs/architecture.md §7.8): _shell.scss lays the v7 header out as the cloud header
+// (one row, the toolbar of the page) and removes the permanent module rail — with CSS over the same v7 nodes, from the
+// first paint, only while the shell can run; the v7 layout comes back without scripts, after a failed shell and in the
+// standard view.
 @use '../styles/tokens' as *;
 @use '../styles/fonts';
 @use 'base';

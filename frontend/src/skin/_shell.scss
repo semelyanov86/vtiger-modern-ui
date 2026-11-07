@@ -1,62 +1,696 @@
-// Geometry of the navigation shell (docs/design.md §5.1, docs/architecture.md §7.5).
+// Geometry of the cloud shell (stage 11, docs/design.md §13.7, docs/architecture.md §7.8): the favorites bar, ONE main
+// row of the header (56 px) and the toolbar of the page under it — instead of the two rows of v7 (42 + 42 px) and the
+// permanent module rail on the left.
 //
-// The favorites bar (an island of the shell) lives in the fixed v7 header, above its rows. Its height comes from the
-// tokens stylesheet of the user (--mu-favorites-bar: 42px or 0px, render-blocking), so the space is reserved from the
-// first paint and nothing moves when the island mounts: the header grows by the bar, the page below it moves down by
-// the same amount (a block before the page content, additive to the padding v7 gives #page), and the fixed overlays
-// of v7 that are placed under the header follow.
+// Nothing of v7 is moved, cloned or rebuilt: the rows of the v7 header (.global-nav, .app-nav) are laid out again with
+// CSS. The main row is a flex row of the v7 nodes themselves (wrappers without a box get display: contents): the menu
+// button of the theme, the search, the action icons of the core and of extensions in their order, the system menu of the
+// theme, the company logo and the user menu. The title of the module (h4.module-title of the v7 module header) is placed
+// in the main row next to the menu button; the right part of the v7 module header (#appnav: Add, Import, Customize and
+// the buttons extensions put there) is the toolbar of the page, a 52 px band under the header on the page background.
+// Extensions keep inserting into #navbar ul.nav / #appnav ul.nav, and their buttons appear in the new places.
 //
-// The space is reserved only when the shell can run: scripting enabled, not in the standard view, not after a failed
-// start of the shell (html[data-mu-failed]) and not on pages the shell only skins (html[data-mu-level="skin"]). The
-// shell sets the variable inline from what it really mounted, which corrects a stale or failed tokens stylesheet.
+// The heights come from the first paint: the tokens stylesheet reserves the favorites bar (--mu-favorites-bar), the main
+// row is fixed, and the toolbar is reserved when the module header has a button (:has), so nothing moves when the shell
+// mounts. Everything applies only when the shell can run: scripting enabled, not in the standard view, not after a failed
+// start of the shell (html[data-mu-failed]) and not on pages the shell only skins (html[data-mu-level="skin"]); then the
+// v7 header is back as it was. The same file is part of the stylesheet of the shell (FavoritesBar.vue), so the layout
+// still holds when the skin stylesheet failed to load.
 @use '../styles/tokens' as *;
 
-@media (scripting: enabled) {
-  :root:not(.mu-off):not([data-mu-failed]):not([data-mu-level='skin']) {
+// The gate of the layout (see above).
+$gate: ':root:not(.mu-off):not([data-mu-failed]):not([data-mu-level="skin"])';
+// Main row of the header (cloud #topbar, V01) and the toolbar of the page under it (cloud .vds-bodyfixedheader, V03).
+$row: 56px;
+$tools: 52px;
+// Side padding of the header and of the toolbar (cloud: 24 px).
+$side: 24px;
+// The v7 header switches to its collapsed (phone) form below 768 px.
+$narrow: 767px;
+// The module header has an action of its own (a button or a link in the column right of the title).
+$has-tools: '#page > nav.app-fixed-navbar .module-action-content > :not(:first-child) :is(.btn, button, a[href])';
+
+@media screen and (scripting: enabled) {
+  #{$gate} {
     --mu-shell-bar: var(--mu-favorites-bar, 0px);
+    // The main row covers the last 2 px of the favorites bar, as in the cloud (bar 0–42, row 40–96).
+    --mu-shell-overlap: min(var(--mu-shell-bar), 2px);
+    --mu-shell-row: #{$row};
+    --mu-shell-header: calc(var(--mu-shell-bar) - var(--mu-shell-overlap) + var(--mu-shell-row));
+    --mu-shell-tools: 0px;
+  }
+
+  #{$gate}:has(#{$has-tools}),
+  #{$gate}:has(#page > nav.app-fixed-navbar > [data-mu-root='context-nav']) {
+    --mu-shell-tools: #{$tools};
   }
 }
 
-:root:not(.mu-off) {
-  #page > nav.app-fixed-navbar {
-    padding-top: var(--mu-shell-bar, 0px);
-    // The band of the bar while the island is not mounted yet (same colours as the bar).
+// ---- Page: offsets of the content and of the fixed layers of v7 under the header ----
+
+@media screen and (scripting: enabled) {
+  #{$gate} {
+    #page:has(> nav.app-fixed-navbar) {
+      padding-top: calc(var(--mu-shell-header) + var(--mu-shell-tools));
+    }
+
+    .main-container {
+      min-height: calc(100vh - var(--mu-shell-header) - var(--mu-shell-tools) - 24px);
+    }
+
+    // Values of the v7 skin relative to its 84 px header.
+    #overlayPage {
+      top: calc(var(--mu-shell-header) + 2px);
+    }
+
+    .overlayPageContent.fade.in {
+      top: calc(var(--mu-shell-header) - 1px);
+    }
+
+    #helpMeNow {
+      top: calc(var(--mu-shell-header) + 16px);
+    }
+
+    // Notifications of v7 (bootstrap-notify): placed under the header and the toolbar, whatever offset v7 computed from
+    // the old header row (helper._initNotificationDefaults reads .module-action-bar once).
+    .vt-notification[data-notify='container'] {
+      top: calc(var(--mu-shell-header) + var(--mu-shell-tools) + 12px) !important;
+    }
+  }
+}
+
+// ---- The fixed header ----
+
+@media screen and (scripting: enabled) {
+  #{$gate} #page > nav.app-fixed-navbar {
+    min-height: 0;
+    margin: 0;
+    padding-top: calc(var(--mu-shell-bar) - var(--mu-shell-overlap));
+    border: 0;
+    background-color: transparent;
+    // The band of the favorites bar while its island is not mounted yet (same colours as the bar).
     background-image: linear-gradient(
       to bottom,
       #{tok(surface-subtle)} 0,
-      #{tok(surface-subtle)} calc(var(--mu-shell-bar, 0px) - 1px),
-      #{tok(border)} calc(var(--mu-shell-bar, 0px) - 1px),
-      #{tok(border)} var(--mu-shell-bar, 0px),
-      transparent var(--mu-shell-bar, 0px)
+      #{tok(surface-subtle)} calc(var(--mu-shell-bar) - 1px),
+      #{tok(border)} calc(var(--mu-shell-bar) - 1px),
+      #{tok(border)} var(--mu-shell-bar),
+      transparent var(--mu-shell-bar)
     );
-  }
-
-  #page:has(> nav.app-fixed-navbar)::before {
-    content: '';
-    display: block;
-    height: var(--mu-shell-bar, 0px);
-  }
-
-  .main-container {
-    min-height: calc(100vh - 108px - var(--mu-shell-bar, 0px));
-  }
-
-  // Fixed parts of v7 placed under the header (values of the v7 skin plus the bar).
-  #overlayPage {
-    top: calc(86px + var(--mu-shell-bar, 0px));
-  }
-
-  .overlayPageContent.fade.in {
-    top: calc(83px + var(--mu-shell-bar, 0px));
-  }
-
-  #helpMeNow {
-    top: calc(100px + var(--mu-shell-bar, 0px));
+    background-repeat: no-repeat;
+    box-shadow: none;
   }
 }
 
-// Printing a page with the browser (a list, a record, a report): the paper gets what v7 prints — no favorites bar, no menu
-// buttons of the shell, no space reserved for them (stage 08). The same rule is in the stylesheet of the shell.
+// Main row, title and toolbar on screens of the desktop layout of v7.
+@media screen and (scripting: enabled) and (min-width: 768px) {
+  #{$gate}[data-mu-islands~='system-menu'] #page > nav.app-fixed-navbar > .global-nav #navbar::before {
+    content: none;
+  }
+
+  #{$gate} #page > nav.app-fixed-navbar {
+    // ---- Main row: [menu] [title] … [search] [actions of the core and of extensions] [system menu] | [logo] | [user] ----
+    > .global-nav {
+      position: relative;
+      height: var(--mu-shell-row);
+      margin: 0;
+      padding: 0 $side;
+      background-color: tok(surface);
+      box-shadow: tok(shadow-header);
+
+      > .row {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        height: 100%;
+        margin: 0;
+
+        &::before,
+        &::after {
+          content: none;
+        }
+
+        // Anything an extension puts into the row keeps its place among the actions, never before the menu button.
+        > * {
+          order: 20;
+        }
+
+        > .app-navigator-container,
+        > .app-navigator-container > .row {
+          display: contents;
+        }
+
+        > .navbar-header {
+          display: none;
+        }
+
+        // The search: a button-sized field that opens to the left (below).
+        > :has(> .search-links-container) {
+          order: 10;
+          flex: 0 1 auto;
+          width: auto;
+          min-width: 34px;
+          margin-left: auto;
+          padding: 0;
+          float: none;
+        }
+      }
+
+      // The global search of v7 as the cloud draws it: a 34 px button with the magnifier that opens into a 500 px field to
+      // the left while it has the focus or a text (the results page of the search); the input, its keys (Enter) and the
+      // advanced search (#adv-search) are the ones of v7. The field is the input itself, so a click or Tab opens it.
+      > .row > :has(> .search-links-container) {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        flex-basis: 34px;
+        height: var(--mu-shell-row);
+        background-color: tok(surface);
+
+        &:focus-within,
+        &:has(.keyword-input:not(:placeholder-shown)) {
+          flex-basis: 500px;
+        }
+      }
+
+      .search-links-container {
+        display: flex !important;
+        align-items: center;
+        width: 100%;
+        height: 36px !important;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        box-shadow: none;
+      }
+
+      .search-link {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 100%;
+        height: 36px;
+        margin: 0;
+        padding: 0;
+        border: 1px solid transparent;
+        border-radius: tok(radius-sm);
+        background-color: transparent;
+        box-shadow: none;
+        cursor: pointer;
+
+        > .fa-search {
+          position: absolute;
+          top: 50%;
+          left: 8px;
+          margin: 0;
+          font-size: 18px;
+          line-height: 1;
+          transform: translateY(-50%);
+          pointer-events: none;
+        }
+
+        .keyword-input {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          min-width: 0;
+          height: 100%;
+          padding: 0;
+          opacity: 0;
+          cursor: pointer;
+        }
+
+        .adv-search {
+          display: none;
+        }
+
+        &:hover > .fa-search {
+          color: tok(link);
+        }
+      }
+
+      .search-link:focus-within,
+      .search-link:has(.keyword-input:not(:placeholder-shown)) {
+        border-color: transparent;
+        background-color: tok(surface);
+        box-shadow: 0 0 0 1.92px tok(focus-ring);
+        cursor: text;
+
+        > .fa-search {
+          left: 12px;
+          color: tok(text-body);
+          font-size: 14px;
+        }
+
+        .keyword-input {
+          padding: 6px 36px;
+          opacity: 1;
+          cursor: text;
+        }
+
+        .adv-search {
+          position: absolute;
+          top: 50%;
+          right: 12px;
+          display: block;
+          margin: 0;
+          transform: translateY(-50%);
+        }
+      }
+
+      // The menu button of the theme (and the v7 hamburger while the v7 app menu has buttons of extensions).
+      .mu-mega-root,
+      #appnavigator {
+        order: 0;
+      }
+
+      #appnavigator {
+        display: flex;
+        flex: none;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        float: none;
+        border-radius: tok(radius-sm);
+        background-color: tok(primary-strong);
+
+        .app-navigator {
+          margin: 0;
+        }
+
+        .app-icon {
+          color: #ffffff;
+          font-size: 16px;
+          line-height: 1;
+        }
+      }
+
+      // The actions of v7 and of extensions: every item of #navbar ul.nav is an item of the row, in the order of v7.
+      #navbar.navbar-collapse.collapse {
+        display: contents !important;
+      }
+
+      #navbar > * {
+        order: 20;
+      }
+
+      // Own containers of the theme in #navbar: the menu button (a header without the v7 hamburger) and the system menu.
+      #navbar > .mu-mega-root {
+        order: 0;
+      }
+
+      #navbar > .mu-system-menu {
+        order: 25;
+      }
+
+      // Until the system menu of the theme mounts, its place among the actions is kept: the icons do not move when it
+      // arrives (the pseudo-element of the box-less #navbar is an item of the row).
+      #navbar::before {
+        content: '';
+        flex: none;
+        order: 25;
+        width: 36px;
+        height: 36px;
+      }
+
+      #navbar > .navbar-nav {
+        display: contents;
+
+        > li {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          flex: none;
+          align-items: center;
+          justify-content: center;
+          min-width: 36px;
+          height: var(--mu-shell-row);
+          margin: 0;
+          padding: 0;
+          float: none;
+          background-color: tok(surface);
+          order: 20;
+        }
+
+        // The user menu: last, after the logo.
+        > li:has(.userName) {
+          order: 40;
+        }
+      }
+
+      // The system menu of the theme: after the actions of the CRM, before the logo.
+      .mu-system-menu {
+        position: relative;
+        z-index: 1;
+        background-color: tok(surface);
+      }
+
+      // The company logo (the marks extensions or the CRM put under it stay inside the link).
+      .logo-container {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex: none;
+        align-items: center;
+        order: 30;
+        width: auto;
+        height: var(--mu-shell-row);
+        margin: 0;
+        padding: 0 16px;
+        float: none;
+        background-color: tok(surface);
+
+        > .row {
+          margin: 0;
+        }
+
+        // Dividers of the cloud: 1 × 24 px between the actions, the logo and the user.
+        &::before {
+          content: '';
+          position: absolute;
+          top: calc(50% - 12px);
+          left: 0;
+          width: 1px;
+          height: 24px;
+          background-color: tok(border);
+        }
+      }
+
+      // Divider, 10 px, the avatar, 11 px to the edge of the row (the dropdown button of the cloud is wider than the avatar).
+      #navbar > .navbar-nav > li:has(.userName) {
+        padding-right: 11px;
+        padding-left: 10px;
+
+        &::before {
+          content: '';
+          position: absolute;
+          top: calc(50% - 12px);
+          left: 0;
+          width: 1px;
+          height: 24px;
+          background-color: tok(border);
+        }
+      }
+    }
+
+    // ---- The second row of v7 is no row: the title goes to the main row, its actions to the toolbar ----
+    > .app-nav,
+    > .app-nav > .row {
+      position: static;
+      height: 0;
+      min-height: 0;
+      margin: 0;
+      padding: 0;
+    }
+
+    > .app-nav > .row {
+      &::before,
+      &::after {
+        content: none;
+      }
+    }
+
+    // The coloured app square of v7: the menu button of the cloud row takes its place.
+    > .app-nav .app-indicator-icon-container {
+      display: none;
+    }
+
+    // The toolbar of the page: a band under the header on the page background, the actions of the module header on the
+    // right (the left part belongs to the context navigation and, from stage 12, to the list controls).
+    > .app-nav .module-action-bar {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      left: 0;
+      width: auto;
+      height: var(--mu-shell-tools);
+      margin: 0;
+      padding: 0 $side;
+      border: 0;
+      background-color: tok(bg);
+
+      > .module-action-content {
+        position: static;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        background: transparent;
+
+        &::before,
+        &::after {
+          content: none;
+        }
+
+        // The column of the title: in the main row, right of the menu button (24 + 36 + 8 px).
+        > :first-child {
+          position: absolute;
+          top: calc(-1 * var(--mu-shell-row));
+          left: 68px;
+          display: flex;
+          align-items: center;
+          width: auto;
+          max-width: calc(100% - 68px - var(--mu-shell-actions, 50%));
+          height: var(--mu-shell-row);
+          margin: 0;
+          padding: 0;
+          float: none;
+          overflow: hidden;
+          white-space: nowrap;
+        }
+
+        // The columns of the actions.
+        > :not(:first-child) {
+          position: static;
+          display: flex;
+          flex: 0 1 auto;
+          align-items: center;
+          justify-content: flex-end;
+          width: auto;
+          min-width: 0;
+          height: 100%;
+          margin: 0 0 0 auto;
+          padding: 0;
+          float: none;
+        }
+      }
+    }
+  }
+}
+
+// ---- Phones (below 768 px): the collapsed header of v7 in one row ----
+//
+// v7 collapses its actions and the search behind two toggles (.navbar-header) and the module actions behind a third one;
+// the toggles stay, the panels they open drop down under the row. The logo stays (marks under it are part of it).
+@media screen and (scripting: enabled) and (max-width: $narrow) {
+  #{$gate} #page > nav.app-fixed-navbar {
+    > .global-nav {
+      position: relative;
+      min-height: var(--mu-shell-row);
+      margin: 0;
+      padding: 0 12px;
+      background-color: tok(surface);
+      box-shadow: tok(shadow-header);
+
+      > .row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        min-height: var(--mu-shell-row);
+        margin: 0;
+
+        &::before,
+        &::after {
+          content: none;
+        }
+
+        > .app-navigator-container {
+          display: flex;
+          flex: 1 1 auto;
+          align-items: center;
+          width: auto;
+          min-width: 0;
+          height: var(--mu-shell-row);
+          padding: 0;
+
+          > .row {
+            display: flex;
+            align-items: center;
+            margin: 0;
+          }
+        }
+
+        > .navbar-header {
+          display: flex;
+          flex: none;
+          padding: 0;
+
+          .navbar-toggle {
+            display: block;
+            margin: 0 0 0 4px;
+            padding: 8px 10px;
+          }
+        }
+
+        // The panels the toggles open: the full width under the row.
+        > :has(> .search-links-container),
+        > #navbar {
+          flex: 1 0 100%;
+          width: 100%;
+          margin: 0;
+          padding: 0;
+        }
+      }
+
+      .logo-container {
+        flex: none;
+        width: auto;
+        margin: 0 0 0 8px;
+        padding: 0;
+
+        > .row {
+          margin: 0;
+        }
+      }
+    }
+
+    > .app-nav,
+    > .app-nav > .row {
+      position: static;
+      height: 0;
+      min-height: 0;
+      margin: 0;
+      padding: 0;
+    }
+
+    > .app-nav .app-indicator-icon-container {
+      display: none;
+    }
+
+    // The title: right of the menu button would collide with the logo on a phone; it heads the toolbar instead.
+    > .app-nav .module-action-bar {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      left: 0;
+      width: auto;
+      height: $tools;
+      margin: 0;
+      padding: 0 12px;
+      border: 0;
+      background-color: tok(bg);
+
+      > .module-action-content {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        background: transparent;
+
+        > :first-child {
+          flex: 1 1 auto;
+          width: auto;
+          min-width: 0;
+          overflow: hidden;
+          white-space: nowrap;
+        }
+
+        > :not(:first-child) {
+          flex: none;
+          width: auto;
+        }
+
+        // A module header without the collapsed menu of v7 (the add buttons of the calendar): its buttons show their icons
+        // only (the label stays the accessible name), so they fit next to the title.
+        > :not(:first-child):not(:has(.navbar-collapse)) .module-buttons {
+          min-width: 36px;
+          font-size: 0;
+
+          > .fa,
+          > [class*='vicon-'] {
+            font-size: 14px;
+          }
+        }
+      }
+    }
+  }
+
+  // On a phone the toolbar always has the title; the context navigation gets a row of its own under it.
+  #{$gate}:has(#page > nav.app-fixed-navbar .module-action-content) {
+    --mu-shell-tools: #{$tools};
+  }
+
+  #{$gate}:has(#page > nav.app-fixed-navbar > [data-mu-root='context-nav']) {
+    --mu-shell-tools: #{$tools + 44px};
+  }
+}
+
+// ---- No permanent module rail (V02/V03): the modules are in the mega menu and the favorites ----
+//
+// The rail of v7 (#modnavigator with the strip of the modules of the current app) is gone on the working screens, with
+// the space it took. Its entries are covered by the menu of the theme; entries the menu does not cover (the views of the
+// calendar, links of extensions) are in the context navigation of the toolbar (shell, ContextNav.vue). A strip with an
+// entry without a link (a button of an extension) keeps the rail: the shell sets html[data-mu-keep-rail]. The navigation
+// of the settings (#modnavigator.settingsNav) and of the user preferences is no rail of modules and stays.
+$rail: '#modnavigator:has(> .mod-switcher-container)';
+// The same inside :has() (a :has() cannot contain another one).
+$rail-strip: '#modnavigator > .mod-switcher-container';
+
+@media screen and (scripting: enabled) {
+  #{$gate}:not([data-mu-keep-rail]) {
+    .main-container > #{$rail},
+    .main-container > .row > #{$rail} {
+      display: none !important;
+    }
+
+    // The page overlay of v7 kept 42 px free for the rail; the footer of the report steps continued it.
+    .overlay-container-60 {
+      margin-left: 0;
+    }
+
+    .modal-overlay-footer {
+      border-left: 0;
+    }
+  }
+}
+
+@media screen and (scripting: enabled) and (min-width: 992px) {
+  #{$gate}:not([data-mu-keep-rail]) .main-container:has(> #{$rail-strip}) {
+    > .sidebar-essentials {
+      left: 0;
+    }
+
+    > .content-area {
+      padding-left: 241px;
+    }
+
+    > .content-area.full-width {
+      padding-left: 0;
+    }
+  }
+
+  // Record and form pages: the content took 3 % on the left for the rail.
+  #{$gate}:not([data-mu-keep-rail]) .main-container:has(#{$rail-strip}) .viewContent .content-area {
+    padding-left: 15px;
+  }
+
+  // Documents and reports had no rail in v7 already (width 0) and a sidebar of 283 px: the same sidebar as the others.
+  #{$gate}:not([data-mu-keep-rail]) {
+    .main-container-Documents .sidebar-essentials,
+    .main-container-Reports .sidebar-essentials {
+      width: 240px;
+    }
+  }
+}
+
+// Printing a page with the browser (a list, a record, a report): the paper gets what v7 prints — the layout above is for the
+// screen only; no favorites bar, no menu buttons of the shell, no space reserved for them (stage 08). The same rule is in
+// the stylesheet of the shell.
 @media print {
   :root:not(.mu-off) {
     --mu-shell-bar: 0px !important;
@@ -64,6 +698,7 @@
     [data-mu-root='favorites'],
     [data-mu-root='mega-menu'],
     [data-mu-root='system-menu'],
+    [data-mu-root='context-nav'],
     #mu-overlay-root {
       display: none !important;
     }

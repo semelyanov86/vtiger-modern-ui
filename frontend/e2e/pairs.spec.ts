@@ -33,6 +33,13 @@ async function step(page: Page, name: string): Promise<void> {
     await page.locator('#listViewContent tr.listViewEntries[data-id] a[href*="view=Detail"]:not([href*="mode="])').filter({ visible: true }).first().click()
     await expect(page.locator('html[data-mu-record]')).toHaveCount(1)
     await expect(page.locator('#overlayPageContent.in .overlayDetail')).toBeVisible()
+  } else if (name === 'open-menu') {
+    await page.locator('[data-mu-trigger="mega-menu"]').click()
+    await expect(page.locator('[data-mu-panel="mega-menu"]')).toBeVisible()
+    await expect(page.locator('[data-mu-field="menu-search"]')).toBeFocused()
+  } else if (name === 'search-nothing') {
+    await page.locator('[data-mu-field="menu-search"]').fill('zzqx')
+    await expect(page.locator('.mu-mega__empty')).toBeVisible()
   } else if (name === 'open-edit') {
     await page.locator('#overlayPageContent .editRelatedRecord').click()
     await expect(page.locator('#overlayPageContent form#EditView')).toBeVisible()

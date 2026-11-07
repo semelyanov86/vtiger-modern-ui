@@ -85,7 +85,11 @@
     "noResults": "No module matches “{query}”.",
     "sections": "Sections",
     "service": "Service and settings",
-    "more": "More"
+    "more": "More",
+    "modules": "Modules",
+    "configuration": "Configuration",
+    "personalize": "Personalize",
+    "footer": "Settings of the CRM and of the interface"
   },
   "favorites": {
     "label": "Favorites",
@@ -98,10 +102,10 @@
     "added": "“{module}” is in your favorites now.",
     "removed": "“{module}” is no longer in your favorites."
   },
-  "rail": {
-    "label": "Modules of the section {group}"
-  },
   "record": {
     "fallback": "The record could not open over the list — opening its page."
+  },
+  "context": {
+    "label": "Views of the module"
   }
 }

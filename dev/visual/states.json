@@ -1,9 +1,69 @@
 {
   "_doc": "Comparable states of the cloud reference and of ModernUI (docs/visual-parity.md §3, §5; docs/design.md §13). Public: only state ids, routes of a standard Vtiger 8.4 and selectors. The cloud measurements, screenshots and the manifest live in the private directory (PRIVATE.md). 'ref' names elements of the cloud measurements (several = their union box), 'theme' is the selector on the page of ModernUI, 'check' the geometry compared (x, y, w, h) and the styles compared exactly, 'shift' moves the cloud box up by the excluded trial banner.",
-  "viewport": { "width": 1440, "height": 1000 },
+  "viewport": {"width": 1440, "height": 1000},
   "banner": 40,
-  "tolerance": { "size": 2, "position": 4 },
+  "tolerance": {"size": 2, "position": 4},
   "states": [
+    {
+      "id": "V01-header",
+      "reference": "V03-list-accounts",
+      "screenshot": "V03-list-accounts.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": [],
+      "elements": {
+        "header": {"ref": ["favBar", "topbar"], "theme": "#page > nav.app-fixed-navbar", "check": ["y", "h"], "shift": true},
+        "favorites": {"ref": ["favBar"], "theme": "[data-mu-root='favorites'] .mu-favbar", "check": ["y", "h"], "styles": ["bg"], "shift": true},
+        "favStar": {"ref": ["favStar"], "theme": "[data-mu-root='favorites'] .mu-favbar__star svg", "check": ["x"], "styles": ["color"]},
+        "favItem": {"ref": ["favItemActive"], "theme": "[data-mu-root='favorites'] .mu-favbar__tab", "check": ["x", "h"]},
+        "favItemColor": {"ref": ["favItem2"], "theme": "[data-mu-root='favorites'] .mu-favbar__tab:not([aria-current])", "styles": ["color"]},
+        "row": {"ref": ["topbar"], "theme": "#page > nav.app-fixed-navbar > .global-nav", "check": ["y", "h", "w"], "styles": ["bg", "shadow"], "shift": true},
+        "menuButton": {"ref": ["menuBtn"], "theme": ".mu-mega__trigger", "check": ["x", "y", "w", "h"], "styles": ["bg", "radius"], "shift": true},
+        "title": {"ref": ["moduleTitle"], "theme": "#page > nav.app-fixed-navbar .module-action-content > :first-child .module-title", "check": ["x", "y"], "styles": ["size", "weight", "color"], "shift": true},
+        "search": {"ref": ["searchIcon"], "theme": "#page > nav.app-fixed-navbar .search-link", "check": ["y", "w"], "shift": true},
+        "avatar": {"ref": ["avatar"], "theme": "#navbar a.userName", "check": ["x", "y", "w", "h"], "styles": ["radius"], "shift": true},
+        "toolbar": {"ref": ["toolbar"], "theme": "#page > nav.app-fixed-navbar .module-action-bar", "check": ["y", "h"], "styles": ["bg"], "shift": true},
+        "addInToolbar": {"ref": ["addBtn"], "theme": "#Accounts_listView_basicAction_LBL_ADD_RECORD", "check": ["y"], "styles": ["bg", "color"], "shift": true}
+      }
+    },
+    {
+      "id": "V02-menu",
+      "reference": "V02-menu-open",
+      "screenshot": "V02-menu-open.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": ["open-menu"],
+      "elements": {
+        "panel": {"ref": ["menuPanel"], "theme": ".mu-mega", "check": ["x", "y", "w"], "styles": ["bg", "shadow"], "shift": true},
+        "bar": {"ref": ["menuBar"], "theme": ".mu-mega__bar", "check": ["x", "y", "w", "h"], "styles": ["bg"], "shift": true},
+        "close": {"ref": ["menuClose"], "theme": ".mu-mega__close", "check": ["x", "y", "w", "h"], "styles": ["bg", "radius"], "shift": true},
+        "search": {"ref": ["menuSearch"], "theme": ".mu-mega__search-input", "check": ["x", "y", "w", "h"], "styles": ["bg", "radius", "size", "color"], "shift": true},
+        "apps": {"ref": ["appsCol"], "theme": ".mu-mega__groups", "check": ["x", "y", "w"], "shift": true},
+        "app": {"ref": ["appItem"], "theme": ".mu-mega__group:not(.mu-mega__group--active)", "check": ["w", "h"]},
+        "appActive": {"ref": ["appItemActive"], "theme": ".mu-mega__group--active", "check": ["w", "h"], "styles": ["bg", "shadow", "bLeft"]},
+        "appLabel": {"ref": ["appLabel"], "theme": ".mu-mega__group--active .mu-mega__group-label", "styles": ["size", "color"]},
+        "modules": {"ref": ["modulesPanel"], "theme": ".mu-mega__panel", "check": ["x", "y"], "styles": ["bg"], "shift": true},
+        "modulesHeader": {"ref": ["modulesHeader"], "theme": ".mu-mega__modules .mu-mega__heading", "check": ["x", "y", "w", "h"], "styles": ["size", "color", "bBottom", "pad"], "shift": true},
+        "groupTitle": {"ref": ["groupTitle"], "theme": ".mu-mega__columns .mu-mega__subhead", "check": ["y", "h"], "styles": ["size", "color"], "shift": true},
+        "moduleLink": {"ref": ["moduleLinkA"], "theme": ".mu-mega__columns .mu-mega__link", "check": ["x", "y", "w", "h"], "styles": ["radius", "size", "color"], "shift": true},
+        "settings": {"ref": ["settingsCol"], "theme": ".mu-mega__service", "check": ["x", "y", "w"], "shift": true},
+        "settingsHeader": {"ref": ["settingsHeader"], "theme": ".mu-mega__heading--service", "check": ["x", "y", "h"], "styles": ["size", "pad"], "shift": true},
+        "settingsGroup": {"ref": ["settingsGroupTitle"], "theme": ".mu-mega__subhead--service", "check": ["y"], "styles": ["size", "color"], "shift": true},
+        "footer": {"ref": ["menuFooter"], "theme": ".mu-mega__footer", "check": ["w", "h"], "styles": ["bg"]},
+        "footerButton": {"ref": ["footerBtn"], "theme": ".mu-mega__footer-button", "check": ["x", "h"], "styles": ["bg"]}
+      }
+    },
+    {
+      "id": "V02-menu-search-empty",
+      "reference": "V02-menu-open",
+      "screenshot": "V02-menu-search-empty.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": ["open-menu", "search-nothing"],
+      "elements": {
+        "panel": {"ref": ["menuPanel"], "theme": ".mu-mega", "check": ["x", "y", "w"], "shift": true}
+      }
+    },
     {
       "id": "V03-list",
       "reference": "V03-list-accounts",
@@ -12,14 +72,14 @@
       "url": "index.php?module=Accounts&view=List",
       "steps": [],
       "elements": {
-        "header": { "ref": ["favBar", "topbar"], "theme": "#page > nav.app-fixed-navbar", "check": ["y", "h"], "shift": true },
-        "favorites": { "ref": ["favBar"], "theme": "[data-mu-root='favorites']", "check": ["y", "h"], "styles": ["bg"], "shift": true },
-        "listTop": { "ref": ["table"], "theme": "#listview-table", "check": ["y"], "shift": true },
-        "listLeft": { "ref": ["table"], "theme": "#listview-table", "check": ["x"], "shift": true },
-        "headerCell": { "ref": ["th"], "theme": "#listview-table thead th:nth-child(3)", "check": ["h"], "styles": ["font", "size", "weight", "color", "tt"] },
-        "rowCell": { "ref": ["td"], "theme": "#listview-table tbody tr.listViewEntries td:nth-child(3)", "check": ["h"], "styles": ["font", "size", "color"] },
-        "addButton": { "ref": ["addBtn"], "theme": "#Accounts_listView_basicAction_LBL_ADD_RECORD", "check": ["h"], "styles": ["bg", "color", "radius", "font"] },
-        "pageBackground": { "ref": ["body"], "theme": "#listViewContent", "styles": ["bg"] }
+        "header": {"ref": ["favBar", "topbar"], "theme": "#page > nav.app-fixed-navbar", "check": ["y", "h"], "shift": true},
+        "favorites": {"ref": ["favBar"], "theme": "[data-mu-root='favorites'] .mu-favbar", "check": ["y", "h"], "styles": ["bg"], "shift": true},
+        "listTop": {"ref": ["table"], "theme": "#listview-table", "check": ["y"], "shift": true},
+        "listLeft": {"ref": ["table"], "theme": "#listview-table", "check": ["x"], "shift": true},
+        "headerCell": {"ref": ["th"], "theme": "#listview-table thead th:nth-child(3)", "check": ["h"], "styles": ["font", "size", "weight", "color", "tt"]},
+        "rowCell": {"ref": ["td"], "theme": "#listview-table tbody tr.listViewEntries td:nth-child(3)", "check": ["h"], "styles": ["font", "size", "color"]},
+        "addButton": {"ref": ["addBtn"], "theme": "#Accounts_listView_basicAction_LBL_ADD_RECORD", "check": ["h"], "styles": ["bg", "color", "radius", "font"]},
+        "pageBackground": {"ref": ["body"], "theme": "#listViewContent", "styles": ["bg"]}
       }
     },
     {
@@ -30,11 +90,11 @@
       "url": "index.php?module=Accounts&view=List",
       "steps": ["open-first-record"],
       "elements": {
-        "window": { "ref": ["deepdiveBg"], "theme": "#overlayPageContent", "check": [] },
-        "blockCard": { "ref": ["blockCard"], "theme": "#overlayPageContent .overlayDetail .block, #overlayPageContent .overlayDetail .detailview-table", "styles": ["bg", "radius"] },
-        "blockHeader": { "ref": ["blockHeaderText"], "theme": "#overlayPageContent .overlayDetail .blockHeader, #overlayPageContent .overlayDetail h4", "styles": ["size", "weight"] },
-        "fieldLabel": { "ref": ["fieldLabel"], "theme": "#overlayPageContent .overlayDetail td.fieldLabel", "styles": ["size", "color"] },
-        "fieldValue": { "ref": ["fieldValue"], "theme": "#overlayPageContent .overlayDetail td.fieldValue", "check": ["h"], "styles": ["bg", "radius"] }
+        "window": {"ref": ["deepdiveBg"], "theme": "#overlayPageContent", "check": []},
+        "blockCard": {"ref": ["blockCard"], "theme": "#overlayPageContent .overlayDetail .block, #overlayPageContent .overlayDetail .detailview-table", "styles": ["bg", "radius"]},
+        "blockHeader": {"ref": ["blockHeaderText"], "theme": "#overlayPageContent .overlayDetail .blockHeader, #overlayPageContent .overlayDetail h4", "styles": ["size", "weight"]},
+        "fieldLabel": {"ref": ["fieldLabel"], "theme": "#overlayPageContent .overlayDetail td.fieldLabel", "styles": ["size", "color"]},
+        "fieldValue": {"ref": ["fieldValue"], "theme": "#overlayPageContent .overlayDetail td.fieldValue", "check": ["h"], "styles": ["bg", "radius"]}
       }
     },
     {
@@ -45,11 +105,11 @@
       "url": "index.php?module=Accounts&view=List",
       "steps": ["open-first-record"],
       "elements": {
-        "window": { "ref": ["dialog"], "theme": "#overlayPageContent", "check": ["x", "y", "w", "h"], "styles": ["radius"] },
-        "header": { "ref": ["header"], "theme": "#overlayPageContent .overlayDetailHeader", "check": ["h"], "styles": ["bg"] },
-        "title": { "ref": ["recordTitle"], "theme": "#overlayPageContent .overlayDetailHeader .recordLabel, #overlayPageContent .overlayDetailHeader .name", "styles": ["font", "size", "weight", "color"] },
-        "tabs": { "ref": ["tabsBar"], "theme": "#overlayPageContent .related-tabs, #overlayPageContent .nav-tabs", "check": ["h"] },
-        "button": { "ref": ["headerBtnSecondary"], "theme": "#overlayPageContent .overlayDetailHeader .btn", "check": ["h"], "styles": ["bg", "radius", "font"] }
+        "window": {"ref": ["dialog"], "theme": "#overlayPageContent", "check": ["x", "y", "w", "h"], "styles": ["radius"]},
+        "header": {"ref": ["header"], "theme": "#overlayPageContent .overlayDetailHeader", "check": ["h"], "styles": ["bg"]},
+        "title": {"ref": ["recordTitle"], "theme": "#overlayPageContent .overlayDetailHeader .recordLabel, #overlayPageContent .overlayDetailHeader .name", "styles": ["font", "size", "weight", "color"]},
+        "tabs": {"ref": ["tabsBar"], "theme": "#overlayPageContent .related-tabs, #overlayPageContent .nav-tabs", "check": ["h"]},
+        "button": {"ref": ["headerBtnSecondary"], "theme": "#overlayPageContent .overlayDetailHeader .btn", "check": ["h"], "styles": ["bg", "radius", "font"]}
       }
     },
     {
@@ -60,14 +120,14 @@
       "url": "index.php?module=Accounts&view=List",
       "steps": ["open-first-record", "open-edit"],
       "elements": {
-        "window": { "ref": ["dialog"], "theme": "#overlayPageContent", "check": ["x", "y", "w", "h"] },
-        "header": { "ref": ["editHeader"], "theme": "#overlayPageContent .overlayHeader", "check": ["h"], "styles": ["bg"] },
-        "title": { "ref": ["editTitle"], "theme": "#overlayPageContent .overlayHeader h4, #overlayPageContent .overlayHeader .modal-title", "styles": ["size", "weight"] },
-        "sections": { "ref": ["sectionsNav"], "theme": "#overlayPageContent .mu-sections", "check": ["w"] },
-        "blockCard": { "ref": ["blockCard"], "theme": "#overlayPageContent .fieldBlockContainer", "styles": ["bg", "radius", "shadow"] },
-        "input": { "ref": ["input"], "theme": "#overlayPageContent form#EditView input.inputElement[type=text]", "check": ["h"], "styles": ["radius", "bBottom"] },
-        "footer": { "ref": ["footer"], "theme": "#overlayPageContent .overlayFooter", "check": ["h"], "styles": ["bg"] },
-        "save": { "ref": ["saveBtn"], "theme": "#overlayPageContent .overlayFooter .saveButton", "check": ["h"], "styles": ["bg", "color", "radius"] }
+        "window": {"ref": ["dialog"], "theme": "#overlayPageContent", "check": ["x", "y", "w", "h"]},
+        "header": {"ref": ["editHeader"], "theme": "#overlayPageContent .overlayHeader", "check": ["h"], "styles": ["bg"]},
+        "title": {"ref": ["editTitle"], "theme": "#overlayPageContent .overlayHeader h4, #overlayPageContent .overlayHeader .modal-title", "styles": ["size", "weight"]},
+        "sections": {"ref": ["sectionsNav"], "theme": "#overlayPageContent .mu-sections", "check": ["w"]},
+        "blockCard": {"ref": ["blockCard"], "theme": "#overlayPageContent .fieldBlockContainer", "styles": ["bg", "radius", "shadow"]},
+        "input": {"ref": ["input"], "theme": "#overlayPageContent form#EditView input.inputElement[type=text]", "check": ["h"], "styles": ["radius", "bBottom"]},
+        "footer": {"ref": ["footer"], "theme": "#overlayPageContent .overlayFooter", "check": ["h"], "styles": ["bg"]},
+        "save": {"ref": ["saveBtn"], "theme": "#overlayPageContent .overlayFooter .saveButton", "check": ["h"], "styles": ["bg", "color", "radius"]}
       }
     }
   ]

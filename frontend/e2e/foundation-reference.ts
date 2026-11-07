@@ -53,7 +53,7 @@ export const reference: Readonly<Record<string, Expectation>> = {
     css: { 'background-color': SECONDARY, color: TEXT_BODY, 'border-top-left-radius': '4px', 'padding-left': '16px' },
     size: { height: 36.5 },
   },
-  'button.toolbar': { role: 'toolbar button on the grey page (#syncNow); measured on the last button of the mass actions box', css: { 'background-color': WHITE, color: TEXT, 'border-top-right-radius': '4px' } },
+  'button.toolbar': { role: 'toolbar button on the grey page (#syncNow), no change on hover; measured on the actions of the module toolbar (stage 11) and the last button of the mass actions box', css: { 'background-color': WHITE, color: TEXT, 'border-top-right-radius': '4px' } },
   'button.disabled': { role: 'disabled button (page jump of the pager)', css: { opacity: '0.65' } },
 
   'field.input': {

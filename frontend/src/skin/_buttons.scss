@@ -12,10 +12,8 @@
 @use '../styles/tokens' as *;
 @use '../styles/components' as *;
 
-// "Add record" of the list and of the module header (Vtiger/ModuleHeader.tpl: id <Module>_listView_basicAction_LBL_ADD_RECORD;
-// the calendar: …_LBL_ADD_EVENT / …_LBL_ADD_TASK). Matched by the id of the action: v7 gives the class .addButton to
-// every basic action (Import too), so the class cannot tell the main action.
-$add-record: ".btn[id$='_basicAction_LBL_ADD_RECORD'], .btn[id$='_basicAction_LBL_ADD_EVENT'], .btn[id$='_basicAction_LBL_ADD_TASK']";
+// "Add record" of the list, of the module header and of the calendar ($add-record-ids, styles/_components.scss).
+$add-record: ".btn:is(#{$add-record-ids})";
 
 :root:not(.mu-off) {
   .btn {

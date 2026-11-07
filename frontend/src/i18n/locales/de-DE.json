@@ -85,7 +85,11 @@
     "noResults": "Kein Modul passt zu „{query}“.",
     "sections": "Bereiche",
     "service": "Service und Einstellungen",
-    "more": "Weitere"
+    "more": "Weitere",
+    "modules": "Module",
+    "configuration": "Konfiguration",
+    "personalize": "Personalisieren",
+    "footer": "Einstellungen des CRM und der Oberfläche"
   },
   "favorites": {
     "label": "Favoriten",
@@ -98,10 +102,10 @@
     "added": "„{module}“ ist jetzt in Ihren Favoriten.",
     "removed": "„{module}“ ist nicht mehr in Ihren Favoriten."
   },
-  "rail": {
-    "label": "Module des Bereichs „{group}“"
-  },
   "record": {
     "fallback": "Der Datensatz konnte nicht über der Liste geöffnet werden – seine Seite wird geöffnet."
+  },
+  "context": {
+    "label": "Ansichten des Moduls"
   }
 }

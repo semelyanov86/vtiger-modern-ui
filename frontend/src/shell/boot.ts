@@ -15,7 +15,8 @@ import { fetchBootstrap } from '../api/client'
 import { ApiError } from '../api/guards'
 import type { Bootstrap } from '../api/types'
 import { detectPageLevel, hostReady } from '../adapters/v7/host'
-import { coveredBy, scanMenu, type ExtraLink } from '../adapters/v7/appMenu'
+import { contextEntries, coveredBy, scanMenu, type ExtraLink } from '../adapters/v7/appMenu'
+import { startHeader } from '../adapters/v7/header'
 import { pageContext } from '../adapters/v7/page'
 import { createThemeI18n } from '../i18n'
 import { createContainer, createScope, IslandRuntime, setReplaced } from '../boot/runtime'
@@ -25,10 +26,9 @@ import { CLIENT_ADAPTERS } from '../adapters/ext'
 import SystemMenu from './SystemMenu.vue'
 import MegaMenu from './MegaMenu.vue'
 import FavoritesBar from './FavoritesBar.vue'
-import ModuleRail from './ModuleRail.vue'
+import ContextNav from './ContextNav.vue'
 import Brand from './Brand.vue'
 import { createFavorites, type FavoritesStore } from './nav/favorites'
-import { currentGroup } from './nav/model'
 import { startRecordOverlay, supportsRecordOverlay } from '../record/overlay'
 
 const READY_CLASS = 'mu-shell-ready'
@@ -51,6 +51,13 @@ const runtime = new IslandRuntime()
 let adapters: RunningAdapters | null = null
 /** The record over the list of a screen with the cloud layout (docs/architecture.md A15). */
 let recordOverlay: ReturnType<typeof createScope> | null = null
+/** The v7 header in the cloud layout: initials, Escape of the search, room of the title (adapters/v7/header.ts). */
+let header: ReturnType<typeof createScope> | null = null
+
+function stopHeader(): void {
+  header?.dispose()
+  header = null
+}
 
 function stopRecordOverlay(): void {
   recordOverlay?.dispose()
@@ -82,14 +89,9 @@ function registerIslands(data: Bootstrap, i18n: ReturnType<typeof createThemeI18
   const favorites = createFavorites(data)
   runtime.register({
     id: 'system-menu',
-    // With the favorites bar: at its right end (own container of the fixed header), so the row of v7 actions keeps the
-    // width v7 gives it. Without it: next to the v7 actions, never inside a foreign <ul> (extensions use #navbar li:eq(0)).
+    // In the main row of the header, among the actions (the row orders it before the logo), never inside a foreign <ul>
+    // (extensions use #navbar li:eq(0)).
     place: () => {
-      const header = document.querySelector('#page > nav.app-fixed-navbar')
-      if (favorites.visible && header !== null) {
-        overlayRoot()
-        return { kind: 'insert', parent: header, before: null, className: 'mu-system-menu mu-system-menu--bar' }
-      }
       const navbar = document.getElementById('navbar')
       if (navbar?.closest('nav.app-fixed-navbar') == null) {
         return null
@@ -123,10 +125,11 @@ function registerIslands(data: Bootstrap, i18n: ReturnType<typeof createThemeI18
 const BAR_VARIABLE = '--mu-favorites-bar'
 
 /**
- * Navigation of the theme (docs/design.md §5.1, docs/architecture.md §7.1): the mega menu instead of the v7 app
- * menu, the favorites bar above the header and the module rail of the current section instead of the v7 strip.
- * A v7 original is hidden only when the theme covers all of its entries; links the theme menu does not have stay
- * reachable in the mega menu, and an entry without a link (a button of an extension) keeps the original visible.
+ * Navigation of the theme (docs/design.md §13.7, docs/architecture.md §7.8): the mega menu instead of the v7 app menu,
+ * the favorites bar above the header, no permanent module rail — the context navigation of the page takes what the v7
+ * strip offered beyond the menu. A v7 original is hidden only when the theme covers all of its entries; links the theme
+ * menu does not have stay reachable in the mega menu, and an entry without a link (a button of an extension) keeps the
+ * original visible.
  */
 function registerNavigation(data: Bootstrap, i18n: ReturnType<typeof createThemeI18n>, favorites: FavoritesStore): void {
   const page = pageContext()
@@ -197,40 +200,30 @@ function registerNavigation(data: Bootstrap, i18n: ReturnType<typeof createTheme
     })
   }
 
-  const group = currentGroup(data.menu.groups, page)
-  // The capability check runs again after every re-render of the page: tell about a kept v7 strip once per page.
-  let railNoticeShown = false
-  if (data.layout.modules.includes(page.module) && page.view === 'List') {
-    // Cloud layout (docs/architecture.md A15): the tokens stylesheet removes the rail of this screen from the first paint.
-    // Entries the theme menu does not cover bring the v7 rail back (html[data-mu-keep-rail]).
-    const strip = document.querySelector('#modnavigator > .mod-switcher-container')
-    const scan = strip !== null ? scanMenu(strip, covered) : { extras: [], foreign: [] }
-    if (scan.foreign.length > 0 || scan.extras.length > 0) {
+  // No permanent module rail (docs/design.md §13.7): the stylesheet hides the v7 strip from the first paint, its modules are
+  // in the mega menu and the favorites. What the strip offered beyond them — the views of the calendar, links of
+  // extensions — is the context navigation in the toolbar. An entry without a link (a button of an extension) cannot be
+  // offered elsewhere: the v7 strip stays on this page (html[data-mu-keep-rail]).
+  const strip = document.querySelector('#modnavigator > .mod-switcher-container')
+  if (strip !== null) {
+    const scan = scanMenu(strip, covered)
+    if (scan.foreign.length > 0) {
       document.documentElement.setAttribute('data-mu-keep-rail', '')
-      console.info('[ModernUI] the v7 module strip has entries the theme menu does not cover: it stays on this screen')
+      console.info(`[ModernUI] the v7 module strip has entries without a link (${scan.foreign.slice(0, 5).join(', ')}): it stays on this page`)
+    } else {
+      const entries = contextEntries(strip, page.module, covered)
+      if (entries.length > 0) {
+        runtime.register({
+          id: 'context-nav',
+          // The left part of the toolbar under the header (an own container of the fixed header, like the favorites).
+          place: () => {
+            const nav = document.querySelector('#page > nav.app-fixed-navbar')
+            return nav === null ? null : { kind: 'insert', parent: nav, before: null, className: 'mu-context-root' }
+          },
+          create: () => createApp(ContextNav, { entries, page }).use(i18n),
+        })
+      }
     }
-  } else if (group !== null) {
-    runtime.register({
-      id: 'module-rail',
-      place: () => {
-        const rail = document.getElementById('modnavigator')
-        const strip = rail?.querySelector(':scope > .mod-switcher-container') ?? null
-        if (rail === null || strip === null) {
-          return null
-        }
-        const scan = scanMenu(strip, covered)
-        if (scan.foreign.length > 0 || scan.extras.length > 0) {
-          if (!railNoticeShown) {
-            railNoticeShown = true
-            console.info('[ModernUI] the v7 module strip has entries the theme menu does not cover: it stays as it is')
-          }
-          return null
-        }
-        return { kind: 'insert', parent: rail, before: strip, className: 'mu-rail-root hidden-xs hidden-sm' }
-      },
-      replaces: 'module-rail',
-      create: () => createApp(ModuleRail, { group, page }).use(i18n),
-    })
   }
 }
 
@@ -248,6 +241,7 @@ function removeMarkers(): void {
  * Used after "switch to the standard view".
  */
 export function teardown(): void {
+  stopHeader()
   stopRecordOverlay()
   stopAdapters()
   runtime.stop()
@@ -292,6 +286,8 @@ export async function boot(): Promise<void> {
       const i18n = createThemeI18n(data.locale.effective)
       registerIslands(data, i18n)
       runtime.start()
+      header = createScope('header')
+      startHeader(header)
       html.classList.add(READY_CLASS)
       if (supportsRecordOverlay(page.module, page.view, data.layout.modules)) {
         recordOverlay = createScope('record-overlay')
@@ -303,6 +299,7 @@ export async function boot(): Promise<void> {
     adapters = await startAdapters(data.adapters, page, CLIENT_ADAPTERS)
   } catch (error) {
     const code = error instanceof BootError ? error.code : error instanceof ApiError ? error.code : 'shell-error'
+    stopHeader()
     stopRecordOverlay()
     stopAdapters()
     runtime.stop()

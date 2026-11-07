@@ -75,65 +75,38 @@ function select(item: SystemItem, event: Event): void {
 @use '../styles/tokens' as *;
 
 .mu-root.mu-system-menu {
-  float: right;
   display: flex;
+  flex: none;
   align-items: center;
-  // The row of v7 actions is 42 px high (.global-actions): a taller container would make the fixed header grow.
-  height: 42px;
-  padding: 0 4px 0 8px;
-
-  // The mega menu has the same entries (service column): between 768 and 991 px the row of v7 actions has no room
-  // for one more button, so it stays only there.
-  @media (min-width: 768px) and (max-width: 991px) {
-    html[data-mu-islands~='mega-menu'] #navbar > & {
-      display: none;
-    }
-  }
-}
-
-// At the right end of the favorites bar (fixed to the window like the bar).
-.mu-root.mu-system-menu.mu-system-menu--bar {
-  position: fixed;
-  top: 0;
-  right: 0;
-  z-index: 2;
-  float: none;
-  padding: 0 12px 0 8px;
+  justify-content: center;
+  // An icon of the main row of the header (56 px), like the action icons of the CRM next to it.
+  height: 100%;
+  min-width: 36px;
   color: tok(text-heading);
-
-  .mu-system-menu__trigger {
-    width: 32px;
-    height: 32px;
-    border-radius: tok(radius-sm);
-
-    &:hover,
-    &[data-state='open'] {
-      background: tok(surface-readonly);
-    }
-  }
 }
 
 .mu-root .mu-system-menu__trigger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: tok(icon-button);
-  height: tok(icon-button);
+  width: 36px;
+  height: 36px;
   padding: 0;
   border: 0;
-  border-radius: 50%;
+  border-radius: tok(radius-sm);
   background: transparent;
   color: inherit;
   cursor: pointer;
+  @include transition(color);
 
   &:hover,
   &[data-state='open'] {
-    background: rgba(255, 255, 255, 0.16);
+    color: tok(link);
   }
 
   &:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px tok(focus-ring);
+    @include focus-ring;
   }
 }
 

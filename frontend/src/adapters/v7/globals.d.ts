@@ -15,5 +15,7 @@ declare global {
     app?: unknown
     /** Page metadata printed by Header.tpl ({module, view, parent, …}). */
     _META?: unknown
+    /** The current user printed by Header.tpl ({id, userlabel, …}). */
+    _USERMETA?: unknown
   }
 }

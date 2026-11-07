@@ -127,3 +127,52 @@ export function coveredBy(modules: readonly string[], isAdmin: boolean, entries:
     return rest.toString() === '' && DEFAULT_VIEWS.has(view)
   }
 }
+
+/** An entry of the context navigation of a page (docs/design.md §13.7): a view of the module or a link of an extension. */
+export interface ContextEntry {
+  readonly label: string
+  readonly url: string
+  readonly module: string
+  readonly view: string
+  /** v7 marks the entry of the page (li.active). */
+  readonly current: boolean
+}
+
+/**
+ * Entries of the v7 module strip (#modnavigator) that belong to the context navigation of the page once the strip is gone:
+ *
+ * - the views of the module of the page, when the strip offers more than one of them — the calendar of v7 keeps its
+ *   views there (calendar, shared calendar, list), not other modules;
+ * - any link the menu of the theme does not cover (an entry an extension added to the strip).
+ *
+ * The other modules of the app, which v7 repeats in the strip on every page, are in the mega menu and the favorites.
+ * Read-only, like scanMenu().
+ * @param strip the strip of v7 (#modnavigator > .mod-switcher-container)
+ * @param pageModule module of the page
+ * @param covered whether the theme already offers a CRM link
+ */
+export function contextEntries(strip: Element, pageModule: string, covered: (link: string) => boolean): ContextEntry[] {
+  const entries: ContextEntry[] = []
+  const seen = new Set<string>()
+  for (const anchor of strip.querySelectorAll('a[href]')) {
+    const link = crmLink(anchor.getAttribute('href'))
+    if (link === null || seen.has(link)) {
+      continue
+    }
+    seen.add(link)
+    const target = linkTarget(link)
+    const text = anchor.textContent.replace(/\s+/g, ' ').trim()
+    const titled = anchor.closest('[title]')
+    const label = (text !== '' ? text : (titled !== null && strip.contains(titled) ? titled.getAttribute('title') ?? '' : '')).replace(/[<>]/g, '').trim().slice(0, 80)
+    entries.push({
+      label: label !== '' ? label : target.view || target.module,
+      url: link,
+      module: target.module,
+      view: target.view,
+      current: anchor.closest('li')?.classList.contains('active') ?? false,
+    })
+  }
+  const views = entries.filter((entry) => entry.module === pageModule && pageModule !== '')
+  const keepViews = views.length > 1
+  return entries.filter((entry) => (keepViews && entry.module === pageModule) || !covered(entry.url))
+}

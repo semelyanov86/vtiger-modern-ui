@@ -8,7 +8,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createApp, h } from 'vue'
 import type { Bootstrap, MenuGroup, MenuItem } from '../src/api/types'
 import { crmLink, pageContext, type PageContext } from '../src/adapters/v7/page'
-import { coveredBy, scanMenu } from '../src/adapters/v7/appMenu'
+import { contextEntries, coveredBy, scanMenu } from '../src/adapters/v7/appMenu'
+import { initials } from '../src/adapters/v7/header'
 import { currentGroup, isCurrent, moduleItem, normalize, searchMenu } from '../src/shell/nav/model'
 import { IslandRuntime, setReplaced } from '../src/boot/runtime'
 
@@ -186,6 +187,51 @@ describe('v7 app menu against the theme menu', () => {
   it('settings entries are covered for administrators only', () => {
     const user = scanMenu(appMenu(), coveredBy(['Home', 'Leads', 'Contacts'], false))
     expect(user.extras.map((extra) => extra.url)).toEqual(expect.arrayContaining(['index.php?module=Vtiger&parent=Settings&view=Index', 'index.php?module=Users&parent=Settings&view=List']))
+  })
+})
+
+describe('context navigation instead of the v7 module strip (stage 11)', () => {
+  function strip(html: string): HTMLElement {
+    const element = document.createElement('div')
+    element.className = 'mod-switcher-container'
+    element.innerHTML = `<div id="modules-menu" class="modules-menu">${html}</div>`
+    return element
+  }
+
+  it('keeps every view of the calendar, with the label v7 shows and the current view of v7', () => {
+    const calendar = strip(`<ul>
+      <li class="module-qtip active" title="My Calendar"><a href="index.php?module=Calendar&view=Calendar"><i class="vicon-mycalendar"></i><span>My Calendar</span></a></li>
+      <li class="module-qtip" title="Shared Calendar"><a href="index.php?module=Calendar&view=SharedCalendar"><span>Shared Calendar</span></a></li>
+      <li class="module-qtip" title="List"><a href="index.php?module=Calendar&view=List"><span>List</span></a></li>
+    </ul>`)
+    const entries = contextEntries(calendar, 'Calendar', coveredBy(['Calendar'], true, ['index.php?module=Calendar&view=Calendar']))
+    expect(entries.map((entry) => [entry.label, entry.view, entry.current])).toEqual([
+      ['My Calendar', 'Calendar', true], ['Shared Calendar', 'SharedCalendar', false], ['List', 'List', false],
+    ])
+  })
+
+  it('drops the modules of the app the menu covers; keeps a link of an extension; nothing for an ordinary module page', () => {
+    const modules = strip(`
+      <ul title="Leads" class="module-qtip"><li class="active"><a href="index.php?module=Leads&view=List&app=MARKETING"><span>Leads</span></a></li></ul>
+      <ul title="Contacts" class="module-qtip"><li><a href="index.php?module=Contacts&view=List&app=MARKETING"><span>Contacts</span></a></li></ul>`)
+    const covered = coveredBy(['Leads', 'Contacts'], true)
+    expect(contextEntries(modules, 'Leads', covered)).toEqual([])
+    const withExtension = strip(`
+      <ul class="module-qtip"><li class="active"><a href="index.php?module=Leads&view=List"><span>Leads</span></a></li></ul>
+      <ul title="Board" class="module-qtip"><li><a href="index.php?module=MyAddon&view=Board"><i class="fa fa-th"></i></a></li></ul>`)
+    expect(contextEntries(withExtension, 'Leads', covered)).toEqual([
+      { label: 'Board', url: 'index.php?module=MyAddon&view=Board', module: 'MyAddon', view: 'Board', current: false },
+    ])
+  })
+})
+
+describe('avatar of the user', () => {
+  it('two letters: of the first two words, or the first two of one word; in capitals, any script', () => {
+    expect(initials('sdfsd sdfdsf')).toBe('SS')
+    expect(initials('Иван  Петров-Водкин')).toBe('ИП')
+    expect(initials('Administrator')).toBe('AD')
+    expect(initials('  Jürgen (Vertrieb) Groß ')).toBe('JV')
+    expect(initials('')).toBe('')
   })
 })
 

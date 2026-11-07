@@ -24,13 +24,13 @@ import {
   DialogTrigger,
   VisuallyHidden,
 } from 'reka-ui'
-import { ChevronDown, ChevronRight, Link as LinkIcon, Menu as MenuIcon, Search, X } from '@lucide/vue'
+import { ChevronDown, ChevronsRight, Link as LinkIcon, Menu as MenuIcon, Puzzle, Search, X } from '@lucide/vue'
 import type { Bootstrap, MenuGroup, MenuItem, SystemItem } from '../api/types'
 import type { ExtraLink } from '../adapters/v7/appMenu'
-import { pageContext } from '../adapters/v7/page'
+import { linkTarget, pageContext } from '../adapters/v7/page'
 import { ICON_COMPONENTS } from '../menu/icons'
 import ModuleIcon from '../menu/ModuleIcon.vue'
-import { currentGroup, isCurrent, searchMenu } from './nav/model'
+import { currentGroup, isCurrent, normalize, searchMenu } from './nav/model'
 import type { FavoritesStore } from './nav/favorites'
 import { SYSTEM_ICONS, useSystemItems } from './nav/system'
 
@@ -74,6 +74,26 @@ const active = computed<MenuGroup | null>(() => groups.value.find((group) => gro
 const results = computed(() => searchMenu(props.bootstrap.menu.groups, query.value))
 const searching = computed(() => query.value.trim() !== '')
 const serviceItems = computed(() => [...system.userItems.value, ...system.adminItems.value])
+/** The entry of the footer (the cloud: Settings): the CRM settings for an administrator, the preferences otherwise. */
+const footerItem = computed<SystemItem | null>(() => serviceItems.value.find((item) => item.id === 'crmSettings')
+  ?? serviceItems.value.find((item) => item.id === 'preferences') ?? null)
+/** "Personalize" of the cloud: the personal preferences of the interface (favorites, language), when the user has them. */
+const personalize = computed(() => {
+  const item = props.bootstrap.menu.system.find((entry) => entry.id === 'preferences')
+  return item?.kind === 'link' ? item.url : null
+})
+/** The extension store of the core (the add-ons of the cloud) gets a button in the footer, the other links stay under "More". */
+const storeLink = computed(() => props.extras.value.find((extra) => linkTarget(extra.url).module === 'ExtensionStore') ?? null)
+const moreLinks = computed(() => props.extras.value.filter((extra) => extra !== storeLink.value))
+/** While searching, the configuration column shows the entries whose label matches. */
+const serviceMatches = computed(() => {
+  const words = normalize(query.value).split(' ').filter((word) => word !== '')
+  const matches = (label: string): boolean => words.every((word) => normalize(label).includes(word))
+  return {
+    items: serviceItems.value.filter((item) => matches(system.labels.value[item.id])),
+    extras: props.extras.value.filter((extra) => matches(extra.label)),
+  }
+})
 
 /** Colour of a section icon (--mu-app-* of the design, by position). */
 function tone(index: number): string {
@@ -253,9 +273,13 @@ onBeforeUnmount(() => {
           <DialogTitle>{{ t('menu.title') }}</DialogTitle>
           <DialogDescription>{{ t('menu.description') }}</DialogDescription>
         </VisuallyHidden>
+        <!-- The dark strip of the cloud in place of the header row: close, search, personalize. -->
         <div class="mu-mega__bar">
+          <DialogClose class="mu-mega__close" :aria-label="t('menu.close')" :title="t('menu.close')">
+            <X :size="20" aria-hidden="true" />
+          </DialogClose>
           <label class="mu-mega__search">
-            <Search :size="16" aria-hidden="true" class="mu-mega__search-icon" />
+            <Search :size="15" aria-hidden="true" class="mu-mega__search-icon" />
             <input
               ref="searchInput"
               v-model="query"
@@ -270,9 +294,10 @@ onBeforeUnmount(() => {
               @keydown="searchKey"
             />
           </label>
-          <DialogClose class="mu-mega__close" :aria-label="t('menu.close')" :title="t('menu.close')">
-            <X :size="20" aria-hidden="true" />
-          </DialogClose>
+          <a v-if="personalize !== null && !narrow" class="mu-mega__personalize" :href="personalize" data-mu-item="personalize">
+            <span>{{ t('menu.personalize') }}</span>
+            <ChevronsRight :size="14" aria-hidden="true" />
+          </a>
         </div>
 
         <!-- Narrow screens: sections as an accordion, or the search results. -->
@@ -308,7 +333,7 @@ onBeforeUnmount(() => {
               </ul>
             </section>
             <section class="mu-mega__service" :aria-label="t('menu.service')">
-              <h2 class="mu-mega__heading">{{ t('menu.service') }}</h2>
+              <h2 class="mu-mega__subhead">{{ t('menu.service') }}</h2>
               <ul class="mu-mega__list">
                 <li v-for="item in serviceItems" :key="item.id">
                   <a v-if="item.kind === 'link'" class="mu-mega__link" :href="item.url" :data-mu-item="item.id">
@@ -331,95 +356,125 @@ onBeforeUnmount(() => {
           </template>
         </div>
 
-        <!-- Wide screens: sections | modules | service. -->
-        <div v-else class="mu-mega__body">
-          <div ref="tabs" class="mu-mega__groups" role="tablist" aria-orientation="vertical" :aria-label="t('menu.sections')" :class="{ 'mu-mega__groups--muted': searching }">
-            <button
-              v-for="(group, index) in groups"
-              :id="tabId(group)"
-              :key="group.id"
-              type="button"
-              role="tab"
-              class="mu-mega__group"
-              :class="{ 'mu-mega__group--active': !searching && active?.id === group.id, 'mu-mega__group--here': here?.id === group.id }"
-              :aria-selected="!searching && active?.id === group.id"
-              :tabindex="active?.id === group.id ? 0 : -1"
-              aria-controls="mu-mega-panel"
-              :title="group.label"
-              :data-mu-group="group.id"
-              @click="activate(group); query = ''"
-              @pointerenter="hover(group, $event)"
-              @pointerleave="cancelHover"
-              @keydown="tabKey($event, index)"
-            >
-              <component :is="ICON_COMPONENTS[group.icon]" :size="20" aria-hidden="true" class="mu-mega__group-icon" :class="tone(index)" />
-              <span class="mu-mega__group-label">{{ group.label }}</span>
-            </button>
-          </div>
-          <div class="mu-mega__panel">
-            <section
-              id="mu-mega-panel"
-              ref="panel"
-              class="mu-mega__modules"
-              :role="searching ? 'region' : 'tabpanel'"
-              :aria-labelledby="!searching && active !== null ? tabId(active) : undefined"
-              :aria-label="searching ? t('menu.searchResults') : undefined"
-            >
-              <template v-if="searching">
-                <h2 class="mu-mega__heading">{{ t('menu.searchResults') }}</h2>
-                <p class="mu-mega__status" role="status">{{ results.length > 0 ? t('menu.results', results.length) : t('menu.noResults', { query: query.trim() }) }}</p>
-                <ul class="mu-mega__grid">
-                  <li v-for="result in results" :key="result.item.id + result.item.url">
-                    <a class="mu-mega__link" :href="result.item.url" :aria-current="current(result.item) ? 'page' : undefined" :data-mu-item="result.item.id" :title="result.item.label">
-                      <ModuleIcon :icon="result.item.icon" :size="16" />
-                      <span class="mu-mega__text">{{ result.item.label }}</span>
-                      <span class="mu-mega__hint">{{ result.group.label }}</span>
-                    </a>
-                  </li>
-                </ul>
-              </template>
-              <template v-else-if="active !== null">
-                <h2 class="mu-mega__heading" :title="active.label">{{ active.label }}</h2>
-                <ul class="mu-mega__grid">
-                  <li v-for="item in active.items" :key="item.id + item.url">
-                    <a class="mu-mega__link" :href="item.url" :aria-current="current(item) ? 'page' : undefined" :data-mu-item="item.id" :title="item.label">
-                      <ModuleIcon :icon="item.icon" :size="16" />
+        <!-- Wide screens: apps (sections) | modules | configuration, the footer below. -->
+        <template v-else>
+          <div class="mu-mega__body">
+            <div ref="tabs" class="mu-mega__groups" role="tablist" aria-orientation="vertical" :aria-label="t('menu.sections')" :class="{ 'mu-mega__groups--muted': searching }">
+              <button
+                v-for="(group, index) in groups"
+                :id="tabId(group)"
+                :key="group.id"
+                type="button"
+                role="tab"
+                class="mu-mega__group"
+                :class="{ 'mu-mega__group--active': !searching && active?.id === group.id, 'mu-mega__group--here': here?.id === group.id }"
+                :aria-selected="!searching && active?.id === group.id"
+                :tabindex="active?.id === group.id ? 0 : -1"
+                aria-controls="mu-mega-panel"
+                :title="group.label"
+                :data-mu-group="group.id"
+                @click="activate(group); query = ''"
+                @pointerenter="hover(group, $event)"
+                @pointerleave="cancelHover"
+                @keydown="tabKey($event, index)"
+              >
+                <component :is="ICON_COMPONENTS[group.icon]" :size="20" aria-hidden="true" class="mu-mega__group-icon" :class="tone(index)" />
+                <span class="mu-mega__group-label">{{ group.label }}</span>
+              </button>
+            </div>
+            <div class="mu-mega__panel">
+              <section
+                id="mu-mega-panel"
+                ref="panel"
+                class="mu-mega__modules"
+                :role="searching ? 'region' : 'tabpanel'"
+                :aria-labelledby="!searching && active !== null ? tabId(active) : undefined"
+                :aria-label="searching ? t('menu.searchResults') : undefined"
+              >
+                <h2 class="mu-mega__heading">{{ t('menu.modules') }}</h2>
+                <div class="mu-mega__columns" :class="{ 'mu-mega__columns--results': searching }">
+                  <template v-if="searching">
+                    <p v-if="results.length === 0" class="mu-mega__empty" role="status">{{ t('menu.noResults', { query: query.trim() }) }}</p>
+                    <template v-else>
+                      <h3 class="mu-mega__subhead">{{ t('menu.searchResults') }}</h3>
+                      <p class="mu-mega__visually-hidden" role="status">{{ t('menu.results', results.length) }}</p>
+                      <a
+                        v-for="result in results"
+                        :key="result.item.id + result.item.url"
+                        class="mu-mega__link"
+                        :href="result.item.url"
+                        :aria-current="current(result.item) ? 'page' : undefined"
+                        :data-mu-item="result.item.id"
+                        :title="`${result.item.label} — ${result.group.label}`"
+                      >
+                        <ModuleIcon :icon="result.item.icon" :size="14" />
+                        <span class="mu-mega__text">{{ result.item.label }}</span>
+                        <span class="mu-mega__hint">{{ result.group.label }}</span>
+                      </a>
+                    </template>
+                  </template>
+                  <template v-else-if="active !== null">
+                    <h3 class="mu-mega__subhead" :title="active.label">{{ active.label }}</h3>
+                    <a
+                      v-for="item in active.items"
+                      :key="item.id + item.url"
+                      class="mu-mega__link"
+                      :href="item.url"
+                      :aria-current="current(item) ? 'page' : undefined"
+                      :data-mu-item="item.id"
+                      :title="item.label"
+                    >
+                      <ModuleIcon :icon="item.icon" :size="14" />
                       <span class="mu-mega__text">{{ item.label }}</span>
-                      <ChevronRight v-if="current(item)" :size="14" aria-hidden="true" class="mu-mega__here" />
                     </a>
-                  </li>
-                </ul>
-              </template>
-              <p v-else class="mu-mega__status">{{ t('menu.empty') }}</p>
-            </section>
-            <section class="mu-mega__service" :aria-label="t('menu.service')">
-              <h2 class="mu-mega__heading">{{ t('menu.service') }}</h2>
-              <ul class="mu-mega__list">
-                <li v-for="item in serviceItems" :key="item.id">
-                  <a v-if="item.kind === 'link'" class="mu-mega__link" :href="item.url" :data-mu-item="item.id">
-                    <component :is="SYSTEM_ICONS[item.id]" :size="16" aria-hidden="true" class="mu-mega__service-icon" />
-                    <span class="mu-mega__text">{{ system.labels.value[item.id] }}</span>
-                  </a>
-                  <button v-else type="button" class="mu-mega__link" :disabled="system.busy.value" :data-mu-item="item.id" @click="selectSystem(item)">
-                    <component :is="SYSTEM_ICONS[item.id]" :size="16" aria-hidden="true" class="mu-mega__service-icon" />
-                    <span class="mu-mega__text">{{ system.labels.value[item.id] }}</span>
-                  </button>
-                </li>
-              </ul>
-              <template v-if="extras.value.length > 0">
-                <h2 class="mu-mega__heading mu-mega__heading--more">{{ t('menu.more') }}</h2>
-                <ul class="mu-mega__list">
-                  <li v-for="extra in extras.value" :key="extra.url">
-                    <a class="mu-mega__link" :href="extra.url" data-mu-item="extra" :title="extra.label">
-                      <LinkIcon :size="16" aria-hidden="true" class="mu-mega__service-icon" />
-                      <span class="mu-mega__text">{{ extra.label }}</span>
-                    </a>
-                  </li>
-                </ul>
-              </template>
-            </section>
+                  </template>
+                  <p v-else class="mu-mega__empty">{{ t('menu.empty') }}</p>
+                </div>
+              </section>
+              <section class="mu-mega__service" :aria-label="t('menu.configuration')">
+                <h2 class="mu-mega__heading mu-mega__heading--service">{{ t('menu.configuration') }}</h2>
+                <div class="mu-mega__service-body">
+                  <template v-if="!searching || serviceMatches.items.length > 0">
+                    <h3 class="mu-mega__subhead mu-mega__subhead--service">{{ t('menu.service') }}</h3>
+                    <ul class="mu-mega__list">
+                      <li v-for="item in searching ? serviceMatches.items : serviceItems" :key="item.id">
+                        <a v-if="item.kind === 'link'" class="mu-mega__link" :href="item.url" :data-mu-item="item.id">
+                          <component :is="SYSTEM_ICONS[item.id]" :size="14" aria-hidden="true" class="mu-mega__service-icon" />
+                          <span class="mu-mega__text">{{ system.labels.value[item.id] }}</span>
+                        </a>
+                        <button v-else type="button" class="mu-mega__link" :disabled="system.busy.value" :data-mu-item="item.id" @click="selectSystem(item)">
+                          <component :is="SYSTEM_ICONS[item.id]" :size="14" aria-hidden="true" class="mu-mega__service-icon" />
+                          <span class="mu-mega__text">{{ system.labels.value[item.id] }}</span>
+                        </button>
+                      </li>
+                    </ul>
+                  </template>
+                  <template v-if="searching ? serviceMatches.extras.length > 0 : moreLinks.length > 0">
+                    <h3 class="mu-mega__subhead mu-mega__subhead--service">{{ t('menu.more') }}</h3>
+                    <ul class="mu-mega__list">
+                      <li v-for="extra in searching ? serviceMatches.extras : moreLinks" :key="extra.url">
+                        <a class="mu-mega__link" :href="extra.url" data-mu-item="extra" :title="extra.label">
+                          <LinkIcon :size="14" aria-hidden="true" class="mu-mega__service-icon" />
+                          <span class="mu-mega__text">{{ extra.label }}</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </template>
+                </div>
+              </section>
+            </div>
           </div>
-        </div>
+          <div class="mu-mega__footer" :aria-label="t('menu.footer')" role="group">
+            <a v-if="storeLink !== null" class="mu-mega__footer-button" :href="storeLink.url" data-mu-item="store">
+              <Puzzle :size="13" aria-hidden="true" />
+              <span>{{ storeLink.label }}</span>
+            </a>
+            <a v-if="footerItem !== null && footerItem.kind === 'link'" class="mu-mega__footer-button" :href="footerItem.url" :data-mu-item="`footer-${footerItem.id}`">
+              <component :is="SYSTEM_ICONS[footerItem.id]" :size="13" aria-hidden="true" />
+              <span>{{ system.labels.value[footerItem.id] }}</span>
+            </a>
+          </div>
+        </template>
       </DialogContent>
     </DialogPortal>
   </DialogRoot>
@@ -437,24 +492,25 @@ html[data-mu-replaced~='app-menu'] nav.app-fixed-navbar #appnavigator {
   display: none;
 }
 
+// The menu button of the cloud: 36 × 36, primary, white icon, at the left edge of the main row of the header.
 .mu-root.mu-mega-root {
   position: relative;
-  float: left;
   display: flex;
+  flex: none;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
 }
 
 .mu-root .mu-mega__trigger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   padding: 0;
-  border: 0;
+  border: 1px solid tok(primary-strong);
   border-radius: tok(radius-sm);
   background: tok(primary-strong);
   color: #ffffff;
@@ -463,6 +519,7 @@ html[data-mu-replaced~='app-menu'] nav.app-fixed-navbar #appnavigator {
 
   &:hover,
   &[data-state='open'] {
+    border-color: tok(primary-hover);
     background: tok(primary-hover);
   }
 
@@ -472,83 +529,57 @@ html[data-mu-replaced~='app-menu'] nav.app-fixed-navbar #appnavigator {
   }
 }
 
+// The cloud does not dim the page under its menu; the layer only closes the menu on a click outside. The favorites bar
+// above the menu stays usable.
 .mu-root .mu-mega-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(28, 33, 33, 0.24);
+  top: var(--mu-shell-bar, 0px);
+  background: transparent;
 }
 
+// The panel (V02): from the top of the main row of the header to the bottom of the window, #f1f3f6, shadow 0 0 16 / 14 %;
+// 60 % of the window from 1200 px (864 px at 1440, 1152 at 1920), 75 % below (768 px at 1024) — the widths of the cloud.
 .mu-root .mu-mega {
   position: fixed;
-  top: var(--mu-shell-bar, 0px);
+  top: calc(var(--mu-shell-bar, 0px) - var(--mu-shell-overlap, 0px));
   bottom: 0;
   left: 0;
   display: flex;
   flex-direction: column;
-  width: min(100vw, clamp(720px, 60vw, 1200px));
+  width: 60vw;
+  border-radius: 0 tok(radius-sm) tok(radius-sm) 0;
   background: tok(menu-bg);
   box-shadow: tok(shadow-menu);
-  color: tok(text);
+  color: tok(text-body);
   font-size: fs(13);
+  line-height: 1.5;
   outline: none;
 
   @media (max-width: 1199px) {
-    width: calc(100vw - 48px);
+    width: 75vw;
   }
 
   &.mu-mega--narrow {
     top: 0;
     width: 100vw;
+    border-radius: 0;
   }
 }
 
+// Dark strip, 56 px: close (36 × 36) at the left edge, the search (459 × 36), "Personalize" at the right.
 .mu-root .mu-mega__bar {
   display: flex;
   flex: none;
   align-items: center;
-  gap: 12px;
+  gap: 24px;
   height: 56px;
-  padding: 0 12px 0 16px;
+  padding: 0 16px 0 24px;
   background: tok(nav-dark);
-}
 
-.mu-root .mu-mega__search {
-  position: relative;
-  display: flex;
-  flex: 1;
-  align-items: center;
-  max-width: 520px;
-  margin: 0;
-  font-weight: 400;
-}
-
-.mu-root .mu-mega__search-icon {
-  position: absolute;
-  left: 10px;
-  color: tok(text-2);
-  pointer-events: none;
-}
-
-.mu-root .mu-mega__search-input {
-  width: 100%;
-  height: 36px;
-  padding: 0 12px 0 34px;
-  border: 1px solid transparent;
-  border-radius: tok(radius-sm);
-  background: tok(surface);
-  color: tok(text);
-  font: inherit;
-  font-size: fs(14);
-
-  &::placeholder {
-    color: tok(text-muted);
-    opacity: 1;
-  }
-
-  &:focus {
-    outline: none;
-    border-color: tok(focus-border);
-    box-shadow: 0 0 0 2px tok(focus-ring);
+  .mu-mega--narrow & {
+    gap: 12px;
+    padding: 0 12px;
   }
 }
 
@@ -559,19 +590,83 @@ html[data-mu-replaced~='app-menu'] nav.app-fixed-navbar #appnavigator {
   justify-content: center;
   width: 36px;
   height: 36px;
-  margin-left: auto;
   padding: 0;
   border: 0;
   border-radius: tok(radius-sm);
   background: tok(nav-dark-2);
-  color: tok(nav-dark-text);
+  color: #ffffff;
   cursor: pointer;
 
-  &:hover {
-    background: #56708b;
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px tok(nav-dark-text);
+  }
+}
+
+.mu-root .mu-mega__search {
+  position: relative;
+  display: flex;
+  flex: 0 1 459px;
+  align-items: center;
+  min-width: 0;
+  margin: 0;
+  font-weight: 400;
+
+  .mu-mega--narrow & {
+    flex: 1 1 auto;
+  }
+}
+
+.mu-root .mu-mega__search-icon {
+  position: absolute;
+  left: 12px;
+  color: tok(text);
+  pointer-events: none;
+}
+
+.mu-root .mu-mega__search-input {
+  width: 100%;
+  height: 36px;
+  padding: 6px 12px 6px 32px;
+  border: 0;
+  border-radius: tok(radius-sm);
+  background: tok(surface);
+  color: tok(text);
+  font: inherit;
+  font-size: fs(13);
+
+  &::placeholder {
+    color: tok(text-muted);
+    opacity: 1;
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 1.92px tok(focus-ring);
+  }
+}
+
+.mu-root .mu-mega__personalize {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  padding: 16px 0;
+  color: tok(nav-dark-text);
+  font-size: fs(14);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover,
+  &:focus {
+    color: #ffffff;
+    text-decoration: underline;
   }
 
   &:focus-visible {
+    border-radius: tok(radius-sm);
     outline: none;
     box-shadow: 0 0 0 2px tok(nav-dark-text);
   }
@@ -581,15 +676,19 @@ html[data-mu-replaced~='app-menu'] nav.app-fixed-navbar #appnavigator {
   display: flex;
   flex: 1;
   min-height: 0;
+  border-top: 1px solid tok(divider);
 }
 
+// Apps: 86 px column on the grey of the panel, entries 62 px (icon 20 in its colour, label 12 px); the active one white
+// with a 4 px bar of the accent and a shadow, label bold.
 .mu-root .mu-mega__groups {
   display: flex;
   flex: none;
   flex-direction: column;
-  width: 98px;
+  width: 86px;
+  overflow-x: hidden;
   overflow-y: auto;
-  padding: 8px 0;
+  padding: 0 0 16px;
 
   &--muted {
     opacity: 0.6;
@@ -603,34 +702,32 @@ html[data-mu-replaced~='app-menu'] nav.app-fixed-navbar #appnavigator {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   min-height: 62px;
-  margin: 0 4px 4px;
-  padding: 8px 2px;
+  margin: 0 0 2px;
+  padding: 8px 4px 8px 0;
   border: 0;
-  border-radius: tok(radius-md);
+  border-left: 4px solid transparent;
+  border-radius: 0;
   background: transparent;
   color: tok(text-2);
   font: inherit;
   cursor: pointer;
   @include transition(background-color, box-shadow);
 
-  &:hover {
-    background: rgba(255, 255, 255, 0.6);
-  }
-
   &:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px tok(focus-ring);
+    box-shadow: inset 0 0 0 2px tok(focus-ring);
   }
 
   &--active {
+    border-left-color: tok(primary);
     background: tok(surface);
     color: tok(text);
-    box-shadow: 0 2px 10px rgba(16, 30, 54, 0.15), inset 4px 0 0 tok(primary);
+    box-shadow: 0 2px 10px rgba(16, 30, 54, 0.15);
 
     &:focus-visible {
-      box-shadow: inset 4px 0 0 tok(primary), 0 0 0 2px tok(focus-ring);
+      box-shadow: 0 2px 10px rgba(16, 30, 54, 0.15), inset 0 0 0 2px tok(focus-ring);
     }
   }
 }
@@ -640,10 +737,10 @@ html[data-mu-replaced~='app-menu'] nav.app-fixed-navbar #appnavigator {
   max-width: 100%;
   overflow: hidden;
   font-size: fs(12);
-  line-height: 1.3;
+  line-height: 1.5;
   text-align: center;
   hyphens: auto;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 
@@ -652,57 +749,123 @@ html[data-mu-replaced~='app-menu'] nav.app-fixed-navbar #appnavigator {
   }
 }
 
-// Colours of the section icons (--mu-app-* of docs/design.md §3.1); the label next to each names it.
-.mu-root .mu-mega__tone-0 { color: #0e9fb3; }
-.mu-root .mu-mega__tone-1 { color: #6f62f0; }
-.mu-root .mu-mega__tone-2 { color: #e5702a; }
-.mu-root .mu-mega__tone-3 { color: #d64fb4; }
-.mu-root .mu-mega__tone-4 { color: #00a3a6; }
-.mu-root .mu-mega__tone-5 { color: #6c8299; }
+// Colours of the app icons (the cloud colours each app; the label next to it names it).
+.mu-root .mu-mega__tone-0 { color: #00b3c8; }
+.mu-root .mu-mega__tone-1 { color: #877cff; }
+.mu-root .mu-mega__tone-2 { color: #f5822a; }
+.mu-root .mu-mega__tone-3 { color: #f15c80; }
+.mu-root .mu-mega__tone-4 { color: #1fbdac; }
+.mu-root .mu-mega__tone-5 { color: #3d9bf4; }
 
+// White panel: MODULES (65 %) | CONFIGURATION (35 %).
 .mu-root .mu-mega__panel {
-  display: grid;
+  display: flex;
   flex: 1;
-  grid-template-columns: minmax(0, 1fr) minmax(200px, 35%);
   min-width: 0;
-  overflow-y: auto;
+  padding-left: 8px;
   background: tok(surface);
-
-  @media (max-width: 899px) {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 .mu-root .mu-mega__modules {
+  display: flex;
+  flex: 0 0 65%;
+  flex-direction: column;
   min-width: 0;
-  padding: 20px 24px;
+  border-right: 1px solid tok(divider);
 }
 
 .mu-root .mu-mega__service {
+  display: flex;
+  flex: 1 1 35%;
+  flex-direction: column;
   min-width: 0;
-  padding: 20px 24px;
-  border-left: 1px solid tok(divider);
-  background: tok(surface-subtle);
+  overflow-y: auto;
+}
 
-  @media (max-width: 899px) {
-    border-top: 1px solid tok(divider);
-    border-left: 0;
+// Column headers: 14 / 700 capitals, 38 px, a line under them.
+.mu-root .mu-mega__heading {
+  flex: none;
+  margin: 0;
+  padding: 8px 0 8px 20px;
+  border-bottom: 1px solid tok(divider);
+  color: tok(text);
+  font-size: fs(14);
+  font-weight: 600;
+  line-height: 21px;
+  text-transform: uppercase;
+
+  &--service {
+    padding-left: 27px;
   }
 }
 
-.mu-root .mu-mega__heading {
-  margin: 0 0 10px;
+// The modules flow in columns of 216 px (the height of the panel), then the panel scrolls sideways — as the cloud does.
+.mu-root .mu-mega__columns {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  column-gap: 40px;
+  min-height: 0;
+  padding: 16px 16px 16px 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  > .mu-mega__link {
+    width: 216px;
+  }
+
+  // Results of the search: one column with the section of each module (the cloud lists them the same way).
+  &--results {
+    flex-wrap: nowrap;
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    > .mu-mega__link,
+    > .mu-mega__subhead {
+      width: min(100%, 460px);
+    }
+  }
+}
+
+.mu-root .mu-mega__subhead {
+  flex: none;
+  width: 216px;
+  margin: 0 0 4px;
+  padding-left: 12px;
   overflow: hidden;
-  color: tok(text-heading);
+  color: tok(text);
   font-size: fs(14);
   font-weight: 600;
-  line-height: 1.4;
+  line-height: 21px;
   text-overflow: ellipsis;
   white-space: nowrap;
 
-  &--more {
-    margin-top: 20px;
+  &--service {
+    width: auto;
+    margin-top: 0;
+    padding-left: 16px;
+    font-size: fs(15);
+    line-height: 22.5px;
+    white-space: normal;
   }
+}
+
+.mu-root .mu-mega__service-body {
+  padding: 16px 16px 16px 8px;
+
+  .mu-mega__list + .mu-mega__subhead {
+    margin-top: 16px;
+  }
+}
+
+.mu-root .mu-mega__empty {
+  width: 100%;
+  margin: 24px 0 0;
+  color: tok(text-2);
+  font-size: fs(18);
+  text-align: center;
 }
 
 .mu-root .mu-mega__status {
@@ -710,51 +873,60 @@ html[data-mu-replaced~='app-menu'] nav.app-fixed-navbar #appnavigator {
   color: tok(text-2);
 }
 
-.mu-root .mu-mega__grid,
+.mu-root .mu-mega__visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 .mu-root .mu-mega__list {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.mu-root .mu-mega__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 2px 12px;
-}
-
+// A module: 38 px, icon 14 and label 13 px #1c2121, radius 4; the module of the page light blue.
 .mu-root .mu-mega__link {
   display: flex;
+  flex: none;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
   min-height: 38px;
-  padding: 4px 10px;
+  margin: 0 0 4px;
+  padding: 8px 12px;
   border: 0;
   border-radius: tok(radius-sm);
   background: transparent;
   color: tok(text);
   font: inherit;
-  font-size: fs(14);
-  line-height: 1.3;
+  font-size: fs(13);
+  line-height: 1.5;
   text-align: left;
   text-decoration: none;
   cursor: pointer;
 
+  .mu-module-icon,
+  .mu-mega__service-icon {
+    color: tok(text);
+  }
+
   &:hover {
-    background: tok(surface-readonly);
     color: tok(text);
     text-decoration: none;
   }
 
   &:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px tok(focus-ring);
+    box-shadow: inset 0 0 0 2px tok(focus-ring);
   }
 
   &[aria-current='page'] {
     background: tok(primary-soft);
-    font-weight: 600;
   }
 
   &:disabled {
@@ -775,28 +947,60 @@ html[data-mu-replaced~='app-menu'] nav.app-fixed-navbar #appnavigator {
   max-width: 40%;
   margin-left: auto;
   overflow: hidden;
-  color: tok(text-2);
+  color: tok(text-label);
   font-size: fs(12);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.mu-root .mu-mega__here {
-  flex: none;
-  margin-left: auto;
-  color: tok(primary-strong);
-}
-
 .mu-root .mu-mega__service-icon {
   flex: none;
-  color: tok(text-2);
 }
 
-// Entries of the service column wrap instead of being cut: the column is narrow and the texts are long in German.
+// Entries of the configuration column wrap instead of being cut: the column is narrow and the texts are long in German.
 .mu-root .mu-mega__service .mu-mega__text {
   overflow: visible;
   white-space: normal;
   overflow-wrap: break-word;
+}
+
+// Footer, 50 px: the settings of the cloud (secondary buttons 35 px).
+.mu-root .mu-mega__footer {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  height: 50px;
+  padding: 0 16px 0 20px;
+  border-top: 1px solid tok(divider);
+  background: tok(surface);
+}
+
+.mu-root .mu-mega__footer-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 35px;
+  padding: 6px 12px;
+  border: 1px solid tok(btn-secondary);
+  border-radius: tok(radius-sm);
+  background: tok(btn-secondary);
+  color: tok(text-body);
+  font-size: fs(14);
+  line-height: 1.5;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover,
+  &:focus {
+    color: tok(text-body);
+    text-decoration: none;
+  }
+
+  &:focus-visible {
+    outline: none;
+    @include focus-ring;
+  }
 }
 
 // Narrow screens: the accordion.
@@ -807,12 +1011,21 @@ html[data-mu-replaced~='app-menu'] nav.app-fixed-navbar #appnavigator {
   padding: 8px 12px 24px;
   background: tok(surface);
 
+  .mu-mega__link {
+    margin: 0;
+  }
+
   .mu-mega__service {
+    display: block;
     margin-top: 12px;
     padding: 12px 0 0;
     border-top: 1px solid tok(divider);
-    border-left: 0;
-    background: transparent;
+    overflow: visible;
+
+    .mu-mega__subhead {
+      width: auto;
+      padding-left: 8px;
+    }
   }
 }
 

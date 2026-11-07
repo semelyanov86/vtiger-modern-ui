@@ -270,11 +270,13 @@ test('list: page, primary and toolbar buttons, check boxes, rows, header, menu â
   await check('button.primary:focus-visible', add)
   await page.locator('body').evaluate((node) => (document.activeElement as HTMLElement | null)?.blur() ?? node)
 
-  const secondary = page.locator('.module-action-content .btn-default:not([id$="_basicAction_LBL_ADD_RECORD"])').first()
-  await check('button.secondary', secondary)
-  await secondary.hover()
+  // The other actions of the module header are buttons of the toolbar of the page since stage 11 (Import, Customize): white
+  // buttons of the cloud toolbar, no change on hover (the secondary role is measured on the record header below).
+  const moduleTool = page.locator('.module-action-content .module-buttons.btn-default:not([id$="_basicAction_LBL_ADD_RECORD"])').first()
+  await check('button.toolbar', moduleTool)
+  await moduleTool.hover()
   await settle(page)
-  await check('button.secondary:hover', secondary)
+  await check('button.toolbar', moduleTool)
   await page.mouse.move(5, 995)
 
   const toolbar = page.locator('.listview-actions-container .btn-default:visible').filter({ hasNotText: /^$/ }).first()
@@ -365,7 +367,13 @@ test('record, quick create, notifications, loading, empty list â€” the cloud sta
   await openList(page)
   const recordId = await page.locator('#listview-table tbody tr.listViewEntries[data-id]').first().getAttribute('data-id')
   await openPage(page, `index.php?module=Accounts&view=Detail&record=${recordId ?? ''}&modernui=on`)
-  await check('button.secondary', page.locator('.detailViewButtoncontainer .btn-default:visible').first())
+  const secondary = page.locator('.detailViewButtoncontainer .btn-default:visible').first()
+  await page.mouse.move(5, 995)
+  await check('button.secondary', secondary)
+  await secondary.hover()
+  await settle(page)
+  await check('button.secondary:hover', secondary)
+  await page.mouse.move(5, 995)
   await check('tab.active', page.locator('.related-tabs .nav-tabs > li.active > a').first())
   const inactive = page.locator('.related-tabs .nav-tabs > li:not(.active) > a:visible').first()
   await check('tab.inactive', inactive)

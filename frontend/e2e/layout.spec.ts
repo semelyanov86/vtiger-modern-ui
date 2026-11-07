@@ -120,39 +120,33 @@ test.afterAll(async ({ browser }) => {
   await page.close()
 })
 
-test('list of Accounts: no permanent module rail from the first paint, other modules keep it', async ({ page }) => {
-  await page.goto(`${LIST}&modernui=on`, { waitUntil: 'domcontentloaded' })
-  // The tokens stylesheet blocks rendering: the rail is gone before the shell starts.
-  const early = await page.evaluate(() => ({
-    rail: document.getElementById('modnavigator')?.getBoundingClientRect().width ?? -1,
-    sidebar: document.querySelector('.sidebar-essentials')?.getBoundingClientRect().left ?? -1,
-    ready: document.documentElement.classList.contains('mu-shell-ready'),
-  }))
-  await waitForShell(page)
-  const late = await page.evaluate(() => ({
-    rail: document.getElementById('modnavigator')?.getBoundingClientRect().width ?? -1,
-    sidebar: document.querySelector('.sidebar-essentials')?.getBoundingClientRect().left ?? -1,
-    content: getComputedStyle(document.getElementById('listViewContent') as Element).paddingLeft,
-    keep: document.documentElement.hasAttribute('data-mu-keep-rail'),
-  }))
-  if (late.keep) {
-    // The v7 strip of this CRM has entries the theme menu does not cover: it stays (and the rule says why).
-    expect(late.rail).toBe(42)
-    test.info().annotations.push({ type: 'kept-rail', description: 'the v7 module strip has uncovered entries' })
-    return
+test('lists without the permanent module rail from the first paint, Accounts and every other module (stage 11)', async ({ page }) => {
+  for (const module of ['Accounts', 'Contacts']) {
+    await page.goto(`index.php?module=${module}&view=List&modernui=on`, { waitUntil: 'domcontentloaded' })
+    // The skin blocks rendering: the rail is gone before the shell starts.
+    const early = await page.evaluate(() => ({
+      rail: document.getElementById('modnavigator')?.getBoundingClientRect().width ?? -1,
+      sidebar: document.querySelector('.sidebar-essentials')?.getBoundingClientRect().left ?? -1,
+    }))
+    await waitForShell(page)
+    const late = await page.evaluate(() => ({
+      rail: document.getElementById('modnavigator')?.getBoundingClientRect().width ?? -1,
+      sidebar: document.querySelector('.sidebar-essentials')?.getBoundingClientRect().left ?? -1,
+      content: getComputedStyle(document.getElementById('listViewContent') as Element).paddingLeft,
+      keep: document.documentElement.hasAttribute('data-mu-keep-rail'),
+    }))
+    if (late.keep) {
+      // The v7 strip of this CRM has an entry without a link (a button of an extension): it stays (and the shell says why).
+      expect(late.rail, module).toBe(42)
+      test.info().annotations.push({ type: 'kept-rail', description: `${module}: the v7 module strip has an entry without a link` })
+      continue
+    }
+    expect(early.rail, `${module}: rail before the shell`).toBe(0)
+    expect(late.rail, `${module}: rail after the shell`).toBe(0)
+    expect(early.sidebar, module).toBe(late.sidebar)
+    expect(late.sidebar, module).toBe(0)
+    expect(late.content, module).toBe('241px')
   }
-  expect(early.rail, 'rail before the shell').toBe(0)
-  expect(late.rail, 'rail after the shell').toBe(0)
-  expect(early.sidebar).toBe(late.sidebar)
-  expect(late.sidebar).toBe(0)
-  expect(late.content).toBe('241px')
-  // Every entry of the hidden strip stays reachable: the mega menu has the modules of the menu of the theme.
-  const strip = await page.locator('#modnavigator .mod-switcher-container a[href]').evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''))
-  expect(strip.length, 'entries of the hidden v7 strip').toBeGreaterThanOrEqual(0)
-  // Another module: the shell of 0.6 (rail of the theme or of v7).
-  await page.goto('index.php?module=Contacts&view=List&modernui=on')
-  await waitForShell(page)
-  expect(await page.evaluate(() => document.getElementById('modnavigator')?.getBoundingClientRect().width ?? -1)).toBe(42)
 })
 
 test('record over the list: open, Escape, Back/Forward, close button, double click, same list after', async ({ page }) => {

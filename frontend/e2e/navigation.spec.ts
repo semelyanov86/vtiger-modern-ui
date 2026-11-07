@@ -8,7 +8,12 @@
  *   hamburger back;
  * - the favorites bar: space reserved from the first paint (no layout shift while the shell loads), add and remove the
  *   module of the page, compact state, favorites switched off by the administrator;
- * - the module rail of the section follows the menu settings (order, hidden modules); a hidden module still opens;
+ * - the mega menu follows the menu settings (order, hidden modules); a hidden module still opens;
+ * - stage 11, the header of the cloud: one main row (menu, title, search, actions, logo, user) and the toolbar of the page
+ *   instead of the two rows of v7, no permanent module rail on working screens (record and form pages too), the views of
+ *   the calendar in the context navigation, the settings menu kept; search, quick create, the user menu and icons or
+ *   buttons extensions add later stay usable; the v7 header back in the standard view, after a failed shell and without
+ *   scripts;
  * - lists: filter → sort → select rows → action → back to the list; search → record → back; empty list; the loading
  *   indicator; AJAX re-renders keep check boxes and menus working with the same number of requests and handlers as
  *   without the theme; the popup to select a record;
@@ -156,7 +161,8 @@ test('mega menu replaces the v7 app menu: every v7 entry stays reachable, plain 
   const panel = page.locator(PANEL)
   await expect(panel).toBeVisible()
   await expect(panel.locator('[data-mu-field="menu-search"]')).toBeFocused()
-  const extras = await panel.locator('[data-mu-item="extra"]').evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''))
+  // Links the theme menu does not cover: "More" of the configuration column, the extension store of the core in the footer.
+  const extras = await panel.locator('[data-mu-item="extra"], [data-mu-item="store"]').evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''))
   const system = new Set(menu.system.map((item) => item.url ?? ''))
   // Every v7 entry: a module the theme menu covers (also hidden ones), a settings entry of the system section, or "More".
   for (const entry of v7) {
@@ -233,12 +239,16 @@ test('navigation keeps the browser model: back/forward, reload, direct link; no 
   expect(page.url()).toContain('module=Contacts')
   await page.reload()
   await waitForShell(page)
-  await expect(page.locator('.mu-rail [aria-current="page"]')).toHaveAttribute('data-mu-item', 'm:Contacts')
-  // A direct link with the app of another section opens that section in the rail.
+  await page.locator(TRIGGER).click()
+  await expect(page.locator(`${PANEL} #mu-mega-panel [aria-current="page"]`)).toHaveAttribute('data-mu-item', 'm:Contacts')
+  await page.keyboard.press('Escape')
+  // A direct link with the app of another section opens the menu on that section.
   await open(page, 'index.php?module=Contacts&view=List&app=SALES')
   const sales = menu.groups.find((group) => group.app === 'SALES' && group.items.some((item) => item.module === 'Contacts'))
   if (sales !== undefined) {
-    await expect(page.locator('.mu-rail')).toHaveAttribute('data-mu-group', sales.id)
+    await page.locator(TRIGGER).click()
+    await expect(page.locator(`${PANEL} [role="tab"][aria-selected="true"]`)).toHaveAttribute('data-mu-group', sales.id)
+    await page.keyboard.press('Escape')
   }
 })
 
@@ -294,12 +304,16 @@ test('favorites bar: reserved from the first paint, add and remove the module of
       }
     }).observe({ type: 'layout-shift' })
   })
-  expect(await page.evaluate(() => getComputedStyle(document.querySelector('#page > nav.app-fixed-navbar') ?? document.body).paddingTop)).toBe('42px')
+  // Favorites bar 42 px, the main row of the cloud over its last 2 px (40 + 56), the toolbar under it.
+  expect(await page.evaluate(() => getComputedStyle(document.querySelector('#page > nav.app-fixed-navbar') ?? document.body).paddingTop)).toBe('40px')
   const before = await page.evaluate(() => ({
     nav: document.querySelector('#page > nav.app-fixed-navbar')?.getBoundingClientRect().height ?? 0,
     main: document.querySelector('.main-container')?.getBoundingClientRect().top ?? 0,
+    title: document.querySelector('#page > nav.app-fixed-navbar .module-title')?.getBoundingClientRect().top ?? 0,
+    search: document.querySelector('#page > nav.app-fixed-navbar .search-link')?.getBoundingClientRect().left ?? 0,
   }))
-  expect(before.nav).toBeGreaterThanOrEqual(42 + 42)
+  expect(before.nav).toBe(96)
+  expect(before.main).toBe(96 + 52)
   release()
   await waitForShell(page)
   await page.unroute(/\/dist\/assets\/shell-[^/]+\.js$/)
@@ -307,10 +321,15 @@ test('favorites bar: reserved from the first paint, add and remove the module of
     nav: document.querySelector('#page > nav.app-fixed-navbar')?.getBoundingClientRect().height ?? 0,
     main: document.querySelector('.main-container')?.getBoundingClientRect().top ?? 0,
     bar: document.querySelector('.mu-favbar')?.getBoundingClientRect().height ?? 0,
+    title: document.querySelector('#page > nav.app-fixed-navbar .module-title')?.getBoundingClientRect().top ?? 0,
+    search: document.querySelector('#page > nav.app-fixed-navbar .search-link')?.getBoundingClientRect().left ?? 0,
   }))
   expect(after.nav).toBe(before.nav)
   expect(after.main).toBe(before.main)
   expect(after.bar).toBe(42)
+  // The islands of the row (menu button, system menu) take places the stylesheet kept for them.
+  expect(after.title).toBe(before.title)
+  expect(after.search).toBe(before.search)
   expect(await page.evaluate(() => (window as unknown as { muShifts: number }).muShifts)).toBeLessThan(0.01)
   await expect(page.locator('.mu-favbar__empty')).toBeVisible()
 
@@ -351,7 +370,7 @@ test('favorites bar: reserved from the first paint, add and remove the module of
     nav: document.querySelector('#page > nav.app-fixed-navbar')?.getBoundingClientRect().bottom ?? 0,
     main: document.querySelector('.main-container')?.getBoundingClientRect().top ?? 0,
   }))
-  expect(off.main).toBe(before.main - 42)
+  expect(off.main).toBe(before.main - 40)
   // The header covers the page no more than the v7 header does without the theme (the stock 8.4 header is a few
   // pixels taller than the padding of #page by itself).
   await page.goto(`${LIST}&modernui=off`)
@@ -366,15 +385,19 @@ test('favorites bar: reserved from the first paint, add and remove the module of
   await clearPersonal(page)
 })
 
-test('module rail and mega menu follow the menu settings: order, labels, hidden modules; a hidden module still opens', async ({ page }) => {
+test('no permanent module rail; the mega menu follows the menu settings: order, labels, hidden modules; a hidden module still opens', async ({ page }) => {
   await open(page, 'index.php?module=Contacts&view=List&app=MARKETING')
+  // The v7 strip is gone with its space (its modules are in the mega menu), not replaced by another rail.
+  await expect(page.locator('#modnavigator')).toBeHidden()
+  await expect(page.locator('[data-mu-root="module-rail"], .mu-rail')).toHaveCount(0)
+  expect(await page.evaluate(() => document.querySelector('.sidebar-essentials')?.getBoundingClientRect().left ?? 0)).toBe(0)
   const menu = await menuOf(page)
-  const group = menu.groups.find((entry) => entry.app === 'MARKETING')
+  const group = menu.groups.find((entry) => entry.app === 'MARKETING' && entry.items.some((item) => item.module === 'Contacts'))
   expect(group).toBeDefined()
-  await expect(page.locator('html')).toHaveAttribute('data-mu-replaced', /module-rail/)
-  await expect(page.locator('#modnavigator > .mod-switcher-container')).toBeHidden()
-  expect(await page.locator('.mu-rail [data-mu-item]').evaluateAll((links) => links.map((link) => link.getAttribute('data-mu-item'))))
+  await page.locator(TRIGGER).click()
+  expect(await page.locator(`${PANEL} #mu-mega-panel a[data-mu-item]`).evaluateAll((links) => links.map((link) => link.getAttribute('data-mu-item'))))
     .toEqual(group?.items.map((item) => item.id))
+  await page.keyboard.press('Escape')
 
   // A group of our own with a long German label, Contacts first; Accounts hidden.
   const german = 'Kundenbeziehungsmanagementübersicht'
@@ -386,19 +409,20 @@ test('module rail and mega menu follow the menu settings: order, labels, hidden 
   })
   expect((await savePersonal(page, { locale: 'de-DE' })).ok).toBe(true)
   await open(page, 'index.php?module=Contacts&view=List&app=MARKETING')
-  await expect(page.locator('.mu-rail')).toHaveAttribute('data-mu-group', 'kunden')
-  const rail = await page.locator('.mu-rail [data-mu-item]').evaluateAll((links) => links.map((link) => link.getAttribute('data-mu-item')))
-  expect(rail[0]).toBe('m:Contacts')
-  expect(rail).not.toContain('m:Accounts')
   await page.locator(TRIGGER).click()
   const panel = page.locator(PANEL)
+  await expect(panel.locator('[role="tab"][aria-selected="true"]')).toHaveAttribute('data-mu-group', 'kunden')
+  const entries = await panel.locator('#mu-mega-panel a[data-mu-item]').evaluateAll((links) => links.map((link) => link.getAttribute('data-mu-item')))
+  expect(entries[0]).toBe('m:Contacts')
+  expect(entries).not.toContain('m:Accounts')
   await expect(panel.locator('[role="tab"]').first()).toHaveAttribute('title', german)
-  await expect(panel.locator('#mu-mega-panel [data-mu-item="m:Accounts"]')).toHaveCount(0)
-  // The long label stays inside the 98 px column (two lines at most, the full text in title).
+  // The long label stays inside the 86 px column of the apps (two lines at most, the full text in title).
   const overflow = await panel.locator('[role="tab"]').first().evaluate((tab) => tab.scrollWidth - tab.clientWidth)
   expect(overflow).toBeLessThanOrEqual(1)
   await expect(page.locator(TRIGGER)).toHaveAttribute('aria-label', 'Menü öffnen')
-  await expect(panel.locator('.mu-mega__service .mu-mega__heading').first()).toHaveText('Service und Einstellungen')
+  await expect(panel.locator('.mu-mega__modules .mu-mega__heading')).toHaveText('Module')
+  await expect(panel.locator('.mu-mega__heading--service')).toHaveText('Konfiguration')
+  await expect(panel.locator('.mu-mega__subhead--service').first()).toHaveText('Service und Einstellungen')
   await page.keyboard.press('Escape')
   // The hidden module opens by its direct link as before.
   const response = await page.goto(LIST)
@@ -533,7 +557,8 @@ test('lists of the core and a custom module: the same actions, filters, columns 
       await waitForList(page)
       await expect(page.locator('.listViewContentHeaderValues').first().locator('.fa-sort-asc, .fa-sort-desc'), module).toHaveCount(1)
     }
-    await expect(page.locator('.mu-rail [aria-current="page"], .mu-rail'), module).not.toHaveCount(0)
+    // No permanent rail on any list (Documents and reports had none in v7 already).
+    await expect(page.locator('#modnavigator'), module).toBeHidden()
   }
 })
 
@@ -606,6 +631,202 @@ test('popup: selecting a record for a reference field uses the list of the popup
   await expect(page.locator('input[name="account_id_display"]')).not.toHaveValue('')
 })
 
+/** The element at the centre of a locator is the locator itself (or inside it): nothing covers it. */
+async function reachable(page: Page, selector: string): Promise<boolean> {
+  return page.locator(selector).first().evaluate((element) => {
+    const box = element.getBoundingClientRect()
+    const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
+    return box.width > 0 && hit !== null && (element.contains(hit) || hit.contains(element))
+  })
+}
+
+test('header of the cloud (stage 11): one main row and the toolbar, the title, every action of the core in its new place', async ({ page }) => {
+  await open(page, LIST)
+  const geometry = await page.evaluate(() => {
+    const box = (selector: string): { x: number; y: number; w: number; h: number } | null => {
+      const element = document.querySelector(selector)
+      if (element === null) {
+        return null
+      }
+      const r = element.getBoundingClientRect()
+      return { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height) }
+    }
+    return {
+      nav: box('#page > nav.app-fixed-navbar'),
+      row: box('#page > nav.app-fixed-navbar > .global-nav'),
+      secondRow: box('#page > nav.app-fixed-navbar > .app-nav'),
+      toolbar: box('#page > nav.app-fixed-navbar .module-action-bar'),
+      title: box('#page > nav.app-fixed-navbar .module-title'),
+      button: box('[data-mu-trigger="mega-menu"]'),
+      search: box('#page > nav.app-fixed-navbar .search-link'),
+      system: box('[data-mu-root="system-menu"]'),
+      logo: box('#page > nav.app-fixed-navbar .logo-container'),
+      user: box('#navbar a.userName'),
+      add: box('#Accounts_listView_basicAction_LBL_ADD_RECORD'),
+      main: box('.main-container'),
+      filterInTitle: Array.from(document.querySelectorAll('#page > nav.app-fixed-navbar .module-breadcrumb .current-filter-name')).some((element) => element.getBoundingClientRect().width > 0),
+    }
+  })
+  // Favorites 42 px, one row of 56 px over its last 2 px; the second row of v7 takes no space; the toolbar 52 px under it.
+  expect(geometry.nav).toMatchObject({ y: 0, h: 96 })
+  expect(geometry.row).toMatchObject({ y: 40, h: 56 })
+  expect(geometry.secondRow?.h).toBe(0)
+  expect(geometry.toolbar).toMatchObject({ y: 96, h: 52 })
+  expect(geometry.main?.y).toBe(148)
+  // The row: menu button at the left edge, the title next to it, the search, the system menu, the logo and the user last.
+  expect(geometry.button).toMatchObject({ x: 24, y: 50, w: 36, h: 36 })
+  expect(geometry.title?.x).toBe(68)
+  // Centred in the row (40 … 96), within the ±2 px of the contract.
+  expect(Math.abs((geometry.title?.y ?? 0) + (geometry.title?.h ?? 0) / 2 - 68)).toBeLessThanOrEqual(2)
+  expect(geometry.filterInTitle).toBe(false)
+  const order = [geometry.search, geometry.system, geometry.logo, geometry.user].map((item) => item?.x ?? -1)
+  expect([...order].sort((a, b) => a - b)).toEqual(order)
+  for (const item of [geometry.search, geometry.system, geometry.user]) {
+    expect((item?.y ?? 0) >= 40 && (item?.y ?? 0) + (item?.h ?? 0) <= 96, JSON.stringify(item)).toBe(true)
+  }
+  expect((geometry.add?.y ?? 0) >= 96 && (geometry.add?.y ?? 0) + (geometry.add?.h ?? 0) <= 148).toBe(true)
+  // Every action of the header can be clicked: nothing of the new layout covers it.
+  for (const selector of ['#menubar_quickCreate', '#navbar a.userName', '#navbar a.fa-calendar', '.search-link .keyword-input', '#Accounts_listView_basicAction_LBL_ADD_RECORD', '.company-logo']) {
+    if ((await page.locator(selector).count()) > 0) {
+      expect(await reachable(page, selector), selector).toBe(true)
+    }
+  }
+
+  // The global search of v7: the button opens into the field, Enter searches with the same request as v7, Escape leaves it.
+  const query = isClean ? 'MU' : 'ООО'
+  await page.goto(`${LIST}&modernui=off`)
+  await page.waitForLoadState('networkidle')
+  const v7Search = await requestsDuring(page, async () => {
+    await page.locator('.keyword-input').fill(query)
+    await page.locator('.keyword-input').press('Enter')
+  })
+  await open(page, `${LIST}&modernui=on`)
+  await page.locator('.search-link .keyword-input').click()
+  await expect(page.locator('.search-link .keyword-input')).toBeFocused()
+  expect(await page.locator('.search-link').evaluate((element) => element.getBoundingClientRect().width)).toBeGreaterThan(300)
+  const themeSearch = await requestsDuring(page, async () => {
+    await page.keyboard.type(query, { delay: 20 })
+    await page.keyboard.press('Enter')
+  })
+  // Polls of the CRM (telephony, reminders) may fall into the same moment: the requests of the search are compared.
+  const searchOnly = (requests: string[]): string[] => requests.filter((entry) => !/Poll|Reminder|Notification/i.test(entry))
+  expect(searchOnly(themeSearch)).toEqual(searchOnly(v7Search))
+  expect(searchOnly(themeSearch).length).toBeGreaterThan(0)
+  await expect(page.locator('.search-link .keyword-input')).toHaveValue(query)
+  await open(page, LIST)
+  await page.locator('.search-link .keyword-input').click()
+  await page.keyboard.press('Escape')
+  await expect(page.locator('.search-link .keyword-input')).not.toBeFocused()
+  expect(await page.locator('.search-link').evaluate((element) => element.getBoundingClientRect().width)).toBe(34)
+
+  // Quick create and the user menu of v7 open from their new places.
+  await page.locator('#menubar_quickCreate').click()
+  // (li#quickCreateModules has no height in v7 itself: its column floats; the entries are what counts.)
+  await expect(page.locator('#menubar_quickCreate_Contacts')).toBeVisible()
+  expect(await reachable(page, '#menubar_quickCreate_Contacts')).toBe(true)
+  await page.locator('#menubar_quickCreate_Contacts').click()
+  const form = page.locator('.modal-content form[name="QuickCreate"]')
+  await expect(form).toBeVisible()
+  await form.locator('.modal-footer .cancelLink, .modal-footer [data-dismiss="modal"]').first().click()
+  await expect(form).toBeHidden()
+  await page.locator('#navbar a.userName').click()
+  await expect(page.locator('#navbar .logout-content')).toBeVisible()
+  await expect(page.locator('#menubar_item_right_LBL_MY_PREFERENCES')).toBeVisible()
+  await expect(page.locator('#menubar_item_right_LBL_SIGN_OUT')).toBeVisible()
+  expect(await reachable(page, '#menubar_item_right_LBL_MY_PREFERENCES')).toBe(true)
+  await page.locator('#navbar a.userName').click()
+
+  // Extensions add an icon to the header and a button to the module header after the start: both appear in the new
+  // places and can be clicked; the title keeps out of the way of the icons.
+  await page.evaluate(() => {
+    const icons = document.querySelector('#navbar ul.nav.navbar-nav')
+    const item = document.createElement('li')
+    item.innerHTML = '<div><a href="#" id="mu-test-header-icon" class="fa fa-star" title="Extension"></a></div>'
+    icons?.prepend(item)
+    const buttons = document.querySelector('#appnav ul.nav')
+    const entry = document.createElement('li')
+    entry.innerHTML = '<button type="button" id="mu-test-module-button" class="btn btn-default module-buttons">Extension</button>'
+    buttons?.prepend(entry)
+  })
+  for (const selector of ['#mu-test-header-icon', '#mu-test-module-button']) {
+    await expect(page.locator(selector)).toBeVisible()
+    expect(await reachable(page, selector), selector).toBe(true)
+  }
+  const late = await page.evaluate(() => ({
+    icon: document.getElementById('mu-test-header-icon')?.getBoundingClientRect().top ?? -1,
+    button: document.getElementById('mu-test-module-button')?.getBoundingClientRect().top ?? -1,
+    titleEnd: document.querySelector('#page > nav.app-fixed-navbar .module-action-content > :first-child')?.getBoundingClientRect().right ?? 0,
+    firstAction: Math.min(...Array.from(document.querySelectorAll('#page > nav.app-fixed-navbar .global-nav .row > :has(> .search-links-container), #navbar > .navbar-nav > li')).map((element) => element.getBoundingClientRect().left)),
+  }))
+  expect(late.icon).toBeGreaterThanOrEqual(40)
+  expect(late.icon).toBeLessThan(96)
+  expect(late.button).toBeGreaterThanOrEqual(96)
+  expect(late.button).toBeLessThan(148)
+  expect(late.titleEnd).toBeLessThanOrEqual(late.firstAction)
+  await page.evaluate(() => {
+    document.getElementById('mu-test-header-icon')?.closest('li')?.remove()
+    document.getElementById('mu-test-module-button')?.closest('li')?.remove()
+  })
+
+  // A list reloaded by AJAX keeps the header as it is.
+  await page.locator('.listViewContentHeaderValues').first().click()
+  await waitForList(page)
+  expect(await page.evaluate(() => document.querySelector('#page > nav.app-fixed-navbar')?.getBoundingClientRect().height)).toBe(96)
+  await expect(page.locator('[data-mu-root="system-menu"]')).toHaveCount(1)
+})
+
+test('no permanent rail on records and forms; the calendar views in the context navigation; the settings menu stays', async ({ page }) => {
+  await open(page, LIST)
+  const href = await page.locator('#listview-table tr.listViewEntries[data-id]').first().getAttribute('data-recordurl')
+  expect(href).not.toBeNull()
+  for (const url of [href ?? '', (href ?? '').replace('view=Detail', 'view=Edit')]) {
+    await open(page, url)
+    await expect(page.locator('#modnavigator'), url).toBeHidden()
+    expect(await page.evaluate(() => (document.querySelector('.viewContent .content-area') ?? document.querySelector('.content-area'))?.getBoundingClientRect().left ?? -1), url).toBeLessThanOrEqual(16)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), url).toBe(true)
+  }
+
+  // The calendar of v7 keeps its views in the strip: they are the context navigation of the toolbar, with the same links.
+  const calendar = 'index.php?module=Calendar&view=Calendar'
+  await page.goto(`${calendar}&modernui=off`)
+  await page.waitForLoadState('load')
+  const v7Views = await page.locator('#modnavigator .mod-switcher-container a[href]').evaluateAll((links) => links.map((link) => new URL(link.getAttribute('href') ?? '', document.baseURI).search))
+  expect(v7Views.length).toBeGreaterThanOrEqual(2)
+  await open(page, `${calendar}&modernui=on`)
+  await expect(page.locator('#modnavigator')).toBeHidden()
+  const context = page.locator('[data-mu-root="context-nav"]')
+  await expect(context).toBeVisible()
+  expect(await context.locator('a[href]').evaluateAll((links) => links.map((link) => new URL(link.getAttribute('href') ?? '', document.baseURI).search))).toEqual(v7Views)
+  await expect(context.locator('a[aria-current="page"]')).toHaveCount(1)
+  expect(await context.evaluate((element) => {
+    const box = element.getBoundingClientRect()
+    return box.top >= 96 && box.bottom <= 148
+  })).toBe(true)
+  for (const view of ['SharedCalendar', 'List']) {
+    const link = context.locator(`a[href*="view=${view}"]`)
+    if ((await link.count()) === 0) {
+      continue
+    }
+    await Promise.all([page.waitForURL(new RegExp(`view=${view}`)), link.click()])
+    await waitForShell(page)
+    await expect(page.locator(`[data-mu-root="context-nav"] a[href*="view=${view}"]`)).toHaveAttribute('aria-current', 'page')
+  }
+  // The add buttons of the calendar view are its main actions, in the toolbar.
+  await open(page, calendar)
+  await page.waitForLoadState('networkidle')
+  for (const id of ['#calendarview_basicaction_addevent', '#calendarview_basicaction_addtask']) {
+    if ((await page.locator(id).count()) > 0) {
+      // A trial click: visible, enabled, stable and the element itself receives the pointer.
+      await page.locator(id).click({ trial: true, timeout: 10_000 })
+    }
+  }
+
+  // The navigation of the settings is no rail of modules: it stays.
+  await open(page, 'index.php?module=Vtiger&parent=Settings&view=Index')
+  await expect(page.locator('#modnavigator.settingsNav')).toBeVisible()
+  await expect(page.locator('.settingsgroup').first()).toBeVisible()
+})
+
 test('narrow screens: the bar scrolls, the menu takes the screen with sections as an accordion, no page scroll', async ({ page }) => {
   for (const width of [768, 412]) {
     await page.setViewportSize({ width, height: 860 })
@@ -626,6 +847,26 @@ test('narrow screens: the bar scrolls, the menu takes the screen with sections a
     await expect(closed).toHaveAttribute('aria-expanded', 'true')
     expect(await panel.evaluate((element) => element.getBoundingClientRect().width)).toBeLessThanOrEqual(width)
     await page.keyboard.press('Escape')
+    // Every action of the header stays reachable: the logo and the title are on the screen; on a phone the collapsed
+    // header of v7 opens its actions and the search from its toggles.
+    expect(await reachable(page, '.company-logo'), `${String(width)} logo`).toBe(true)
+    expect(await page.locator('#page > nav.app-fixed-navbar .module-title').evaluate((element) => {
+      const box = element.getBoundingClientRect()
+      return box.width > 0 && box.left >= 0 && box.top >= 40 && box.bottom <= 148
+    }), `${String(width)} title`).toBe(true)
+    if (width < 768) {
+      const toggle = page.locator('#page > nav.app-fixed-navbar .navbar-header [data-target="#navbar"]')
+      await expect(toggle).toBeVisible()
+      await toggle.click()
+      await expect(page.locator('#navbar a.userName')).toBeVisible()
+      // The collapse of v7 animates its height: the trial click waits for it.
+      await page.locator('#menubar_quickCreate').click({ trial: true, timeout: 10_000 })
+      await toggle.click()
+    } else {
+      for (const selector of ['#menubar_quickCreate', '#navbar a.userName', '.search-link .keyword-input']) {
+        expect(await reachable(page, selector), `${String(width)} ${selector}`).toBe(true)
+      }
+    }
   }
   await page.setViewportSize({ width: 1440, height: 900 })
 })

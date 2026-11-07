@@ -394,14 +394,14 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
   }
   const state = await page.evaluate(() => {
     const html = document.documentElement
-    const replaced = (html.getAttribute('data-mu-replaced') ?? '').split(/\s+/)
     // The navigation of v7 the shell may replace (app menu, module strip, logo) is compared separately: the module strip
     // below, the app menu by the navigation scenarios of stage 06. Links that switch the safe mode differ by design.
     const skip = ['[data-mu-root]', '#mu-overlay-root', '#appnavigator', '#app-menu', '#modnavigator', '.company-logo', 'a[href*="modernui="]'].join(',')
-    // A replaced v7 module strip: the entries that only the strip offers — another view of the module of the page (the
-    // shared calendar, the task list) or a link with its own parameters — must be in the module rail of the theme. The
-    // other modules of the strip are entries of the theme menu (the mega menu, checked by the navigation scenarios): the
-    // rail shows the section of the module, the strip of v7 the app of the URL.
+    // The v7 module strip is gone on the screens of the theme (stage 11): the entries that only the strip offers — the views
+    // of the module of the page when it has several (the calendar: calendar, shared calendar, list), another view or a link
+    // with its own parameters — must be in the context navigation of the toolbar. The other modules of the strip are
+    // entries of the theme menu (the mega menu, checked by the navigation scenarios). A strip with an entry without a link
+    // stays (html[data-mu-keep-rail]).
     const destination = (raw: string): string => {
       const url = new URL(raw, document.baseURI)
       url.searchParams.delete('app')
@@ -411,17 +411,18 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
     const meta = (window as unknown as { _META?: { module?: unknown } })._META
     const pageModule = typeof meta?.module === 'string' && meta.module !== '' ? meta.module : new URL(location.href).searchParams.get('module') ?? ''
     const railMissing: string[] = []
-    if (replaced.includes('module-rail')) {
-      const rail = new Set(Array.from(document.querySelectorAll('[data-mu-root="module-rail"] a[href]')).map((link) => destination(link.getAttribute('href') ?? '')))
-      for (const link of Array.from(document.querySelectorAll('#modnavigator .mod-switcher-container a[href]'))) {
-        const href = link.getAttribute('href') ?? ''
-        if (href === '' || href.startsWith('#') || href.startsWith('javascript')) {
-          continue
-        }
+    const strip = document.querySelector('#modnavigator > .mod-switcher-container')
+    if (strip !== null && html.getAttribute('data-mu-level') === 'islands' && !html.hasAttribute('data-mu-keep-rail') && getComputedStyle(strip).display !== 'none' && strip.getBoundingClientRect().width === 0) {
+      const context = new Set(Array.from(document.querySelectorAll('[data-mu-root="context-nav"] a[href]')).map((link) => destination(link.getAttribute('href') ?? '')))
+      const links = Array.from(strip.querySelectorAll('a[href]')).map((link) => link.getAttribute('href') ?? '')
+        .filter((href) => href !== '' && !href.startsWith('#') && !href.startsWith('javascript'))
+      const views = links.filter((href) => new URL(href, document.baseURI).searchParams.get('module') === pageModule).length
+      for (const href of links) {
         const url = new URL(href, document.baseURI)
         const extra = Array.from(url.searchParams.keys()).filter((key) => !['module', 'view', 'app', 'parent'].includes(key))
-        const own = url.searchParams.get('module') === pageModule || extra.length > 0 || !['', 'List', 'Index', 'DashBoard', 'Calendar'].includes(url.searchParams.get('view') ?? '')
-        if (own && !rail.has(destination(href))) {
+        const ofPage = url.searchParams.get('module') === pageModule
+        const own = (ofPage && views > 1) || extra.length > 0 || !['', 'List', 'Index', 'DashBoard', 'Calendar'].includes(url.searchParams.get('view') ?? '')
+        if (own && !context.has(destination(href))) {
           railMissing.push(`rail|${href}`)
         }
       }

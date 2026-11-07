@@ -60,7 +60,7 @@ function select(event: Event): void {
   <nav class="mu-favbar" :class="{ 'mu-favbar--compact': favorites.compact }" :aria-label="t('favorites.label')">
     <DropdownMenuRoot v-if="favorites.canEdit" :modal="false">
       <DropdownMenuTrigger class="mu-favbar__star" :aria-label="t('favorites.actions')" :title="t('favorites.actions')" data-mu-trigger="favorites">
-        <Star :size="16" aria-hidden="true" :fill="isFavorite ? 'currentColor' : 'none'" />
+        <Star :size="15" aria-hidden="true" fill="currentColor" />
       </DropdownMenuTrigger>
       <DropdownMenuPortal to="#mu-overlay-root">
         <DropdownMenuContent class="mu-menu" align="start" :side-offset="4" :collision-padding="8">
@@ -79,7 +79,7 @@ function select(event: Event): void {
       </DropdownMenuPortal>
     </DropdownMenuRoot>
     <span v-else class="mu-favbar__star mu-favbar__star--static" aria-hidden="true">
-      <Star :size="16" />
+      <Star :size="15" fill="currentColor" />
     </span>
     <ul v-if="items.length > 0" class="mu-favbar__list">
       <li v-for="item in items" :key="item.id">
@@ -91,8 +91,8 @@ function select(event: Event): void {
           :aria-current="isCurrent(item, page) ? 'page' : undefined"
           :data-mu-item="item.id"
         >
-          <ModuleIcon :icon="item.icon" :size="15" />
-          <span v-if="!favorites.compact" class="mu-favbar__text">{{ item.label }}</span>
+          <ModuleIcon v-if="favorites.compact" :icon="item.icon" :size="15" />
+          <span v-else class="mu-favbar__text">{{ item.label }}</span>
         </a>
       </li>
     </ul>
@@ -106,30 +106,31 @@ function select(event: Event): void {
 // skin stylesheet failed to load, the bar still gets its space instead of covering the header.
 @use '../skin/shell';
 
-// Fixed to the viewport (not to the v7 header: on narrow screens the header of v7 starts 20 px left of the window).
+// Fixed to the viewport (not to the v7 header: on narrow screens the header of v7 starts 20 px left of the window). Under
+// the main row of the header (z-index 0 in its stacking context): the row covers the last 2 px of the bar, as in the cloud.
 .mu-root.mu-favorites-root {
   position: fixed;
   top: 0;
   right: 0;
   left: 0;
-  z-index: 1;
+  z-index: 0;
   height: 42px;
 }
 
+// The favorites of the cloud (V01): 42 px on #f9f9fa, the star and then the modules as text links with a 1 px divider
+// after each, 14 px #595d5d, at most 160 px each; the module of the page in the accent.
 .mu-root .mu-favbar {
   display: flex;
   align-items: center;
-  gap: 8px;
   height: 42px;
-  // The right end is the place of the system menu of the theme.
-  padding: 0 64px 0 12px;
+  padding: 0 24px 0 25px;
   border-bottom: 1px solid tok(border);
   background: tok(surface-subtle);
   color: tok(text-2);
   font-size: fs(14);
 
   @media (max-width: 767px) {
-    padding: 0 56px 0 6px;
+    padding: 0 12px 0 6px;
   }
 }
 
@@ -140,11 +141,12 @@ function select(event: Event): void {
   justify-content: center;
   width: 32px;
   height: 32px;
+  margin-right: 4px;
   padding: 0;
   border: 0;
   border-radius: tok(radius-sm);
   background: transparent;
-  color: #b7791f;
+  color: #ff8e4b;
   cursor: pointer;
 
   &:hover,
@@ -154,7 +156,7 @@ function select(event: Event): void {
 
   &:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px tok(focus-ring);
+    @include focus-ring;
   }
 
   &--static {
@@ -166,6 +168,8 @@ function select(event: Event): void {
   }
 }
 
+// Too many favorites for the width: each one gives up room down to a few letters (ellipsis, the whole label in the
+// tooltip), then the row scrolls.
 .mu-root .mu-favbar__list {
   display: flex;
   flex: 1;
@@ -177,17 +181,18 @@ function select(event: Event): void {
   overflow-x: auto;
   overflow-y: hidden;
   list-style: none;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 
   > li {
     display: flex;
-    flex: none;
+    flex: 0 1 auto;
     align-items: center;
+    min-width: 56px;
     height: 100%;
-
-    + li {
-      border-left: 1px solid #ebebee;
-    }
   }
 }
 
@@ -195,38 +200,38 @@ function select(event: Event): void {
   display: flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
   max-width: 160px;
-  height: 32px;
-  margin: 0 4px;
-  padding: 0 8px;
-  border-radius: tok(radius-sm);
+  height: 21px;
+  padding: 0 16px 0 9px;
+  border-right: 1px solid #ebebee;
   color: tok(text-2);
+  line-height: 21px;
   text-decoration: none;
-  @include transition(color, background-color);
+  @include transition(color);
 
   .mu-module-icon {
     color: inherit;
   }
 
-  &:hover,
-  &[aria-current='page'] {
-    color: tok(primary-strong);
+  &:hover {
+    color: tok(link);
     text-decoration: none;
   }
 
   &[aria-current='page'] {
-    font-weight: 600;
+    color: tok(primary);
   }
 
   &:focus-visible {
+    border-radius: tok(radius-sm);
     outline: none;
-    box-shadow: 0 0 0 2px tok(focus-ring);
+    @include focus-ring;
   }
 
   .mu-favbar--compact & {
     justify-content: center;
-    width: 32px;
-    padding: 0;
+    padding: 0 12px;
   }
 }
 
