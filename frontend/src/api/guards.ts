@@ -93,7 +93,7 @@ const LOCALE_SOURCES: readonly LocaleSource[] = ['personal', 'crm', 'global', 'f
 const THEME_MODES: readonly ThemeMode[] = ['off', 'pilot', 'all']
 const DENSITIES: readonly Density[] = ['comfortable', 'standard', 'compact']
 const FONT_SCALES: readonly FontScale[] = [90, 100, 110, 125]
-const FONTS: readonly FontChoice[] = ['inter', 'system']
+const FONTS: readonly FontChoice[] = ['cloud', 'inter', 'system']
 
 function systemItem(value: unknown, path: string): SystemItem {
   const item = record(value, path)
@@ -110,10 +110,11 @@ const TOKEN_VALUE: Readonly<Record<TokenName, RegExp>> = {
   'primary-strong': COLOR,
   'primary-hover': COLOR,
   'primary-soft': COLOR,
+  'primary-check': COLOR,
   bg: COLOR,
   surface: COLOR,
   'font-scale': /^(?:0\.9|1|1\.1|1\.25)$/,
-  'font-family': /^var\(--mu-font-(?:inter|system)\)$/,
+  'font-family': /^var\(--mu-font-(?:cloud|inter|system)\)$/,
   'row-height': /^\d{2}px$/,
   'table-head-height': /^\d{2}px$/,
   'input-height': /^\d{2}px$/,
@@ -136,6 +137,7 @@ export function parseTokens(value: unknown, path: string): TokenMap {
     'primary-strong': token('primary-strong'),
     'primary-hover': token('primary-hover'),
     'primary-soft': token('primary-soft'),
+    'primary-check': token('primary-check'),
     bg: token('bg'),
     surface: token('surface'),
     'font-scale': token('font-scale'),

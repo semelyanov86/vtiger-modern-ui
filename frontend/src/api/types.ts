@@ -15,7 +15,7 @@ export type SystemItem =
 export type ThemeMode = 'off' | 'pilot' | 'all'
 export type Density = 'comfortable' | 'standard' | 'compact'
 export type FontScale = 90 | 100 | 110 | 125
-export type FontChoice = 'inter' | 'system'
+export type FontChoice = 'cloud' | 'inter' | 'system'
 
 /** Settings values of the appearance (docs/settings.md §4). */
 export interface AppearanceSettings {
@@ -33,6 +33,7 @@ export const TOKEN_NAMES = [
   'primary-strong',
   'primary-hover',
   'primary-soft',
+  'primary-check',
   'bg',
   'surface',
   'font-scale',

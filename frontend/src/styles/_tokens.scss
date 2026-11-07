@@ -1,18 +1,20 @@
-// Design tokens of ModernUI (docs/design.md §3). Components and the skin read them as var(--mu-*, default):
-// the defaults apply on the module's own pages where the skin is not loaded; the user's values come from the
-// tokens stylesheet of the server (action=Tokens) and from the inline style the shell sets on <html>.
+// Design tokens of ModernUI (docs/design.md §13.4: the measured cloud reference v9, 2026-11-07). Components and the skin
+// read them as var(--mu-*, default): the defaults apply on the module's own pages where the skin is not loaded; the user's
+// values come from the tokens stylesheet of the server (action=Tokens) and from the inline style the shell sets on <html>.
 //
-// Runtime tokens (changed by the settings, validated by ModernUI_Tokens_Model and the Bootstrap guard):
-// primary, primary-strong, primary-hover, primary-soft, bg, surface, font-scale, font-family and the density
-// sizes. Everything else is fixed by the design.
+// Runtime tokens (changed by the settings, computed by ModernUI_Tokens_Model and checked by the Bootstrap guard):
+// primary, primary-strong, primary-hover, primary-soft, primary-check, bg, surface, font-scale, font-family and the
+// density sizes. Everything else is fixed by the reference. Values that differ from the cloud on purpose are the local
+// exceptions of docs/design.md §13.5 (keyboard focus ring, success text) — nothing else is darkened.
 @use 'sass:map';
 
 $defaults: (
-  // Accent (runtime)
+  // Accent (runtime). The cloud fills primary buttons with the primary colour itself and darkens it on hover only.
   primary: #3978fe,
-  primary-strong: #315dff,
-  primary-hover: #2d56eb,
+  primary-strong: #3978fe,
+  primary-hover: #315dff,
   primary-soft: #e7f1ff,
+  primary-check: #2e81ff,
   link: #0065ff,
   // Surfaces (bg and surface are runtime)
   bg: #eff0f2,
@@ -20,41 +22,52 @@ $defaults: (
   surface-subtle: #f9f9fa,
   surface-block: #f6f7f8,
   surface-readonly: #eff0f2,
+  surface-badge: #fafbfc,
   btn-secondary: #f0f1f3,
-  btn-secondary-hover: #dfe1e6,
+  btn-secondary-hover: #f0f1f3,
   nav-dark: #2c3e50,
   nav-dark-2: #465f79,
   nav-dark-text: #fafbfc,
   menu-bg: #f1f3f6,
+  menu-hover: #eff0f2,
   // Text
   text: #1c2121,
   text-body: #212529,
   text-heading: #2c3e50,
   text-2: #595d5d,
-  text-label: #6b6f75,
-  text-muted: #6b6f75,
+  text-label: #7b7f85,
+  text-muted: #8e9093,
+  text-select: #444444,
   // Borders and focus
   divider: #f0f1f3,
   border: #dfe1e6,
   border-value: #ebecf0,
-  border-input: #8c95a5,
+  border-input: #dfe1e6,
+  border-select: #e5e5e5,
+  border-select-open: #aaaaaa,
+  border-check: #cccccc,
+  border-check-hover: #595d5d,
+  border-check-form: #d5d7d9,
+  border-menu: rgba(0, 0, 0, 0.15),
   focus-border: #237afe,
   focus-ring: rgba(0, 123, 255, 0.8),
-  // Meaning (texts ≥ 4.5:1 on white)
-  required: #c94c05,
+  // Meaning. danger is the text of errors, danger-fill the destructive button and the error ring of the cloud.
+  required: #e55907,
   danger: #d70a2a,
   danger-ring: #f85c75,
+  danger-fill: #f85c75,
   danger-soft: #fdecef,
   success: #1d7a43,
-  success-border: #2e9a5e,
+  success-border: #43b576,
   success-soft: #e8f5ee,
   warning: #b45309,
   warning-soft: #fdf3e6,
   info: #1f5fbf,
   info-soft: #e7f1ff,
+  select-highlight: #5897fb,
   // Typography (runtime: font-scale, font-family)
   font-scale: 1,
-  font-family: var(--mu-font-inter),
+  font-family: var(--mu-font-cloud),
   // Density (runtime)
   row-height: 40px,
   table-head-height: 50px,
@@ -78,9 +91,12 @@ $defaults: (
   // Shadows
   shadow-header: 0 3px 6px #eeeeee,
   shadow-dropdown: 0 2px 10px rgba(39, 49, 58, 0.2),
+  shadow-dropdown-lg: 0 1px 10px rgba(0, 0, 0, 0.25),
   shadow-menu: 0 0 16px rgba(0, 0, 0, 0.14),
   shadow-modal: 0 0 16px rgba(0, 0, 0, 0.2),
+  shadow-record: 0 8px 16px rgba(0, 0, 0, 0.15),
   shadow-block: 0 2px 4px rgba(0, 0, 0, 0.075),
+  shadow-dialog-header: 0 3px 4px -2px #ebebee,
   // Layers (docs/architecture.md §6: v7 header 1095 !important, #overlayPage 1099, .modal 1100)
   z-favorites: 1096,
   z-overlay: 1097,
@@ -95,22 +111,34 @@ $defaults: (
   @return var(--mu-#{$name}, #{map.get($defaults, $name)});
 }
 
-/// A font size of the type scale (docs/design.md §3.2) multiplied by the user's font scale; px only
+/// A font size of the type scale (docs/design.md §13.4) multiplied by the user's font scale; px only
 /// (Bootstrap 3 sets html { font-size: 10px }, rem is not used).
 @function fs($px) {
   @return calc(#{$px}px * #{tok(font-scale)});
 }
 
+// Font stacks. The cloud stack is the stack of the reference (Poppins, then the system stack of Bootstrap 4) with the
+// pinned Cyrillic family in front of the system fonts (styles/_fonts.scss).
+$font-cloud: "Poppins, 'ModernUI Cyrillic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif";
 $font-inter: "'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif";
 $font-system: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif";
 
-/// Focus ring of the theme: v7 removes outlines (*:focus { outline: none }), so the ring is a box-shadow.
+/// Keyboard focus ring of buttons, links, tabs and menu items. The cloud shows no focus at all on them (measured: no
+/// outline, no shadow on :focus-visible) — a local accessibility exception (docs/design.md §13.5), visible only on
+/// keyboard focus, never with the mouse. v7 removes outlines (*:focus { outline: none }), so the ring is a box-shadow.
 @mixin focus-ring($inset: false) {
   @if $inset {
     box-shadow: inset 0 0 0 2px tok(focus-ring);
   } @else {
     box-shadow: 0 0 0 2px tok(focus-ring);
   }
+}
+
+/// Focus of fields as the cloud draws it: the border turns #237afe and a 1.28 px ring of rgba(0,123,255,.8) around it.
+@mixin field-focus {
+  border-color: tok(focus-border);
+  outline: none;
+  box-shadow: 0 0 0 1.28px tok(focus-ring);
 }
 
 /// Transitions only for users who did not ask for reduced motion.

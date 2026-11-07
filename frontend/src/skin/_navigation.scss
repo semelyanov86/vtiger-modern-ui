@@ -1,38 +1,21 @@
-// Tabs and pills of v7 (docs/design.md §4): the active tab has a 3 px underline in the accent, inactive tabs
-// the label colour. Order, number and behaviour of the tabs (EMAIL Maker rewrites them by position) stay.
+// Tabs and pills of v7 drawn as the tabs of the cloud (docs/design.md §13.4): 13 px regular, inactive #7b7f85, hover and
+// active #1c2121, the active tab with a 3 px underline in the accent. Order, number and behaviour of the tabs (EMAIL
+// Maker rewrites them by position) stay.
 @use '../styles/tokens' as *;
+@use '../styles/components' as *;
 
 :root:not(.mu-off) {
   .nav-tabs {
     border-bottom-color: tok(border);
 
     > li > a {
-      border: 0;
-      border-radius: 0;
-      color: tok(text-label);
-      font-size: fs(14);
-      @include transition(color, box-shadow);
-
-      &:hover,
-      &:focus {
-        border: 0;
-        background-color: transparent;
-        color: tok(text);
-      }
-
-      &:focus-visible {
-        @include focus-ring(true);
-      }
+      @include tab;
     }
 
     > li.active > a,
     > li.active > a:hover,
     > li.active > a:focus {
-      border: 0;
-      background-color: transparent;
-      color: tok(text);
-      font-weight: 600;
-      box-shadow: inset 0 -3px 0 tok(primary);
+      @include tab-active;
     }
   }
 
@@ -45,12 +28,17 @@
   }
 
   // Related tabs of v7 have a fixed width (90 px per tab) and labels of 12 px (measured, stage 07): the theme keeps
-  // 12 px and the semi-bold labels at 500 — at 13 px/600 a long label of the first tab such as "(Information)(View)" ran
-  // into the next one (Inter is wider than OpenSans of v7). The active tab: underline and the main text colour.
+  // 12 px and the labels regular — a long label of the first tab such as "(Information)(View)" must not run into the next
+  // one. The active tab: underline and the main text colour. The cloud layout of the record tabs is stage 13.
   .related-tabs .nav-tabs > li {
     > a {
       color: tok(text-label);
       font-size: fs(12);
+    }
+
+    > a:hover,
+    > a:focus {
+      color: tok(text);
     }
 
     &.active > a {
@@ -58,9 +46,9 @@
       box-shadow: none;
     }
 
-    // v7 sets every label in <strong> (OpenSans-Semibold); 600 of Inter is wider than that — 500 keeps the width.
+    // v7 sets every label in <strong> (OpenSans-Semibold); the cloud tabs are regular (Poppins 400; 500 is drawn with it).
     .tab-label strong {
-      font-weight: 500;
+      font-weight: 400;
     }
   }
 
@@ -70,8 +58,7 @@
 
   // Counters next to the related tabs keep their colour (data), only the shape follows the theme.
   .related-tabs .numberCircle {
-    border-radius: tok(radius-pill);
-    font-family: tok(font-family);
+    @include badge;
   }
 
   .nav-pills > li > a {
@@ -80,7 +67,7 @@
 
     &:hover,
     &:focus {
-      background-color: tok(surface-readonly);
+      background-color: tok(menu-hover);
       color: tok(text);
     }
   }

@@ -6,6 +6,7 @@
 @use 'fonts';
 
 :root {
+  --mu-font-cloud: #{$font-cloud};
   --mu-font-inter: #{$font-inter};
   --mu-font-system: #{$font-system};
 }

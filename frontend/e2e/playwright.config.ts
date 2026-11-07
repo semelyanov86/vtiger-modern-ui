@@ -15,6 +15,9 @@
  *              synthetic records MU07 and deletes them);
  * - special  — adapters of extensions, pages outside the CRM interface, printing, export, rich text editors, dashboard and
  *              calendar drag and drop (stage 08, both stands; synthetic events MU08 on the clean stand);
+ * - foundation — the visual foundation (stage 10): tokens of the server = preview, the cloud font and the pinned Cyrillic
+ *              face, the states of buttons, fields, Select2, check boxes, rows, menus, tabs, dialogs, notifications, the
+ *              settings editor, densities and 200 % against the measured cloud reference (both stands, read-only for the CRM);
  * - screens  — every screen of the instance (special screens, Settings, lists and records of all modules) with and
  *              without the theme: lost or covered actions, new errors, scrolling, level of the theme (stage 08, read-only);
  * - baseline — behaviour of the CRM without the theme: pages, errors, timings (task baseline);
@@ -60,6 +63,7 @@ export default defineConfig({
     { name: 'special', testMatch: /special\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'screens', testMatch: /screens\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'layout', testMatch: /layout\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
+    { name: 'foundation', testMatch: /foundation\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'pairs', testMatch: /pairs\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'baseline', testMatch: /baseline\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'import', testMatch: /tools\/module-import\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },

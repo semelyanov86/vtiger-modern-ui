@@ -87,6 +87,10 @@ rem; нужен `v-app`), Quasar 2.35.2 (глобальные `html,body`, эт�
 
 ## 3. Список зависимостей
 
+Этап 10 (2026-11-07) добавил `@fontsource/poppins` 5.3.0 и `@fontsource/arimo` 5.3.0 (OFL-1.1, опубликованы 2026-07-19, без
+зависимостей и install-скриптов; `npm install --save-exact --ignore-scripts`); их LICENSE попадают в `THIRD_PARTY_LICENSES.txt`
+(`extraPackages` плагина сборки), тест пакета проверяет обе записи. В ZIP — только 8 woff2 (Poppins 4 × ≈8 КБ, Arimo 4 × 7–20 КБ).
+
 Состояние этапа 02 (2026-11-01): версии ниже закреплены точно в `frontend/package.json`, дерево — в
 `frontend/package-lock.json`; установка — `npm ci --ignore-scripts` (`task fe:install`). Ещё **не
 установлен** (появится с использующим его кодом): `axe-core` (проверки доступности, этап 19). Этап 05 (2026-11-04)
@@ -109,7 +113,9 @@ cyrillic-ext). Lint PHP 8.1 — `php:8.1-cli@sha256:76e563191d1ade120313a8736df2
 | `reka-ui` | 2.11.0 | MIT | поведение компонентов; транзитивно `@floating-ui/vue` 2.0.1, `@internationalized/date`, `@internationalized/number`, `@vueuse/core` (MIT, через lockfile) |
 | `vue-i18n` | 11.4.16 | MIT | переводы; runtime-only, сообщения прекомпилированы (+16,6 КБ gzip с тремя локалями) |
 | `vue-draggable-plus` + `sortablejs` | 0.6.1 + 1.15.7 | MIT | перетаскивание в редакторе меню (только мышь/касание; клавиатура — кнопками и `Alt+↑/↓`); установлены на этапе 05, chunk `editor` |
-| `@fontsource-variable/inter` | 5.3.0 | OFL-1.1 | шрифт с кириллицей и умляутами (`design.md` §3.2) |
+| `@fontsource/poppins` | 5.3.0 | OFL-1.1 | шрифт облачного вида (этап 10, `design.md` §13.4): только начертания облака 400/600, подмножества latin (ä ö ü ß) и latin-ext; официальные файлы Google Fonts / Indian Type Foundry в упаковке Fontsource |
+| `@fontsource/arimo` | 5.3.0 | OFL-1.1 | закреплённая кириллица облачного вида: метрически совместим с Arial (облако рисует кириллицу Arial); подключается только при отсутствии системного Arial (`local()` первым), начертания 400/700, подмножества cyrillic и cyrillic-ext |
+| `@fontsource-variable/inter` | 5.3.0 | OFL-1.1 | шрифт настройки `appearance.font = inter` (до 0.8.0 — по умолчанию); браузер загружает его только при этом выборе |
 | `@lucide/vue` | 1.66.0 | ISC | значки групп меню и элементов темы (tree-shaking, только разрешённый набор) |
 
 ### 3.2. Только для разработки

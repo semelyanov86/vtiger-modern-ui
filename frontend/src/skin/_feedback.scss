@@ -44,17 +44,19 @@
     @include message(tok(info), tok(info-soft));
   }
 
-  // Notifications of app.helper.show*Notification (template of helper.js): dark box of v7 → light card.
+  // Notifications of app.helper.show*Notification (template of helper.js): dark box of v7 → a card of the cloud surface
+  // family (white, radius 6, the large menu shadow) with a stripe of the meaning. The cloud shows no transient notification
+  // on save, create, follow or delete (checked 2026-11-07) — there is no closer reference (docs/design.md §13.5).
   .vt-notification {
     max-width: 360px;
-    border: 1px solid rgba(0, 0, 0, 0.12);
+    border: 0;
     border-left: 4px solid tok(info);
     border-radius: tok(radius-md);
     background-color: tok(surface);
     color: tok(text);
     font-family: tok(font-family);
     font-size: fs(13);
-    box-shadow: tok(shadow-dropdown);
+    box-shadow: tok(shadow-dropdown-lg);
 
     .notificationHeader {
       font-size: fs(14);
@@ -117,7 +119,7 @@
   .qtip {
     border-radius: tok(radius-sm);
     font-family: tok(font-family);
-    font-size: fs(12);
+    font-size: fs(13);
     box-shadow: tok(shadow-dropdown);
   }
 

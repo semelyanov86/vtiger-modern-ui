@@ -61,7 +61,7 @@ class ModernUI_Settings_Model {
 				'appearance.surface' => array('type' => 'color', 'minLuminance' => 0.92, 'default' => '#ffffff', 'scopes' => array('global', 'role', 'user')),
 				'appearance.density' => array('type' => 'enum', 'values' => array('comfortable', 'standard', 'compact'), 'default' => 'standard', 'scopes' => array('global', 'role', 'user')),
 				'appearance.fontScale' => array('type' => 'enum', 'values' => array(90, 100, 110, 125), 'default' => 100, 'scopes' => array('global', 'role', 'user')),
-				'appearance.font' => array('type' => 'enum', 'values' => array('inter', 'system'), 'default' => 'inter', 'scopes' => array('global', 'role')),
+				'appearance.font' => array('type' => 'enum', 'values' => array('cloud', 'inter', 'system'), 'default' => 'cloud', 'scopes' => array('global', 'role')),
 				'branding.logo' => array('type' => 'logo', 'default' => 'company', 'scopes' => array('global')),
 				'branding.title' => array('type' => 'title', 'default' => 'company', 'scopes' => array('global')),
 				'navigation.groups' => array('type' => 'menu', 'default' => null, 'scopes' => array('global', 'role')),

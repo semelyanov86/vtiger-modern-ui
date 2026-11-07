@@ -124,6 +124,11 @@
   `PreAjaxSaveEvent`/`PostAjaxSaveEvent`/`post.save.failed`, собственные оверлеи на `body`),
   `Popup.js` (оконные popup v6), `Utils.js`, `validation.js`.
 - Модули Inventory и некоторые другие используют собственные копии `ListViewContents.tpl` эпохи 7.x.
+- CSS ядра и библиотек местами задан с `!important` или inline (этап 10, `design.md` §13.5): `select2-bootstrap.css` сборки
+  (SalesPlatform) красит подсвеченный пункт `#337ab7 !important`, скин v7 — ссылки `.fieldValue .value a` `#1155cc !important`,
+  `uitypes/Boolean.tpl` — флажок формы `style="width:15px;height:15px"`, белая подложка модальных окон. Облачные значения темы для
+  этих ролей заданы с `!important` только в узких селекторах (строки и ссылки с inline-цветом расширений исключены селектором);
+  на чистой 8.4.0 те же правила дают тот же результат (сценарий `foundation` на обоих стендах).
 
 Следствие: skin пишется по устойчивым классам (`.listViewEntries`, `.fieldLabel`, `.fieldValue`,
 `.detailview-header`, `.btn`, `.modal`) с нейтральной обработкой незнакомой разметки, а не по

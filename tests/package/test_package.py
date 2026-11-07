@@ -93,7 +93,7 @@ def main() -> int:
             packed_assets = {name for name in names if name.startswith(dist + 'assets/')}
             check(referenced == packed_assets, 'exactly the files of the frontend manifest are packed')
             licences = archive.read(dist + 'THIRD_PARTY_LICENSES.txt').decode('utf-8')
-            for package in ('vue ', 'reka-ui ', 'vue-i18n ', '@lucide/vue ', '@fontsource-variable/inter '):
+            for package in ('vue ', 'reka-ui ', 'vue-i18n ', '@lucide/vue ', '@fontsource/poppins ', '@fontsource/arimo ', '@fontsource-variable/inter '):
                 check(f'\n{package}' in licences, f'licence text of {package.strip()}')
             check(first.stat().st_size < 2_000_000, f'archive size {first.stat().st_size} bytes')
 

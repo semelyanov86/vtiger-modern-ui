@@ -1,0 +1,355 @@
+// Components of the cloud reference (docs/design.md §13.4) as mixins: ONE description of a button, a field, a check box,
+// a tab, a menu, a badge, used by the skin for the elements of v7 and extensions (skin/*.scss) and by the Vue islands for
+// their own elements (settings/editor.scss, shell components). Every value comes from tokens; the states are the measured
+// ones (normal / hover / active / disabled), the keyboard focus ring is the local exception of §13.5.
+@use 'tokens' as *;
+
+$check-mark: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' d='M3.5 8.5l3 3 6-7'/%3E%3C/svg%3E";
+$check-dash: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' d='M4 8h8'/%3E%3C/svg%3E";
+
+// ---- Buttons: 13/19.5 regular, radius 4, 1 px border in the fill colour, 6/12 padding (33.5 px with the border) ----
+
+@mixin button-base {
+  min-height: tok(button-height);
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  border-radius: tok(radius-sm);
+  font-family: tok(font-family);
+  font-size: fs(13);
+  font-weight: 400;
+  line-height: 1.5;
+  text-shadow: none;
+  background-image: none;
+  box-shadow: none;
+  @include transition(color, background-color, border-color, box-shadow);
+
+  &:focus,
+  &:active:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/// Main action: the primary colour, white text; hover darker (#315dff by default), pressed back to the fill.
+@mixin button-primary {
+  border-color: tok(primary-strong);
+  background-color: tok(primary-strong);
+  color: #ffffff;
+
+  &:hover,
+  &.focus {
+    border-color: tok(primary-hover);
+    background-color: tok(primary-hover);
+    color: #ffffff;
+  }
+
+  &:active,
+  &.active {
+    border-color: tok(primary-strong);
+    background-color: tok(primary-strong);
+    color: #ffffff;
+    box-shadow: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/// Secondary action (record header, Cancel of dialogs, View full form): light grey fill and border; the cloud does not
+/// change it on hover or press.
+@mixin button-secondary {
+  border-color: tok(btn-secondary);
+  background-color: tok(btn-secondary);
+  color: tok(text-body);
+
+  &:hover,
+  &:focus,
+  &.focus,
+  &:active,
+  &.active {
+    border-color: tok(btn-secondary-hover);
+    background-color: tok(btn-secondary-hover);
+    color: tok(text-body);
+    box-shadow: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/// Button of a toolbar on the grey page (Sync, settings of the list, the mass actions box): white, no border.
+@mixin button-toolbar {
+  border-color: tok(surface);
+  background-color: tok(surface);
+  color: tok(text);
+
+  &:hover,
+  &:focus,
+  &.focus,
+  &:active,
+  &.active {
+    border-color: tok(surface);
+    background-color: tok(surface);
+    color: tok(text);
+    box-shadow: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+/// Destructive confirmation ("Yes, delete"): the cloud red, white text, no hover change.
+@mixin button-danger {
+  border-color: tok(danger-fill);
+  background-color: tok(danger-fill);
+  color: #ffffff;
+
+  &:hover,
+  &:focus,
+  &:active,
+  &.active {
+    border-color: tok(danger-fill);
+    background-color: tok(danger-fill);
+    color: #ffffff;
+    box-shadow: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+@mixin button-disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/// Caret of a split button: 27 px, a 2 px line of the link colour between the two parts.
+@mixin button-split-caret {
+  min-width: 27px;
+  padding-right: 9px;
+  padding-left: 9px;
+  border-left: 2px solid tok(link);
+}
+
+/// Icon button (mass actions, row actions): transparent, 13 px icon in the body text colour, the link colour on hover.
+@mixin icon-button {
+  border-color: transparent;
+  background-color: transparent;
+  color: tok(text-body);
+  box-shadow: none;
+
+  &:hover,
+  &:focus {
+    border-color: transparent;
+    background-color: transparent;
+    color: tok(link);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// ---- Fields: 36 px, 1 px #dfe1e6, radius 4, 16 px inner padding, #1c2121 ----
+
+@mixin field {
+  border: 1px solid tok(border-input);
+  border-radius: tok(radius-sm);
+  background-color: tok(surface);
+  color: tok(text);
+  font-family: tok(font-family);
+  font-size: fs(13);
+  box-shadow: none;
+  @include transition(border-color, box-shadow);
+
+  &::placeholder {
+    color: tok(text-muted);
+    opacity: 1;
+  }
+
+  &:focus {
+    @include field-focus;
+  }
+
+  &[readonly],
+  &[disabled] {
+    background-color: tok(surface-readonly);
+    color: tok(text-2);
+  }
+
+  &[disabled] {
+    cursor: not-allowed;
+  }
+}
+
+/// Error of a field as the cloud draws it: no border, a 1.28 px ring of #f85c75 (the message — danger, under the field).
+/// !important: the state of the validator wins over the field box and its focus whatever their specificity.
+@mixin field-error {
+  border-color: transparent !important;
+  background-color: tok(surface) !important;
+  box-shadow: 0 0 0 1.28px tok(danger-ring) !important;
+}
+
+// ---- Check boxes ----
+
+/// Check box drawn by CSS on a native input (appearance: none keeps the input, its events and its value): 18 px in lists
+/// (border #ccc, #595d5d on hover), 20 px in forms (border #d5d7d9); checked — the check colour without a border.
+@mixin checkbox($size: 18px, $border: tok(border-check)) {
+  width: $size;
+  height: $size;
+  margin: 0;
+  border: 1px solid $border;
+  border-radius: tok(radius-sm);
+  background: tok(surface) center / 14px no-repeat;
+  vertical-align: middle;
+  cursor: pointer;
+  appearance: none;
+  @include transition(background-color, border-color, box-shadow);
+
+  &:hover {
+    border-color: tok(border-check-hover);
+  }
+
+  &:checked {
+    border-color: tok(primary-check);
+    background-color: tok(primary-check);
+    background-image: url($check-mark);
+  }
+
+  &:indeterminate {
+    border-color: tok(primary-check);
+    background-color: tok(primary-check);
+    background-image: url($check-dash);
+  }
+
+  &:focus-visible {
+    outline: none;
+    @include focus-ring;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+  }
+}
+
+/// Radio button: the same frame, round, the check colour with a white dot when chosen.
+@mixin radio($size: 18px) {
+  width: $size;
+  height: $size;
+  margin: 0;
+  border: 1px solid tok(border-check);
+  border-radius: 50%;
+  background-color: tok(surface);
+  vertical-align: middle;
+  cursor: pointer;
+  appearance: none;
+  @include transition(background-color, border-color, box-shadow);
+
+  &:hover {
+    border-color: tok(border-check-hover);
+  }
+
+  &:checked {
+    border-color: tok(primary-check);
+    background: radial-gradient(circle, #ffffff 0 3px, tok(primary-check) 3.5px);
+  }
+
+  &:focus-visible {
+    outline: none;
+    @include focus-ring;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+  }
+}
+
+// ---- Tabs: 13 px regular, 12 px padding; inactive #7b7f85, hover and active #1c2121, active 3 px underline ----
+
+@mixin tab {
+  border: 0;
+  border-radius: 0;
+  background-color: transparent;
+  color: tok(text-label);
+  font-family: tok(font-family);
+  font-size: fs(13);
+  font-weight: 400;
+  @include transition(color, box-shadow);
+
+  &:hover,
+  &:focus {
+    border: 0;
+    background-color: transparent;
+    color: tok(text);
+  }
+
+  &:focus-visible {
+    @include focus-ring(true);
+  }
+}
+
+@mixin tab-active {
+  border: 0;
+  background-color: transparent;
+  color: tok(text);
+  font-weight: 400;
+  box-shadow: inset 0 -3px 0 tok(primary);
+}
+
+// ---- Menus: white panel, 1 px rgba(0,0,0,.15), radius 4, dropdown shadow, no inner padding ----
+
+@mixin menu-panel {
+  padding: 0;
+  border: 1px solid tok(border-menu);
+  border-radius: tok(radius-sm);
+  background-color: tok(surface);
+  color: tok(text-body);
+  font-family: tok(font-family);
+  font-size: fs(13);
+  box-shadow: tok(shadow-dropdown);
+}
+
+/// Item of a menu: 8/16 padding (35.5 px), #212529; hover and keyboard focus — #eff0f2 with #1c2121.
+@mixin menu-item {
+  padding: 8px 16px;
+  color: tok(text-body);
+  line-height: 1.5;
+
+  &:hover,
+  &:focus {
+    background-color: tok(menu-hover);
+    background-image: none;
+    color: tok(text);
+  }
+
+  &:focus-visible {
+    @include focus-ring(true);
+  }
+}
+
+// ---- Badges: light pill of the cloud with radius 4 ----
+
+@mixin badge {
+  border-radius: tok(radius-sm);
+  font-family: tok(font-family);
+  font-weight: 400;
+}
+
+// ---- Dialogs ----
+
+@mixin dialog-panel {
+  border: 0;
+  border-radius: tok(radius-lg);
+  background-color: tok(surface);
+  box-shadow: tok(shadow-modal);
+}

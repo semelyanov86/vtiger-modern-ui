@@ -454,7 +454,7 @@ test('failures: without JavaScript the skin and the tokens style a working v7 pa
   expect(state.pending).toBe(false)
   expect(state.navbar).toBe(true)
   expect(state.rows).toBeGreaterThan(0)
-  expect(state.font).toContain('Inter')
+  expect(state.font).toContain('Poppins')
   await expect(page.locator(SKIN)).toHaveCount(1)
   await expect(page.locator(TOKENS)).toHaveCount(1)
   await context.close()

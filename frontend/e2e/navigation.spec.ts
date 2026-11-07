@@ -444,7 +444,7 @@ test('lists: filter → sort → select rows → action → back to the list, wi
   // Sorted by the first column: its mark shows the direction in the accent colour.
   const mark = page.locator('.listViewContentHeaderValues').nth(0).locator('.fa-sort-asc, .fa-sort-desc')
   await expect(mark).toHaveCount(1)
-  const accent = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--mu-primary-strong').trim())
+  const accent = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--mu-primary').trim())
   expect(await mark.evaluate((element) => getComputedStyle(element).color)).toBe(await page.evaluate((hex) => {
     const probe = document.createElement('span')
     probe.style.color = hex

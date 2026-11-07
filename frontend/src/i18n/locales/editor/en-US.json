@@ -105,6 +105,7 @@
         "comfortable": "Comfortable"
       },
       "font": {
+        "cloud": "As in the Vtiger cloud (Poppins, Cyrillic in Arial)",
         "inter": "Inter (same look in every language)",
         "system": "Font of the system"
       },

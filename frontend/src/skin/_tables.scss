@@ -75,6 +75,8 @@
   .listview-table-norecords {
     background-color: tok(surface);
 
+    // Header of the list as in the cloud: 13/700 upper case #2c3e50, a #f0f1f3 line (docs/design.md §13.4). The height and
+    // the second row of v7 (search fields) are the list stage (D06, stage 12).
     > thead > tr > th,
     tr.listViewContentHeader th {
       height: tok(table-head-height);
@@ -82,7 +84,8 @@
       background-color: tok(surface);
       color: tok(text-heading);
       font-size: fs(13);
-      font-weight: 600;
+      font-weight: 700;
+      text-transform: uppercase;
       vertical-align: middle;
 
       a,
@@ -115,23 +118,25 @@
     box-shadow: inset 3px 0 0 tok(primary);
   }
 
-  // Selected rows (v7 adds .highlightBackgroundColor to checked rows): a soft accent without hiding colours.
-  .listview-table tr.listViewEntries.highlightBackgroundColor:not([style*='background']) > td:not([style*='background']) {
+  // Selected rows: the soft accent of the cloud (#e7f1ff) without hiding colours of extensions. The list of v7 marks nothing
+  // on the row (only popups add .highlightBackgroundColor) — the checked box of the row tells it.
+  .listview-table tr.listViewEntries.highlightBackgroundColor:not([style*='background']) > td:not([style*='background']),
+  .listview-table tr.listViewEntries:has(> td input.listViewEntriesCheckBox:checked):not([style*='background']) > td:not([style*='background']) {
     background-color: tok(primary-soft);
   }
 
   .listview-table .table-actions,
   .listview-table-norecords .table-actions {
-    color: tok(text-heading);
+    color: tok(text-body);
 
     .fa,
     [class^='vicon-'] {
-      color: tok(text-heading);
+      color: tok(text-body);
     }
 
     .fa:hover,
     [class^='vicon-']:hover {
-      color: tok(primary-strong);
+      color: tok(link);
     }
   }
 

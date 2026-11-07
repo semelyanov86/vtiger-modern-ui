@@ -11,9 +11,11 @@ import { TOKEN_NAMES, type AppearanceSettings, type Density, type FontChoice, ty
 import { darken, mixWithWhite, strongVariant } from './color'
 
 const DEFAULT_PRIMARY = '#3978fe'
-/** Measured in the cloud reference for the default primary colour. */
-const DEFAULT_PRIMARY_STRONG = '#315dff'
+/** The cloud reference for the default primary colour (docs/design.md §13.4): fill, hover, soft background, check box. */
+const DEFAULT_PRIMARY_STRONG = '#3978fe'
+const DEFAULT_PRIMARY_HOVER = '#315dff'
 const DEFAULT_PRIMARY_SOFT = '#e7f1ff'
+const DEFAULT_PRIMARY_CHECK = '#2e81ff'
 const HOVER_DARKEN = 0.08
 const SOFT_MIX = 0.12
 
@@ -23,7 +25,7 @@ const DEFAULTS: AppearanceSettings = {
   surface: '#ffffff',
   density: 'standard',
   fontScale: 100,
-  font: 'inter',
+  font: 'cloud',
 }
 
 const DENSITY: Readonly<Record<Density, Pick<TokenMap, 'row-height' | 'table-head-height' | 'input-height' | 'button-height' | 'cell-padding' | 'menu-item-height' | 'icon-button'>>> = {
@@ -33,7 +35,7 @@ const DENSITY: Readonly<Record<Density, Pick<TokenMap, 'row-height' | 'table-hea
 }
 
 const SCALE: Readonly<Record<FontScale, string>> = { 90: '0.9', 100: '1', 110: '1.1', 125: '1.25' }
-const FONT: Readonly<Record<FontChoice, string>> = { inter: 'var(--mu-font-inter)', system: 'var(--mu-font-system)' }
+const FONT: Readonly<Record<FontChoice, string>> = { cloud: 'var(--mu-font-cloud)', inter: 'var(--mu-font-inter)', system: 'var(--mu-font-system)' }
 
 const HEX = /^#[0-9a-fA-F]{6}$/
 
@@ -70,13 +72,15 @@ export function tokensFor(appearance: Partial<Record<keyof AppearanceSettings, u
   const density = oneOf<Density>(appearance.density, ['comfortable', 'standard', 'compact'], DEFAULTS.density)
   const scaleValue = typeof appearance.fontScale === 'string' ? Number(appearance.fontScale) : appearance.fontScale
   const fontScale = oneOf<FontScale>(scaleValue, [90, 100, 110, 125], DEFAULTS.fontScale)
-  const font = oneOf<FontChoice>(appearance.font, ['inter', 'system'], DEFAULTS.font)
-  const strong = primary === DEFAULT_PRIMARY ? DEFAULT_PRIMARY_STRONG : strongVariant(primary)
+  const font = oneOf<FontChoice>(appearance.font, ['cloud', 'inter', 'system'], DEFAULTS.font)
+  const isDefault = primary === DEFAULT_PRIMARY
+  const strong = isDefault ? DEFAULT_PRIMARY_STRONG : strongVariant(primary)
   return {
     primary,
     'primary-strong': strong,
-    'primary-hover': darken(strong, HOVER_DARKEN),
-    'primary-soft': primary === DEFAULT_PRIMARY ? DEFAULT_PRIMARY_SOFT : mixWithWhite(primary, SOFT_MIX),
+    'primary-hover': isDefault ? DEFAULT_PRIMARY_HOVER : darken(strong, HOVER_DARKEN),
+    'primary-soft': isDefault ? DEFAULT_PRIMARY_SOFT : mixWithWhite(primary, SOFT_MIX),
+    'primary-check': isDefault ? DEFAULT_PRIMARY_CHECK : strong,
     bg: background,
     surface,
     'font-scale': SCALE[fontScale],

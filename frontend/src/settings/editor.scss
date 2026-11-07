@@ -1,6 +1,7 @@
 // Styles of the settings editor and the preferences editor (docs/design.md §4): only inside .mu-root containers of
 // the module's own pages and the overlay root, px units, tokens of the theme.
 @use '../styles/tokens' as *;
+@use '../styles/components' as *;
 
 .mu-root {
   .mu-editor {
@@ -89,33 +90,22 @@
   }
 
   .mu-tabs__tab {
+    @include tab;
     position: relative;
     display: inline-flex;
     align-items: center;
     gap: 6px;
     min-height: 40px;
     margin-bottom: -1px;
-    padding: 0 14px;
-    border: 0;
-    border-bottom: 3px solid transparent;
-    background: transparent;
-    color: tok(text-label);
-    font-size: fs(14);
+    padding: 0 12px;
     cursor: pointer;
 
     &[data-state='active'] {
-      border-bottom-color: tok(primary);
-      color: tok(text);
-      font-weight: 600;
-    }
-
-    &:hover {
-      color: tok(text);
+      @include tab-active;
     }
 
     &:focus-visible {
       outline: none;
-      @include focus-ring(true);
     }
   }
 
@@ -204,30 +194,22 @@
 
   .mu-input,
   .mu-select {
+    @include field;
     min-width: 0;
     height: tok(input-height);
-    padding: 0 10px;
-    border: 1px solid tok(border-input);
-    border-radius: tok(radius-sm);
-    background: tok(surface);
-    color: tok(text);
-    font-size: fs(13);
+    padding: 0 16px;
     line-height: 1.4;
 
-    &:focus,
     &:focus-visible {
-      border-color: tok(focus-border);
-      outline: none;
-      @include focus-ring;
+      @include field-focus;
     }
 
     &:disabled {
-      background: tok(surface-readonly);
       opacity: 0.8;
     }
 
     &[aria-invalid='true'] {
-      border-color: tok(danger);
+      @include field-error;
     }
   }
 
@@ -263,17 +245,16 @@
     font-weight: 400;
     cursor: pointer;
 
-    input {
+    input[type='checkbox'] {
+      @include checkbox(18px);
       flex: none;
-      width: 16px;
-      height: 16px;
-      margin: 2px 0 0;
-      accent-color: tok(primary-strong);
+      margin: 1px 0 0;
+    }
 
-      &:focus-visible {
-        outline: none;
-        @include focus-ring;
-      }
+    input[type='radio'] {
+      @include radio(18px);
+      flex: none;
+      margin: 1px 0 0;
     }
   }
 
@@ -299,6 +280,8 @@
 
   // ---- Buttons ----
   .mu-btn {
+    @include button-base;
+    @include button-secondary;
     display: inline-flex;
     flex: none;
     align-items: center;
@@ -306,55 +289,27 @@
     gap: 6px;
     height: tok(button-height);
     margin: 0;
-    padding: 0 12px;
-    border: 1px solid tok(border);
-    border-radius: tok(radius-sm);
-    background: tok(btn-secondary);
-    color: tok(text);
-    font-size: fs(13);
-    font-weight: 500;
-    line-height: 1;
+    padding-top: 0;
+    padding-bottom: 0;
     text-decoration: none;
     white-space: nowrap;
     cursor: pointer;
 
-    &:hover:not(:disabled) {
-      background: tok(btn-secondary-hover);
-      color: tok(text);
+    &:hover {
       text-decoration: none;
     }
 
-    &:focus-visible {
-      outline: none;
-      @include focus-ring;
-    }
-
     &:disabled {
-      opacity: 0.65;
-      cursor: default;
+      @include button-disabled;
     }
   }
 
   .mu-btn--primary {
-    border-color: tok(primary-strong);
-    background: tok(primary-strong);
-    color: #ffffff;
-
-    &:hover:not(:disabled) {
-      background: tok(primary-hover);
-      color: #ffffff;
-    }
+    @include button-primary;
   }
 
   .mu-btn--danger {
-    border-color: tok(danger);
-    background: tok(danger);
-    color: #ffffff;
-
-    &:hover:not(:disabled) {
-      background: #b5081f;
-      color: #ffffff;
-    }
+    @include button-danger;
   }
 
   .mu-btn--small {
@@ -378,8 +333,8 @@
     cursor: pointer;
 
     &:hover:not(:disabled) {
-      background: tok(surface-readonly);
-      color: tok(primary-strong);
+      background: transparent;
+      color: tok(link);
     }
 
     &:focus-visible {
@@ -467,12 +422,12 @@
   }
 
   .mu-badge {
+    @include badge;
     display: inline-flex;
     flex: none;
     align-items: center;
     height: 20px;
     padding: 0 6px;
-    border-radius: tok(radius-pill);
     background: tok(surface-readonly);
     color: tok(text-2);
     font-size: fs(11);

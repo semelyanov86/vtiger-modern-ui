@@ -4,6 +4,7 @@
 // of Bootstrap/v7 (same specificity, later in the cascade) but never beat a class of v7 or of an extension —
 // icon fonts (.fa, .vicon-*) on <strong>/<b>/<i>, coloured links of menus, inline-styled elements keep theirs.
 @use '../styles/tokens' as *;
+@use '../styles/components' as *;
 
 :where(:root:not(.mu-off)) {
   body {
@@ -56,7 +57,7 @@
 
     &:hover,
     &:focus {
-      color: tok(primary-strong);
+      color: tok(primary-hover);
     }
 
     &:focus-visible {
@@ -88,7 +89,7 @@
 }
 
 :root:not(.mu-off) {
-  // Muted texts of v7 (".muted", help blocks, "Not set"): readable grey (5.05:1).
+  // Muted texts of v7 (".muted", help blocks, "Not set"): the muted grey of the cloud (#8e9093, inactive sections).
   .muted,
   .text-muted,
   .help-block,
@@ -127,12 +128,10 @@
     font-size: fs(12);
   }
 
-  // Badges and labels keep the colour of their meaning, only the shape follows the theme.
+  // Badges and labels keep the colour of their meaning, only the shape follows the cloud badges (radius 4, regular).
   .badge,
   .label {
-    font-family: tok(font-family);
-    font-weight: 600;
-    border-radius: tok(radius-pill);
+    @include badge;
   }
 
   .well {
@@ -142,10 +141,11 @@
     box-shadow: none;
   }
 
-  // Native checkboxes and radios: the accent of the theme, size and behaviour of v7.
+  // Native checkboxes and radios elsewhere (settings pages, extensions): the check colour of the theme, size and
+  // behaviour of v7. Lists and forms draw the cloud boxes (_lists.scss, _forms.scss).
   input[type='checkbox'],
   input[type='radio'] {
-    accent-color: tok(primary-strong);
+    accent-color: tok(primary-check);
 
     &:focus-visible {
       @include focus-ring;

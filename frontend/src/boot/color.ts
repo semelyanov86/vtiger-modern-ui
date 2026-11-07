@@ -38,8 +38,20 @@ export function mixWithWhite(hex: string, weight: number): string {
   return toHex(mix(1), mix(3), mix(5))
 }
 
-/** The colour itself if white text on it reaches `ratio`, otherwise the nearest darker variant that does. */
+/**
+ * Contrast of white text on the default primary fill of the cloud (#3978fe: 3.97:1): a colour of the settings at least
+ * as readable fills the buttons as it is (docs/design.md §13.5).
+ */
+export const FILL_CONTRAST = 3.9
+
+/**
+ * The colour itself if white text on it reaches the contrast of the reference (FILL_CONTRAST), otherwise the nearest
+ * darker variant on which white text reaches `ratio` (WCAG AA). Same rule as ModernUI_Tokens_Model::strongVariant().
+ */
 export function strongVariant(hex: string, ratio = 4.5): string {
+  if (contrast(hex, '#ffffff') >= FILL_CONTRAST) {
+    return hex
+  }
   let candidate = hex
   for (let step = 0; step < 40 && contrast(candidate, '#ffffff') < ratio; step++) {
     candidate = darken(hex, (step + 1) * 0.025)

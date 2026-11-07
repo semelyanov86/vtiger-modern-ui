@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "@fontsource-variable/inter": "5.3.0",
+    "@fontsource/arimo": "5.3.0",
+    "@fontsource/poppins": "5.3.0",
     "@lucide/vue": "1.66.0",
     "reka-ui": "2.11.0",
     "sortablejs": "1.15.7",

@@ -15,16 +15,26 @@ test('tokens: the shared fixture (same map as frontend/src/boot/tokens.ts)', fun
 	}
 });
 
-test('tokens: white text on the strong primary colour reaches 4.5:1, the default keeps the measured pair', function () {
+test('tokens: the fill keeps the colour while white text is as readable as on the reference, else reaches 4.5:1', function () {
 	foreach (mu_token_cases() as $case) {
 		$tokens = $case['tokens'];
-		assert_true(ModernUI_Tokens_Model::contrast($tokens['primary-strong'], '#ffffff') >= 4.5, $case['name'] . ': ' . $tokens['primary-strong']);
-		assert_true(ModernUI_Tokens_Model::contrast($tokens['primary-hover'], '#ffffff') >= 4.5, $case['name'] . ' hover');
+		$fill = ModernUI_Tokens_Model::contrast($tokens['primary-strong'], '#ffffff');
+		if ($tokens['primary-strong'] === $tokens['primary']) {
+			assert_true($fill >= ModernUI_Tokens_Model::FILL_CONTRAST, $case['name'] . ': kept fill ' . $tokens['primary-strong']);
+		} else {
+			assert_true($fill >= 4.5, $case['name'] . ': darkened fill ' . $tokens['primary-strong']);
+			assert_true(ModernUI_Tokens_Model::contrast($tokens['primary'], '#ffffff') < ModernUI_Tokens_Model::FILL_CONTRAST, $case['name'] . ': darkened only when needed');
+		}
+		assert_true(ModernUI_Tokens_Model::contrast($tokens['primary-hover'], '#ffffff') >= ModernUI_Tokens_Model::FILL_CONTRAST, $case['name'] . ' hover');
 	}
+	// The measured cloud pair of the default (docs/design.md §13.4): fill #3978fe, hover #315dff, check box #2e81ff.
 	$default = ModernUI_Tokens_Model::forAppearance(array());
 	assert_same('#3978fe', $default['primary']);
-	assert_same('#315dff', $default['primary-strong']);
+	assert_same('#3978fe', $default['primary-strong']);
+	assert_same('#315dff', $default['primary-hover']);
+	assert_same('#2e81ff', $default['primary-check']);
 	assert_same('#e7f1ff', $default['primary-soft']);
+	assert_same('var(--mu-font-cloud)', $default['font-family'], 'the cloud font is the default');
 	assert_same('40px', $default['row-height']);
 	assert_same('1', $default['font-scale']);
 	assert_same('#1d3557', ModernUI_Tokens_Model::strongVariant('#1d3557'), 'a dark colour is kept');
@@ -37,7 +47,7 @@ test('tokens: values that could break out of the stylesheet never reach it', fun
 		'surface' => '#fff</style>',
 		'density' => 'standard;x',
 		'fontScale' => '100}',
-		'font' => 'inter"',
+		'font' => 'cloud"',
 	);
 	$tokens = ModernUI_Tokens_Model::forAppearance($hostile);
 	assert_same(ModernUI_Tokens_Model::forAppearance(array()), $tokens, 'everything falls back to the defaults');
@@ -64,7 +74,7 @@ test('tokens: appearance of the effective settings, invalid stored values replac
 		'appearance.fontScale' => 125,
 	));
 	assert_same(array('primaryColor' => '#2e9a5e', 'background' => '#eff0f2', 'surface' => '#ffffff', 'density' => 'comfortable',
-		'fontScale' => 125, 'font' => 'inter'), $appearance);
+		'fontScale' => 125, 'font' => 'cloud'), $appearance);
 });
 
 test('tokens: the favorites bar is reserved when favorites are on and the user has some or may add them', function () {

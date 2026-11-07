@@ -4,9 +4,9 @@
 @use '../styles/tokens' as *;
 
 :root:not(.mu-off) {
-  // Edit view and quick create blocks.
+  // Edit view and quick create blocks: white cards with radius 6 and the block shadow, no border (cloud edit form).
   .fieldBlockContainer {
-    border: 1px solid tok(divider);
+    border: 0;
     border-radius: tok(radius-md);
     background-color: tok(surface);
     box-shadow: tok(shadow-block);
@@ -41,6 +41,9 @@
   .blockHeader {
     border-bottom-color: tok(divider);
     color: tok(text);
+    font-family: tok(font-family);
+    font-size: fs(15);
+    font-weight: 500;
   }
 
   .blockHeader h4,
@@ -71,11 +74,12 @@
     overflow: hidden;
   }
 
-  // Values of the record view: the label colour of the theme, values in the main text colour.
+  // Values of the record view: labels 12 px in the label grey, values in the main text colour (cloud Details).
   .detailview-table .fieldLabel,
   .summaryViewFields .fieldLabel,
   .summaryViewEntries .fieldLabel {
     color: tok(text-label);
+    font-size: fs(12);
   }
 
   .detailview-table .fieldValue,
@@ -146,8 +150,8 @@
 
   // Footer of the full edit form: the sticky bar stays where v7 puts it.
   .modal-overlay-footer {
-    border-top-color: tok(border);
+    border-top: 1px solid tok(divider);
     background-color: tok(surface);
-    box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.06);
+    box-shadow: none;
   }
 }

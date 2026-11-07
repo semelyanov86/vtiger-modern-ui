@@ -4,11 +4,10 @@
 // (floatThead), the scroll bars and the colours extensions give to rows stay as v7 has them. Tables themselves —
 // _tables.scss.
 @use '../styles/tokens' as *;
+@use '../styles/components' as *;
 
-$check: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' d='M3.5 8.5l3 3 6-7'/%3E%3C/svg%3E";
 // An inline "color" declaration (not "background-color"): the colour an extension gave to a row, a cell or a link.
 $own-color: "[style^='color'], [style*=';color'], [style*='; color'], [style*=' color:']";
-$dash: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' d='M4 8h8'/%3E%3C/svg%3E";
 
 :root:not(.mu-off) {
   // The page behind the list: the light background of the design with the table as a white card.
@@ -80,7 +79,7 @@ $dash: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 
     }
 
     &:hover {
-      background-color: tok(surface-readonly);
+      background-color: tok(menu-hover);
     }
 
     &.active {
@@ -128,42 +127,13 @@ $dash: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 
     }
   }
 
-  // Selection check boxes of lists, related lists and popups: 18 × 18, radius 4, the accent when checked.
+  // Selection check boxes of lists, related lists and popups: the 18 px box of the cloud list (border #ccc, #595d5d on
+  // hover, #2e81ff when checked).
   .listview-table,
   .listview-table-norecords,
   .floatThead-table {
     input[type='checkbox'] {
-      width: 18px;
-      height: 18px;
-      margin: 0;
-      border: 1px solid tok(border-input);
-      border-radius: tok(radius-sm);
-      background: tok(surface) center / 14px no-repeat;
-      vertical-align: middle;
-      cursor: pointer;
-      appearance: none;
-      @include transition(background-color, border-color, box-shadow);
-
-      &:checked {
-        border-color: tok(primary-strong);
-        background-color: tok(primary-strong);
-        background-image: url($check);
-      }
-
-      &:indeterminate {
-        border-color: tok(primary-strong);
-        background-color: tok(primary-strong);
-        background-image: url($dash);
-      }
-
-      &:focus-visible {
-        @include focus-ring;
-      }
-
-      &:disabled {
-        cursor: default;
-        opacity: 0.5;
-      }
+      @include checkbox(18px);
     }
   }
 
@@ -174,11 +144,11 @@ $dash: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 
     .fa-sort-desc,
     .fa-sort-up,
     .fa-sort-down {
-      color: tok(primary-strong);
+      color: tok(primary);
     }
 
     &:hover {
-      color: tok(primary-strong);
+      color: tok(link);
       text-decoration: none;
     }
 
@@ -190,12 +160,14 @@ $dash: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 
 
   // Values that are links (the record name, references): the text colour of the design, the accent on hover
   // (docs/design.md §4). Rows, cells and links coloured inline by extensions keep the colours of v7.
+  // v7 forces links inside .fieldValue .value to #1155cc with !important (skin style.css); rows, cells and links with an
+  // inline colour are excluded by the selector, so the !important here only beats that rule.
   .listview-table tr.listViewEntries:not(#{$own-color}) > td.listViewEntryValue:not(#{$own-color}) a:not(#{$own-color}) {
-    color: tok(text);
+    color: tok(text) !important;
 
     &:hover,
     &:focus {
-      color: tok(primary-strong);
+      color: tok(link) !important;
     }
 
     &:focus-visible {
@@ -208,7 +180,12 @@ $dash: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 
   .listViewRecordActions .table-actions {
     > span,
     .dropdown > .dropdown-toggle {
-      color: tok(text-heading);
+      color: tok(text-body);
+    }
+
+    > span:hover,
+    .dropdown > .dropdown-toggle:hover {
+      color: tok(link);
     }
 
     .fa-star,

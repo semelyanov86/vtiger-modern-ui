@@ -1,6 +1,6 @@
 <?php
 /*
- * Design tokens of a user (docs/design.md §3, docs/architecture.md §5.1): the effective appearance settings
+ * Design tokens of a user (docs/design.md §13.4, docs/architecture.md §5.1): the effective appearance settings
  * turned into CSS variables. The same map is printed as a render-blocking stylesheet by action=Tokens (second
  * HEADERCSS link, so the first paint already has the user's colours and density) and sent to the islands by
  * action=Bootstrap. frontend/src/boot/tokens.ts computes the same map for the live preview; both sides are
@@ -15,11 +15,20 @@ require_once 'modules/ModernUI/models/Settings.php';
 class ModernUI_Tokens_Model {
 
 	const DEFAULT_PRIMARY = '#3978fe';
-	/** Measured in the cloud reference for the default primary colour (docs/design.md §3.1). */
-	const DEFAULT_PRIMARY_STRONG = '#315dff';
+	/**
+	 * The cloud reference for the default primary colour (docs/design.md §13.4, measured 2026-11-07): primary buttons are
+	 * filled with the colour itself, the hover is #315dff, checked check boxes are #2e81ff, hovered rows #e7f1ff.
+	 */
+	const DEFAULT_PRIMARY_STRONG = '#3978fe';
+	const DEFAULT_PRIMARY_HOVER = '#315dff';
 	const DEFAULT_PRIMARY_SOFT = '#e7f1ff';
+	const DEFAULT_PRIMARY_CHECK = '#2e81ff';
 
-	/** Minimum contrast of white text on --mu-primary-strong (WCAG AA for normal text). */
+	/**
+	 * A colour of the settings fills the buttons as it is while white text on it reaches the contrast of the reference
+	 * (#3978fe: 3.97:1); a lighter colour is darkened until white text reaches WCAG AA (4.5:1) — docs/design.md §13.5.
+	 */
+	const FILL_CONTRAST = 3.9;
 	const STRONG_CONTRAST = 4.5;
 	const HOVER_DARKEN = 0.08;
 	const SOFT_MIX = 0.12;
@@ -72,16 +81,19 @@ class ModernUI_Tokens_Model {
 			'appearance.font' => isset($appearance['font']) ? $appearance['font'] : null,
 		));
 		$primary = $appearance['primaryColor'];
-		$strong = $primary === self::DEFAULT_PRIMARY ? self::DEFAULT_PRIMARY_STRONG : self::strongVariant($primary);
+		$default = $primary === self::DEFAULT_PRIMARY;
+		$strong = $default ? self::DEFAULT_PRIMARY_STRONG : self::strongVariant($primary);
+		$fonts = array('cloud' => 'var(--mu-font-cloud)', 'inter' => 'var(--mu-font-inter)', 'system' => 'var(--mu-font-system)');
 		$tokens = array(
 			'primary' => $primary,
 			'primary-strong' => $strong,
-			'primary-hover' => self::darken($strong, self::HOVER_DARKEN),
-			'primary-soft' => $primary === self::DEFAULT_PRIMARY ? self::DEFAULT_PRIMARY_SOFT : self::mixWithWhite($primary, self::SOFT_MIX),
+			'primary-hover' => $default ? self::DEFAULT_PRIMARY_HOVER : self::darken($strong, self::HOVER_DARKEN),
+			'primary-soft' => $default ? self::DEFAULT_PRIMARY_SOFT : self::mixWithWhite($primary, self::SOFT_MIX),
+			'primary-check' => $default ? self::DEFAULT_PRIMARY_CHECK : $strong,
 			'bg' => $appearance['background'],
 			'surface' => $appearance['surface'],
 			'font-scale' => self::scale($appearance['fontScale']),
-			'font-family' => $appearance['font'] === 'system' ? 'var(--mu-font-system)' : 'var(--mu-font-inter)',
+			'font-family' => isset($fonts[$appearance['font']]) ? $fonts[$appearance['font']] : $fonts['cloud'],
 		);
 		return array_merge($tokens, self::$density[$appearance['density']]);
 	}
@@ -215,11 +227,15 @@ class ModernUI_Tokens_Model {
 	}
 
 	/**
-	 * The colour itself if white text on it reaches the contrast, otherwise the nearest darker variant that does.
+	 * The colour itself if white text on it reaches the contrast of the reference (FILL_CONTRAST), otherwise the nearest
+	 * darker variant on which white text reaches WCAG AA (STRONG_CONTRAST).
 	 * @param string $hex
 	 * @return string
 	 */
 	public static function strongVariant($hex) {
+		if (self::contrast($hex, '#ffffff') >= self::FILL_CONTRAST) {
+			return $hex;
+		}
 		$candidate = $hex;
 		for ($step = 0; $step < 40 && self::contrast($candidate, '#ffffff') < self::STRONG_CONTRAST; $step++) {
 			$candidate = self::darken($hex, ($step + 1) * 0.025);

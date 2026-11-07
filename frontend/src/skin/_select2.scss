@@ -1,16 +1,19 @@
-// Select2 3.x of v7 (docs/design.md §4): the container looks like a field, the drop-down like a menu of the
-// theme. The library, its markup and its events are not touched; the drop-down is appended to body by Select2
-// and stays where v7 puts it (z-index 10000+).
+// Select2 3.x of v7 drawn as the Select2 of the cloud (docs/design.md §13.4): the box 1 px #e5e5e5, radius 4, text #444
+// with 16 px padding; open — border #aaa, the drop-down below with radius 0 0 4 4 and the large menu shadow, options 6 px,
+// the highlighted option #5897fb with white text (as in the cloud; contrast recorded in §13.5). The library, its markup
+// and its events are not touched; the drop-down is appended to body by Select2 and stays where v7 puts it.
 @use '../styles/tokens' as *;
 
 :root:not(.mu-off) {
+  // v7 sizes the box content-box (36 + 2 px of border): border-box keeps it at the field height of the cloud.
   .select2-container .select2-choice {
+    box-sizing: border-box;
     height: tok(input-height);
-    border: 1px solid tok(border-input);
+    border: 1px solid tok(border-select);
     border-radius: tok(radius-sm);
     background: tok(surface);
     background-image: none;
-    color: tok(text);
+    color: tok(text-select);
     font-family: tok(font-family);
     font-size: fs(13);
     font-weight: 400 !important;
@@ -18,7 +21,7 @@
     box-shadow: none;
 
     > .select2-chosen {
-      padding: 0 8px 0 10px;
+      padding: 0 20px 0 16px;
       line-height: calc(#{tok(input-height)} - 2px);
     }
 
@@ -30,17 +33,23 @@
     }
   }
 
-  .select2-container.select2-container-active .select2-choice,
-  .select2-container.select2-dropdown-open .select2-choice,
-  .select2-container-multi.select2-container-active .select2-choices {
+  // Keyboard focus without the drop-down: the focus of the fields.
+  .select2-container.select2-container-active:not(.select2-dropdown-open) .select2-choice,
+  .select2-container-multi.select2-container-active:not(.select2-dropdown-open) .select2-choices {
     border-color: tok(focus-border);
-    @include focus-ring;
+    box-shadow: 0 0 0 1.28px tok(focus-ring);
+  }
+
+  .select2-container.select2-dropdown-open .select2-choice,
+  .select2-container-multi.select2-dropdown-open .select2-choices {
+    border-color: tok(border-select-open);
+    background: tok(surface);
+    box-shadow: none;
   }
 
   .select2-container.select2-dropdown-open .select2-choice {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
-    background: tok(surface);
   }
 
   .select2-container.select2-drop-above.select2-dropdown-open .select2-choice {
@@ -55,7 +64,7 @@
 
   .select2-container-multi .select2-choices {
     min-height: tok(input-height);
-    border: 1px solid tok(border-input);
+    border: 1px solid tok(border-select);
     border-radius: tok(radius-sm);
     background: tok(surface);
     background-image: none;
@@ -64,9 +73,9 @@
     .select2-search-choice {
       margin: 5px 0 3px 5px;
       padding: 3px 6px 3px 20px;
-      border: 1px solid tok(border);
-      border-radius: tok(radius-pill);
-      background: tok(btn-secondary);
+      border: 1px solid tok(border-value);
+      border-radius: tok(radius-sm);
+      background: tok(surface-badge);
       background-image: none;
       color: tok(text);
       font-size: fs(12);
@@ -82,60 +91,64 @@
   }
 
   .select2-drop {
-    border: 1px solid rgba(0, 0, 0, 0.15);
+    border: 1px solid tok(border-select-open);
+    border-top: 0;
     border-radius: 0 0 tok(radius-sm) tok(radius-sm);
     background: tok(surface);
-    color: tok(text);
+    color: #000000;
     font-family: tok(font-family);
     font-size: fs(13);
-    box-shadow: tok(shadow-dropdown);
+    box-shadow: tok(shadow-dropdown-lg);
 
     &.select2-drop-above {
+      border-top: 1px solid tok(border-select-open);
+      border-bottom: 0;
       border-radius: tok(radius-sm) tok(radius-sm) 0 0;
-      box-shadow: 0 -2px 10px rgba(39, 49, 58, 0.2);
     }
 
     &.select2-drop-active {
-      border-color: tok(focus-border);
+      border-color: tok(border-select-open);
     }
   }
 
   .select2-search input {
-    min-height: 30px;
-    border: 1px solid tok(border-input);
+    min-height: 28px;
+    border: 1px solid tok(border-select-open);
     border-radius: tok(radius-sm);
     background-color: tok(surface);
     font-family: tok(font-family);
     font-size: fs(13);
 
     &:focus {
-      border-color: tok(focus-border);
-      @include focus-ring;
+      border-color: tok(border-select-open);
+      box-shadow: none;
     }
   }
 
   .select2-results {
+    padding: 0;
+
     .select2-result-label {
-      min-height: 30px;
-      padding: 6px 10px;
-      line-height: 18px;
+      min-height: 31px;
+      padding: 6px;
+      line-height: 19.5px;
     }
 
-    // Highlighted option: soft accent with dark text (4.5:1), not the white-on-blue of the library.
+    // !important: builds of the core (SalesPlatform) force their own colour with !important in select2-bootstrap.css.
     .select2-highlighted {
-      background: tok(primary-soft);
-      color: tok(text);
+      background: tok(select-highlight) !important;
+      color: #ffffff;
 
       .select2-result-label {
-        color: tok(text);
+        color: #ffffff;
       }
     }
 
     .select2-no-results,
     .select2-searching,
     .select2-selection-limit {
-      padding: 8px 10px;
-      background: tok(surface-subtle);
+      padding: 6px;
+      background: tok(surface);
       color: tok(text-2);
     }
 

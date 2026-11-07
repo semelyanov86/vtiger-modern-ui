@@ -105,6 +105,7 @@
         "comfortable": "Просторная"
       },
       "font": {
+        "cloud": "Как в облаке Vtiger (Poppins, кириллица — Arial)",
         "inter": "Inter (одинаково на всех языках)",
         "system": "Шрифт системы"
       },

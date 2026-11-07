@@ -24,7 +24,7 @@ const props = defineProps<{ editor: Editor; problems: readonly Problem[]; bootst
 const { t } = useI18n()
 const DENSITIES = ['compact', 'standard', 'comfortable'] as const
 const SCALES = [90, 100, 110, 125] as const
-const FONTS = ['inter', 'system'] as const
+const FONTS = ['cloud', 'inter', 'system'] as const
 
 const isGlobal = computed(() => !props.editor.isRole.value)
 const asString = (value: unknown, fallback: string): string => (typeof value === 'string' ? value : fallback)

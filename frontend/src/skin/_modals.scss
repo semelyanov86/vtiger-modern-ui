@@ -1,7 +1,9 @@
-// Modal windows of v7 (Bootstrap 3 .modal, bootbox, quick create, popups; docs/design.md §4, §5.5): radius 12,
-// modal shadow, a light header with a 16/600 title instead of the dark bar of v7, the footer as a light bar.
+// Modal windows of v7 (Bootstrap 3 .modal, bootbox, quick create, popups) drawn as the dialogs of the cloud (docs/design.md
+// §13.4): radius 12, shadow 0 0 16px rgba(0,0,0,.2), a white header with the soft header shadow and a 16/600 title instead
+// of the dark bar of v7, a white footer with a #f0f1f3 line, Save on the right as the primary button, Cancel secondary.
 // Widths, positions, focus handling (enforceFocus of v7), backdrop and the markup of the forms stay.
 @use '../styles/tokens' as *;
+@use '../styles/components' as *;
 
 :root:not(.mu-off) {
   // v7 sizes the body of quick create and other modals for its own header (≈ 51 px) and fields (30 px), and the
@@ -9,12 +11,14 @@
   // theme keeps that geometry — fields and buttons of v7 height, a header of v7 height — and no overflow clipping
   // (the corners are rounded on the header and the footer instead).
   .modal-content {
+    @include dialog-panel;
+  }
+
+  // The record and edit windows of the cloud layout (stage 09, #overlayPageContent) are full windows that scroll: they take
+  // the field and button sizes of the cloud (36 px), not the geometry of the small v7 dialogs.
+  .modal-content:not(#overlayPageContent .modal-content) {
     --mu-input-height: 30px;
     --mu-button-height: 30px;
-    border: 0;
-    border-radius: tok(radius-lg);
-    background-color: tok(surface);
-    box-shadow: tok(shadow-modal);
   }
 
   .modal-content > .modal-header:first-child,
@@ -34,6 +38,7 @@
     border-bottom: 1px solid tok(divider);
     background: tok(surface);
     color: tok(text);
+    box-shadow: tok(shadow-dialog-header);
 
     h4,
     h3,
@@ -59,7 +64,7 @@
 
       &:hover,
       &:focus {
-        background-color: tok(surface-readonly);
+        background-color: tok(menu-hover);
         color: tok(text);
         opacity: 1;
       }
@@ -78,7 +83,12 @@
   .modal-footer {
     padding: 12px 24px;
     border-top: 1px solid tok(divider);
-    background-color: tok(surface-subtle);
+    background-color: tok(surface);
+  }
+
+  // Backdrop of the cloud: black at 50 % (the v7 skin paints it white).
+  .modal-backdrop {
+    background-color: #000000;
   }
 
   .modal-backdrop.in {
@@ -104,6 +114,12 @@
 
   .overlayHeader .modal-header .close {
     color: tok(text-heading);
+  }
+
+  // Title of the edit window: 16.25/600 as "Editing …" of the cloud (quick create keeps 16 px).
+  #overlayPageContent .overlayHeader :is(h4, .modal-title) {
+    font-size: fs(16.25);
+    font-weight: 600;
   }
 
   // bootbox confirmations.

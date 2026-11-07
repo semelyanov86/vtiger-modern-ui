@@ -40,7 +40,8 @@
       --mu-#{$name}: #{$value};
     }
   }
+  --mu-font-cloud: #{$font-cloud};
   --mu-font-inter: #{$font-inter};
   --mu-font-system: #{$font-system};
-  --mu-font-family: var(--mu-font-inter);
+  --mu-font-family: var(--mu-font-cloud);
 }

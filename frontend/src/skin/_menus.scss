@@ -1,33 +1,15 @@
-// Drop-down menus of Bootstrap 3 in v7 (docs/design.md §4): surface, dropdown shadow, radius 4, items by
-// density. Items keep their markup, handlers and order; extension items get the same look.
+// Drop-down menus of Bootstrap 3 in v7 drawn as the menus of the cloud (docs/design.md §13.4): white panel, 1 px
+// rgba(0,0,0,.15), radius 4, dropdown shadow, no inner padding; items 8/16 (35.5 px), hover and keyboard focus #eff0f2.
+// Items keep their markup, handlers and order; extension items get the same look.
 @use '../styles/tokens' as *;
+@use '../styles/components' as *;
 
 :root:not(.mu-off) {
   .dropdown-menu {
-    padding: 4px 0;
-    border: 1px solid rgba(0, 0, 0, 0.15);
-    border-radius: tok(radius-sm);
-    background-color: tok(surface);
-    color: tok(text);
-    font-family: tok(font-family);
-    font-size: fs(13);
-    box-shadow: tok(shadow-dropdown);
+    @include menu-panel;
 
     > li > a {
-      padding: 8px 16px;
-      color: tok(text);
-      line-height: 20px;
-
-      &:hover,
-      &:focus {
-        background-color: tok(surface-readonly);
-        background-image: none;
-        color: tok(text);
-      }
-
-      &:focus-visible {
-        @include focus-ring(true);
-      }
+      @include menu-item;
     }
 
     > .active > a,
@@ -44,6 +26,7 @@
     }
 
     .divider {
+      margin: 0;
       background-color: tok(divider);
     }
 
@@ -64,7 +47,7 @@
 
     &:hover,
     &:focus {
-      background-color: tok(surface-readonly);
+      background-color: tok(menu-hover);
       text-decoration: none;
     }
 
@@ -81,21 +64,16 @@
   // jQuery UI menus (reference field autocomplete).
   .ui-autocomplete.ui-menu,
   .ui-menu.ui-widget {
-    padding: 4px 0;
-    border: 1px solid rgba(0, 0, 0, 0.15);
+    @include menu-panel;
     border-radius: tok(radius-sm) !important;
     background: tok(surface);
-    color: tok(text);
-    font-family: tok(font-family);
-    font-size: fs(13);
-    box-shadow: tok(shadow-dropdown);
 
     .ui-menu-item,
     .ui-menu-item-wrapper,
     .ui-menu-item > a {
-      padding: 6px 12px;
+      padding: 8px 16px;
       border: 0;
-      color: tok(text);
+      color: tok(text-body);
     }
 
     .ui-state-active,
@@ -104,7 +82,7 @@
     .ui-menu-item > a.ui-state-focus {
       margin: 0;
       border: 0;
-      background: tok(primary-soft);
+      background: tok(menu-hover);
       color: tok(text);
     }
   }
