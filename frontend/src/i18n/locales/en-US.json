@@ -100,5 +100,8 @@
   },
   "rail": {
     "label": "Modules of the section {group}"
+  },
+  "record": {
+    "fallback": "The record could not open over the list — opening its page."
   }
 }

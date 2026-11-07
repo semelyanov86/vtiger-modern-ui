@@ -12,7 +12,9 @@
 // - v7 removes outlines on focus: the theme shows a box-shadow ring on :focus-visible.
 //
 // What is hidden or replaced by the islands (app menu, …) is done only under html.mu-shell-ready with the
-// data-mu-replaced token of the mounted island, never here.
+// data-mu-replaced token of the mounted island, never here. Exception of stage 09 (docs/architecture.md A15): _layout.scss
+// places the page overlay of v7 as the record window, only while the shell marks it (.mu-record-overlay).
+// The layout of list screens without the module rail comes from the tokens stylesheet (ModernUI_Tokens_Model::layoutCss).
 @use '../styles/tokens' as *;
 @use '../styles/fonts';
 @use 'base';
@@ -30,6 +32,7 @@
 @use 'shell';
 @use 'lists';
 @use 'records';
+@use 'layout';
 
 :root:not(.mu-off) {
   @each $name, $value in $defaults {

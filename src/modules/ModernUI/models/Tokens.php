@@ -105,6 +105,54 @@ class ModernUI_Tokens_Model {
 	}
 
 	/**
+	 * Modules with the cloud layout of their list screen (settings key layout.modules, docs/architecture.md A15).
+	 * @param array $values effective settings
+	 * @return array names, validated again
+	 */
+	public static function layoutModules(array $values) {
+		$modules = isset($values['layout.modules']) && is_array($values['layout.modules']) ? $values['layout.modules'] : array();
+		$names = array();
+		foreach ($modules as $module) {
+			if (is_string($module) && preg_match('/^[A-Za-z0-9_]{1,50}$/', $module) && !in_array($module, $names, true)) {
+				$names[] = $module;
+			}
+		}
+		return $names;
+	}
+
+	/**
+	 * Layout rules of the first paint for the modules of layout.modules (stage 09, docs/architecture.md A15): the list screen
+	 * of such a module has no permanent module rail — the column of v7 (#modnavigator, 42 px) gets no width and the filter
+	 * sidebar and the list move left by it, as v7 itself does for Documents and Reports. The theme menu covers the entries of
+	 * the rail; when the strip of a page has entries the menu does not cover, the shell sets html[data-mu-keep-rail] and
+	 * the rail is back. Same gate as the space of the favorites bar: scripting, theme on, shell not failed, known page.
+	 * Values are the geometry of the v7 skin of 8.4 (rail 42 px, sidebar 240 px + 1 px border, from 992 px).
+	 * @param array $values effective settings
+	 * @return string CSS, empty without modules
+	 */
+	public static function layoutCss(array $values) {
+		$modules = self::layoutModules($values);
+		if (!$modules) {
+			return '';
+		}
+		$gate = 'html:root:not(.mu-off):not([data-mu-failed]):not([data-mu-level="skin"]):not([data-mu-keep-rail])';
+		$rule = function ($suffix, $declarations) use ($gate, $modules) {
+			$selectors = array();
+			foreach ($modules as $module) {
+				$selectors[] = $gate . ' .main-container-' . $module . ':has(> #listViewContent)' . $suffix;
+			}
+			return implode(',', $selectors) . '{' . $declarations . '}';
+		};
+		return "/* ModernUI layout: list screens without the permanent module rail */\n"
+			. '@media (scripting: enabled) and (min-width: 992px){'
+			. $rule(' > #modnavigator', 'width:0;min-width:0;overflow:hidden;visibility:hidden')
+			. $rule(' > .sidebar-essentials', 'left:0')
+			. $rule(' > #listViewContent', 'padding-left:241px')
+			. $rule(' > #listViewContent.full-width', 'padding-left:0')
+			. "}\n";
+	}
+
+	/**
 	 * The stylesheet of action=Tokens. Selector html:root:not(.mu-off) is more specific than the defaults of the
 	 * skin (:root:not(.mu-off)), so the order of the two HEADERCSS links does not matter, and "standard view"
 	 * (html.mu-off) switches both off.

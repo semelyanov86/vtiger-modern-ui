@@ -50,6 +50,9 @@ class ModernUI_Settings_Model {
 				'theme.allowOptOut' => array('type' => 'bool', 'default' => true, 'scopes' => array('global')),
 				'theme.excludedScreens' => array('type' => 'screens', 'max' => 100, 'default' => array(), 'scopes' => array('global', 'role'), 'merge' => 'union'),
 				'adapters.disabled' => array('type' => 'adapters', 'max' => 50, 'default' => array(), 'scopes' => array('global')),
+				// Modules whose list screen gets the cloud layout (stage 09 prototype, docs/architecture.md A15): no permanent
+				// module rail, a record opens over the list. Empty by default: the screens keep the layout of the 0.6 shell.
+				'layout.modules' => array('type' => 'modules', 'max' => 50, 'default' => array(), 'scopes' => array('global', 'role')),
 				'policy.userOverrides' => array('type' => 'keys', 'default' => array('locale', 'appearance.density', 'appearance.fontScale', 'navigation.compact', 'navigation.favorites'), 'scopes' => array('global')),
 				'locale.default' => array('type' => 'enum', 'values' => $locales, 'default' => 'auto', 'scopes' => array('global', 'role')),
 				'locale' => array('type' => 'enum', 'values' => $locales, 'default' => 'auto', 'scopes' => array('user')),

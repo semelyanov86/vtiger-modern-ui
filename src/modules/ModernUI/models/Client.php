@@ -75,6 +75,8 @@ class ModernUI_Client_Model {
 			'menu' => array_merge(array('system' => $system), self::menu($values, $locale['locale'], (bool) $context['isAdmin'])),
 			// Adapters of the active extensions (docs/architecture.md §7.6): client parts and screen rules.
 			'adapters' => ModernUI_Adapters_Model::forClient($values),
+			// Screens with the cloud layout (docs/architecture.md A15): the shell opens records of these modules over the list.
+			'layout' => array('modules' => ModernUI_Tokens_Model::layoutModules($values)),
 			'personal' => array(
 				'values' => (object) $personal,
 				'allowed' => $allowed,

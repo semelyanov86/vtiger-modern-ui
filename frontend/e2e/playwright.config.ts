@@ -59,6 +59,8 @@ export default defineConfig({
     { name: 'records', testMatch: /records\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'special', testMatch: /special\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'screens', testMatch: /screens\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
+    { name: 'layout', testMatch: /layout\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
+    { name: 'pairs', testMatch: /pairs\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'baseline', testMatch: /baseline\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'import', testMatch: /tools\/module-import\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'devcycle', testMatch: /devcycle\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },

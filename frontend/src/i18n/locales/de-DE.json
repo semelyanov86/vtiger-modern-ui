@@ -100,5 +100,8 @@
   },
   "rail": {
     "label": "Module des Bereichs „{group}“"
+  },
+  "record": {
+    "fallback": "Der Datensatz konnte nicht über der Liste geöffnet werden – seine Seite wird geöffnet."
   }
 }

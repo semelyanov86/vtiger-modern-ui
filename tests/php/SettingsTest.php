@@ -186,3 +186,14 @@ test('settings: flatten() keeps the label map of branding.title and the menu lis
 	$checked = ModernUI_Settings_Model::validate('global', $flat);
 	assert_same(array(), $checked['errors']);
 });
+
+test('settings: layout.modules (stage 09) — module names, common and role settings, not personal', function () {
+	$checked = ModernUI_Settings_Model::validate('global', array('layout.modules' => array('Accounts', 'Contacts')));
+	assert_same(array('Accounts', 'Contacts'), $checked['values']['layout.modules'], 'valid names kept');
+	$role = ModernUI_Settings_Model::validate('role', array('layout.modules' => array('Accounts')));
+	assert_same(array('Accounts'), $role['values']['layout.modules'], 'a role profile may set it');
+	$user = ModernUI_Settings_Model::validate('user', array('layout.modules' => array('Accounts')));
+	assert_true(!isset($user['values']['layout.modules']), 'not a personal key');
+	$defaults = ModernUI_Settings_Model::defaults();
+	assert_same(array(), $defaults['layout.modules'], 'off by default');
+});

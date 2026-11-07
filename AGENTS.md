@@ -47,7 +47,7 @@
 | Исходники модуля (раскладка как в CRM после импорта ZIP) | `src/` (сборка — `src/…/resources/dist/`, не в git) | да |
 | Vue/Vite, словари, unit- и e2e-тесты frontend | `frontend/` (`tests/`, `e2e/`) | да |
 | Сборка ZIP | `packaging/`, результат — `dist/` (не в git) | да |
-| Окружение | `dev/` (`crm-link.sh`, `crm-mounts.txt`, `crm-info.php`, `crm-vtlib.php`, `crm-links-for.php`, `crm-menu-for.php`, `check-private.sh`); чистый стенд — `dev/clean/` | да |
+| Окружение | `dev/` (`crm-link.sh`, `crm-mounts.txt`, `crm-info.php`, `crm-vtlib.php`, `crm-links-for.php`, `crm-menu-for.php`, `check-private.sh`); чистый стенд — `dev/clean/`; пары с облачным эталоном — `dev/visual/` | да |
 | Тесты | `tests/` | да |
 | Документы | `docs/` | да, обезличенно |
 | Локальные настройки и состояние | `.env` (`.env.example`), `.local/` — не в git | да |
@@ -68,8 +68,11 @@ task crm:update    # то же через Vtiger_Package::update() (миграц
 task crm:uninstall # Vtiger_Module::delete(); таблицы остаются, -- --purge удаляет; crm:enable/crm:disable
 task lint          # php -l под 8.5, 8.4, 8.1 (Docker); vue-tsc, ESLint 0 предупреждений, ES5 loader.js
 task test          # PHP 8.5/8.4/8.1, миграции на временной MySQL, vitest, пакет (VTIGER_SRC_REPO в .env)
-task test:e2e      # Playwright на dev-стенде (вход из .env): modernui + settings (этап 05) + navigation (этап 06) + records (карточки и формы против v7, синтетические записи MU07, этап 07) + special (адаптеры, страницы вне интерфейса, печать, экспорт, календарь, этап 08); оставляет тему включённой у администратора
+task test:e2e      # Playwright на dev-стенде (вход из .env): modernui + settings (этап 05) + navigation (этап 06) + records (карточки и формы против v7, синтетические записи MU07, этап 07) + special (адаптеры, страницы вне интерфейса, печать, экспорт, календарь, этап 08) + layout (этап 09); оставляет тему включённой у администратора
 task test:screens  # все экраны экземпляра с темой и без (этап 08, только чтение): действия, ошибки, прокрутка, уровень темы; MU_SCREENS_SHOTS_DIR на dev — приватный каталог
+task test:layout   # прототип 09: Accounts без полосы модулей, запись и форма поверх списка (overlay-виды ядра), история, сохранение; синтетические MU09
+task visual:pairs  # снимки и замеры ModernUI по dev/visual/states.json в MU_VISUAL_DIR (dev — приватный каталог)
+task visual:compare # пары и таблица геометрии против закреплённого облачного эталона (MU_VISUAL_REFERENCE, приватный)
 task test:devcycle # правка → результат на dev-стенде (PHP, Smarty, словарь, CSS, Vue), всё откатывает
 task shots         # снимки экранов 1440/1024/768/412 с темой и без (dev-стенд — только MU_SHOTS_DIR из PRIVATE.md)
 task measure       # стоимость темы относительно безопасного режима (время, CLS, байты, Bootstrap/304)

@@ -277,6 +277,15 @@ function adapters(value: unknown): readonly ActiveAdapter[] {
   })
 }
 
+/** Screens with the cloud layout (absent in answers of older modules: none). */
+function layout(value: unknown): { readonly modules: readonly string[] } {
+  if (value === undefined) {
+    return { modules: [] }
+  }
+  const data = record(value, 'layout')
+  return { modules: stringList(data['modules'], 'layout.modules').map((name, index) => string(name, `layout.modules[${String(index)}]`, MODULE)) }
+}
+
 /** The "result" of a Bootstrap answer. */
 export function parseBootstrap(value: unknown): Bootstrap {
   const data = record(value, 'result')
@@ -316,6 +325,7 @@ export function parseBootstrap(value: unknown): Bootstrap {
     branding: branding(data['branding']),
     menu: parseBootstrapMenu(data['menu']),
     adapters: adapters(data['adapters']),
+    layout: layout(data['layout']),
     personal: {
       values: record(personal['values'], 'personal.values'),
       allowed: stringList(personal['allowed'], 'personal.allowed'),

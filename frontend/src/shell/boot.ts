@@ -18,7 +18,7 @@ import { detectPageLevel, hostReady } from '../adapters/v7/host'
 import { coveredBy, scanMenu, type ExtraLink } from '../adapters/v7/appMenu'
 import { pageContext } from '../adapters/v7/page'
 import { createThemeI18n } from '../i18n'
-import { createContainer, IslandRuntime, setReplaced } from '../boot/runtime'
+import { createContainer, createScope, IslandRuntime, setReplaced } from '../boot/runtime'
 import { applyTokens, clearTokens } from '../boot/tokens'
 import { adapterScreenLevel, startAdapters, type RunningAdapters } from '../boot/adapters'
 import { CLIENT_ADAPTERS } from '../adapters/ext'
@@ -29,6 +29,7 @@ import ModuleRail from './ModuleRail.vue'
 import Brand from './Brand.vue'
 import { createFavorites, type FavoritesStore } from './nav/favorites'
 import { currentGroup } from './nav/model'
+import { startRecordOverlay, supportsRecordOverlay } from '../record/overlay'
 
 const READY_CLASS = 'mu-shell-ready'
 const OFF_CLASS = 'mu-off'
@@ -48,6 +49,13 @@ class BootError extends Error {
 const runtime = new IslandRuntime()
 /** Client parts of the adapters of extensions running on this page. */
 let adapters: RunningAdapters | null = null
+/** The record over the list of a screen with the cloud layout (docs/architecture.md A15). */
+let recordOverlay: ReturnType<typeof createScope> | null = null
+
+function stopRecordOverlay(): void {
+  recordOverlay?.dispose()
+  recordOverlay = null
+}
 
 function stopAdapters(): void {
   adapters?.stop()
@@ -192,7 +200,16 @@ function registerNavigation(data: Bootstrap, i18n: ReturnType<typeof createTheme
   const group = currentGroup(data.menu.groups, page)
   // The capability check runs again after every re-render of the page: tell about a kept v7 strip once per page.
   let railNoticeShown = false
-  if (group !== null) {
+  if (data.layout.modules.includes(page.module) && page.view === 'List') {
+    // Cloud layout (docs/architecture.md A15): the tokens stylesheet removes the rail of this screen from the first paint.
+    // Entries the theme menu does not cover bring the v7 rail back (html[data-mu-keep-rail]).
+    const strip = document.querySelector('#modnavigator > .mod-switcher-container')
+    const scan = strip !== null ? scanMenu(strip, covered) : { extras: [], foreign: [] }
+    if (scan.foreign.length > 0 || scan.extras.length > 0) {
+      document.documentElement.setAttribute('data-mu-keep-rail', '')
+      console.info('[ModernUI] the v7 module strip has entries the theme menu does not cover: it stays on this screen')
+    }
+  } else if (group !== null) {
     runtime.register({
       id: 'module-rail',
       place: () => {
@@ -221,6 +238,7 @@ function removeMarkers(): void {
   const html = document.documentElement
   html.classList.remove(READY_CLASS, 'mu-pending')
   html.removeAttribute('data-mu-level')
+  html.removeAttribute('data-mu-keep-rail')
   html.style.removeProperty(BAR_VARIABLE)
   document.getElementById('mu-overlay-root')?.remove()
 }
@@ -230,6 +248,7 @@ function removeMarkers(): void {
  * Used after "switch to the standard view".
  */
 export function teardown(): void {
+  stopRecordOverlay()
   stopAdapters()
   runtime.stop()
   clearTokens()
@@ -270,15 +289,21 @@ export async function boot(): Promise<void> {
     const level = ruled === null ? detectPageLevel() : 'skin'
     html.setAttribute('data-mu-level', level)
     if (level === 'islands') {
-      registerIslands(data, createThemeI18n(data.locale.effective))
+      const i18n = createThemeI18n(data.locale.effective)
+      registerIslands(data, i18n)
       runtime.start()
       html.classList.add(READY_CLASS)
+      if (supportsRecordOverlay(page.module, page.view, data.layout.modules)) {
+        recordOverlay = createScope('record-overlay')
+        startRecordOverlay(recordOverlay, page.module, { fallback: i18n.global.t('record.fallback') })
+      }
     }
     dispatch('mu:ready', level)
     // Adapters of the active extensions: after the islands, each in its own scope; a failing one is only logged.
     adapters = await startAdapters(data.adapters, page, CLIENT_ADAPTERS)
   } catch (error) {
     const code = error instanceof BootError ? error.code : error instanceof ApiError ? error.code : 'shell-error'
+    stopRecordOverlay()
     stopAdapters()
     runtime.stop()
     removeMarkers()

@@ -40,6 +40,8 @@ class ModernUI_Tokens_Action extends Vtiger_Action_Controller {
 				$values = $context['settings']['values'];
 				$tokens = ModernUI_Tokens_Model::forAppearance(ModernUI_Tokens_Model::appearanceOf($values));
 				$css = ModernUI_Tokens_Model::css(array_merge($tokens, ModernUI_Tokens_Model::layout($values)))
+					// Layout of the screens with the cloud layout (docs/architecture.md A15).
+					. ModernUI_Tokens_Model::layoutCss($values)
 					// Stylesheets of the adapters of the active extensions (docs/architecture.md §7.6).
 					. ModernUI_Adapters_Model::styles($values);
 				$key = $request->get('r');

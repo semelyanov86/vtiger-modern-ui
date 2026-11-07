@@ -78,3 +78,17 @@ test('tokens: the favorites bar is reserved when favorites are on and the user h
 	$css = ModernUI_Tokens_Model::css(array_merge(ModernUI_Tokens_Model::forAppearance(array()), ModernUI_Tokens_Model::layout($defaults)));
 	assert_true(strpos($css, '--mu-favorites-bar:42px') !== false, 'in the stylesheet');
 });
+
+test('layout (stage 09): list screens of layout.modules lose the permanent module rail from the first paint', function () {
+	assert_same('', ModernUI_Tokens_Model::layoutCss(array()), 'no modules, no rules');
+	assert_same('', ModernUI_Tokens_Model::layoutCss(array('layout.modules' => array())), 'empty list');
+	$values = array('layout.modules' => array('Accounts', 'Bad Name', '../x', 'Accounts', 'Contacts'));
+	assert_same(array('Accounts', 'Contacts'), ModernUI_Tokens_Model::layoutModules($values), 'validated again, unique');
+	$css = ModernUI_Tokens_Model::layoutCss($values);
+	assert_true(strpos($css, '.main-container-Accounts:has(> #listViewContent) > #modnavigator,') !== false, 'rail of Accounts');
+	assert_true(strpos($css, '.main-container-Contacts:has(> #listViewContent) > #modnavigator{width:0;') !== false, 'rail of Contacts');
+	assert_true(strpos($css, '.main-container-Contacts:has(> #listViewContent) > .sidebar-essentials{left:0}') !== false, 'sidebar of Contacts');
+	assert_true(strpos($css, 'Bad Name') === false && strpos($css, '../x') === false, 'invalid names never reach the CSS');
+	assert_true(strpos($css, ':not([data-mu-keep-rail])') !== false && strpos($css, ':not([data-mu-failed])') !== false, 'same gate as the shell');
+	assert_true(strpos($css, '@media (scripting: enabled) and (min-width: 992px){') !== false, 'desktop only, with scripts');
+});

@@ -136,6 +136,8 @@ export interface Bootstrap {
   readonly branding: Branding
   readonly menu: Menu
   readonly adapters: readonly ActiveAdapter[]
+  /** Screens with the cloud layout (docs/architecture.md A15): modules whose list opens a record over the list. */
+  readonly layout: { readonly modules: readonly string[] }
   readonly personal: {
     readonly values: Readonly<Record<string, unknown>>
     readonly allowed: readonly string[]

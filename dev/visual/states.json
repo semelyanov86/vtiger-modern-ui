@@ -1,0 +1,74 @@
+{
+  "_doc": "Comparable states of the cloud reference and of ModernUI (docs/visual-parity.md §3, §5; docs/design.md §13). Public: only state ids, routes of a standard Vtiger 8.4 and selectors. The cloud measurements, screenshots and the manifest live in the private directory (PRIVATE.md). 'ref' names elements of the cloud measurements (several = their union box), 'theme' is the selector on the page of ModernUI, 'check' the geometry compared (x, y, w, h) and the styles compared exactly, 'shift' moves the cloud box up by the excluded trial banner.",
+  "viewport": { "width": 1440, "height": 1000 },
+  "banner": 40,
+  "tolerance": { "size": 2, "position": 4 },
+  "states": [
+    {
+      "id": "V03-list",
+      "reference": "V03-list-accounts",
+      "screenshot": "V03-list-accounts.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": [],
+      "elements": {
+        "header": { "ref": ["favBar", "topbar"], "theme": "#page > nav.app-fixed-navbar", "check": ["y", "h"], "shift": true },
+        "favorites": { "ref": ["favBar"], "theme": "[data-mu-root='favorites']", "check": ["y", "h"], "styles": ["bg"], "shift": true },
+        "listTop": { "ref": ["table"], "theme": "#listview-table", "check": ["y"], "shift": true },
+        "listLeft": { "ref": ["table"], "theme": "#listview-table", "check": ["x"], "shift": true },
+        "headerCell": { "ref": ["th"], "theme": "#listview-table thead th:nth-child(3)", "check": ["h"], "styles": ["font", "size", "weight", "color", "tt"] },
+        "rowCell": { "ref": ["td"], "theme": "#listview-table tbody tr.listViewEntries td:nth-child(3)", "check": ["h"], "styles": ["font", "size", "color"] },
+        "addButton": { "ref": ["addBtn"], "theme": "#Accounts_listView_basicAction_LBL_ADD_RECORD", "check": ["h"], "styles": ["bg", "color", "radius", "font"] },
+        "pageBackground": { "ref": ["body"], "theme": "#listViewContent", "styles": ["bg"] }
+      }
+    },
+    {
+      "id": "V05-details",
+      "reference": "V05-account-details",
+      "screenshot": "V05-account-details.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": ["open-first-record"],
+      "elements": {
+        "window": { "ref": ["deepdiveBg"], "theme": "#overlayPageContent", "check": [] },
+        "blockCard": { "ref": ["blockCard"], "theme": "#overlayPageContent .overlayDetail .block, #overlayPageContent .overlayDetail .detailview-table", "styles": ["bg", "radius"] },
+        "blockHeader": { "ref": ["blockHeaderText"], "theme": "#overlayPageContent .overlayDetail .blockHeader, #overlayPageContent .overlayDetail h4", "styles": ["size", "weight"] },
+        "fieldLabel": { "ref": ["fieldLabel"], "theme": "#overlayPageContent .overlayDetail td.fieldLabel", "styles": ["size", "color"] },
+        "fieldValue": { "ref": ["fieldValue"], "theme": "#overlayPageContent .overlayDetail td.fieldValue", "check": ["h"], "styles": ["bg", "radius"] }
+      }
+    },
+    {
+      "id": "V05-window",
+      "reference": "V05-account-summary",
+      "screenshot": "V05-account-summary-a.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": ["open-first-record"],
+      "elements": {
+        "window": { "ref": ["dialog"], "theme": "#overlayPageContent", "check": ["x", "y", "w", "h"], "styles": ["radius"] },
+        "header": { "ref": ["header"], "theme": "#overlayPageContent .overlayDetailHeader", "check": ["h"], "styles": ["bg"] },
+        "title": { "ref": ["recordTitle"], "theme": "#overlayPageContent .overlayDetailHeader .recordLabel, #overlayPageContent .overlayDetailHeader .name", "styles": ["font", "size", "weight", "color"] },
+        "tabs": { "ref": ["tabsBar"], "theme": "#overlayPageContent .related-tabs, #overlayPageContent .nav-tabs", "check": ["h"] },
+        "button": { "ref": ["headerBtnSecondary"], "theme": "#overlayPageContent .overlayDetailHeader .btn", "check": ["h"], "styles": ["bg", "radius", "font"] }
+      }
+    },
+    {
+      "id": "V07-edit",
+      "reference": "V07-edit",
+      "screenshot": "V07-edit-overlay.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": ["open-first-record", "open-edit"],
+      "elements": {
+        "window": { "ref": ["dialog"], "theme": "#overlayPageContent", "check": ["x", "y", "w", "h"] },
+        "header": { "ref": ["editHeader"], "theme": "#overlayPageContent .overlayHeader", "check": ["h"], "styles": ["bg"] },
+        "title": { "ref": ["editTitle"], "theme": "#overlayPageContent .overlayHeader h4, #overlayPageContent .overlayHeader .modal-title", "styles": ["size", "weight"] },
+        "sections": { "ref": ["sectionsNav"], "theme": "#overlayPageContent .mu-sections", "check": ["w"] },
+        "blockCard": { "ref": ["blockCard"], "theme": "#overlayPageContent .fieldBlockContainer", "styles": ["bg", "radius", "shadow"] },
+        "input": { "ref": ["input"], "theme": "#overlayPageContent form#EditView input.inputElement[type=text]", "check": ["h"], "styles": ["radius", "bBottom"] },
+        "footer": { "ref": ["footer"], "theme": "#overlayPageContent .overlayFooter", "check": ["h"], "styles": ["bg"] },
+        "save": { "ref": ["saveBtn"], "theme": "#overlayPageContent .overlayFooter .saveButton", "check": ["h"], "styles": ["bg", "color", "radius"] }
+      }
+    }
+  ]
+}
