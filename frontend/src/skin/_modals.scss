@@ -1,15 +1,13 @@
 // Modal windows of v7 (Bootstrap 3 .modal, bootbox, quick create, popups) drawn as the dialogs of the cloud (docs/design.md
 // §13.4): radius 12, shadow 0 0 16px rgba(0,0,0,.2), a white header with the soft header shadow and a 16/600 title instead
 // of the dark bar of v7, a white footer with a #f0f1f3 line, Save on the right as the primary button, Cancel secondary.
-// Widths, positions, focus handling (enforceFocus of v7), backdrop and the markup of the forms stay.
+// Focus handling (enforceFocus of v7), backdrop and the native form nodes stay.
 @use '../styles/tokens' as *;
 @use '../styles/components' as *;
 
 :root:not(.mu-off) {
-  // v7 sizes the body of quick create and other modals for its own header (≈ 51 px) and fields (30 px), and the
-  // scroll container inside is positioned: taller parts would push the form over the footer. Inside modals the
-  // theme keeps that geometry — fields and buttons of v7 height, a header of v7 height — and no overflow clipping
-  // (the corners are rounded on the header and the footer instead).
+  // Native popups keep their header/field geometry. Cloud forms and Quick Create override it in _cloud-forms.scss,
+  // with a separate scrolling body and a pinned footer; corners are rounded without clipping the widgets.
   .modal-content {
     @include dialog-panel;
   }

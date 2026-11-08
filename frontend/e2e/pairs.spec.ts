@@ -86,8 +86,27 @@ async function step(page: Page, name: string): Promise<void> {
     if (selector === undefined) throw new Error(`unknown step ${name}`)
     await recordTab(page, selector)
   } else if (name === 'open-edit') {
+    await page.locator('.mu-record-actions-toggle').click()
     await page.locator('#overlayPageContent [id$="_detailView_basicAction_LBL_EDIT"]').click()
     await expect(page.locator('#overlayPageContent form#EditView')).toBeVisible()
+  } else if (name === 'open-create') {
+    await page.locator('[id$="_listView_basicAction_LBL_ADD_RECORD"]').click()
+    await expect(page.locator('#overlayPageContent form#EditView')).toBeVisible()
+  } else if (name === 'quick-create') {
+    await page.locator('#menubar_quickCreate').click()
+    await page.locator('#menubar_quickCreate_Accounts').click()
+    await expect(page.locator('.mu-quick-form')).toBeVisible()
+  } else if (name === 'required-error') {
+    // The empty native required field prevents a POST; this visual scenario never creates a record.
+    await expect(page.locator('#overlayPageContent [name="accountname"]')).toHaveValue('')
+    await page.locator('#overlayPageContent .saveButton').click()
+    await expect(page.locator('.mu-form-error').first()).toBeVisible()
+  } else if (name === 'cancel-confirmation') {
+    await page.locator('#overlayPageContent [name="accountname"]').fill('MU14 unsaved visual example')
+    await page.locator('#overlayPageContent .cancelLink').click()
+    await expect(page.locator('.bootbox')).toBeVisible()
+  } else if (name === 'inventory-items') {
+    await page.locator('.mu-form-sections button').last().click()
   } else {
     throw new Error(`unknown step ${name}`)
   }

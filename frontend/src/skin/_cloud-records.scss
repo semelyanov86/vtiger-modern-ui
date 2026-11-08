@@ -10,8 +10,9 @@
   color: tok(text);
   padding: 0;
 
-  > .content-area { padding: 0; }
+  > .content-area { padding: 0 !important; }
   .detailview-header-block { position: relative; background: #fff; padding: 0; margin: 0; border: 0; z-index: 4; }
+  .detailview-header-block > .row { margin-inline: 0; }
   .detailview-header {
     position: relative;
     padding: 16px 144px 16px 56px;

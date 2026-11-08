@@ -74,6 +74,7 @@ task test:layout   # прототип 09: списки без полосы мо�
 task test:foundation # основа 10: токены сервера = предпросмотр, Poppins и закреплённая кириллица офлайн, состояния компонентов v7 и редактора против замеров облака, плотности, 200 %
 task test:lists    # этап 12: облачная компоновка списка, фильтры, запросы/ID как v7, колонки/теги, RU/EN/DE, узкие экраны и права
 task test:cloud-records # этап 13: облачная карточка, поля/действия, inline, связи, история, ошибки и права; синтетические MU13
+task test:cloud-forms # этап 14: создание/правка/quick create, ошибки/повтор, custom CRUD, права и ширины; синтетические MU14
 task visual:pairs  # снимки и замеры ModernUI по dev/visual/states.json в MU_VISUAL_DIR (dev — приватный каталог)
 task visual:compare # пары и таблица геометрии против закреплённого облачного эталона (MU_VISUAL_REFERENCE, приватный)
 task test:devcycle # правка → результат на dev-стенде (PHP, Smarty, словарь, CSS, Vue), всё откатывает

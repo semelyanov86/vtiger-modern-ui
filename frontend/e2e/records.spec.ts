@@ -20,8 +20,8 @@
  * - rights (clean stand): read-only and hidden fields of U, a record of another user refused;
  * - the language of the theme (RU, EN, DE) changes neither the form nor its payload.
  *
- * Writes only synthetic records with the marker MU07 (deleted at the end). On the dev instance the sales order has
- * only services in its line items (no stock moves) and a "!" in its subject (instances may keep such orders out of their
+ * Writes only synthetic records with the marker MU07 (deleted at the end), including its own active catalog entries
+ * with native tax assignments. On the dev instance the sales order has only services in its line items (no stock moves) and a "!" in its subject (instances may keep such orders out of their
  * stock workflows); its outgoing integrations are off (checked before the run, docs/DEVELOPMENT.md). MU_E2E_LOCAL_BUILD=1 serves the module's resources from the local
  * build (clean stand during the work; not a PACKAGE proof).
  */
@@ -35,7 +35,7 @@ import {
   MARK, MODES, choose, deleteSynthetic, fillMandatory, formData, formState, isSave, lineItems, marker, normalise, normaliseText,
   openIn, payload, pickInPopup, recordState, settle, type Mode,
 } from './records-support'
-import { bootstrap, clearPersonal, savePersonal } from './settings-api'
+import { bootstrap, clearPersonal, globalScope, patchGlobal, savePersonal } from './settings-api'
 import { openCloudRecord, recordTab } from './cloud-records-support'
 
 test.describe.configure({ mode: 'serial' })
@@ -48,31 +48,42 @@ interface Item {
   qty: string
 }
 
-/**
- * Line items of the inventory scenarios: products and a service of the seed on the clean stand; on the dev instance only
- * active services (no stock moves), read at run time (names of a real instance stay out of git).
- */
-let ITEMS: Item[] = isClean
-  ? [
-      { module: 'Products', field: 'productname', name: 'Fenster Typ Ä', qty: '3' },
-      { module: 'Services', field: 'servicename', name: 'Montage / Монтаж', qty: '2' },
-      { module: 'Products', field: 'productname', name: 'Widget Pro', qty: '5' },
-    ]
-  : []
+/** Own active catalog entries with a native tax assignment. Never change an installation's existing products/services. */
+let ITEMS: Item[] = []
 
-async function serviceItems(page: Page): Promise<Item[]> {
-  // Inventory popups exclude inactive services. A previous list test may have changed the default sort/filter.
-  const search = encodeURIComponent(JSON.stringify([[['discontinued', 'e', '1']]]))
-  await page.goto(`index.php?module=Services&view=List&search_params=${search}&page=1&modernui=on`)
-  const names = await page.locator('tr.listViewEntries[data-id] td.listViewEntryValue[data-name="servicename"], tr.listViewEntries[data-id] td[data-name="servicename"]')
-    .evaluateAll((cells) => cells.map((cell) => (cell.getAttribute('data-rawvalue') ?? cell.textContent).replace(/\s+/g, ' ').trim()).filter((name) => name !== ''))
-  const unique = [...new Set(names)].slice(0, 3)
-  expect(unique.length, 'three services on the instance').toBe(3)
-  return unique.map((name, index) => ({ module: 'Services', field: 'servicename', name, qty: String(index + 1) }))
+async function catalogItems(page: Page): Promise<Item[]> {
+  const result: Item[] = []
+  for (const [index, module] of (isClean ? ['Products', 'Services', 'Products'] as const : ['Services', 'Services', 'Services'] as const).entries()) {
+    await openIn(page, `index.php?module=${module}&view=Edit`, 'off')
+    const field = module === 'Products' ? 'productname' : 'servicename'
+    // The same catalog entries are reused by OFF and ON; their names must not be normalized as mode-specific records.
+    const name = `${marker('off').replace('-off-', '-catalog-')} ${String(index + 1)}`
+    await page.locator(`form#EditView [name="${field}"]`).fill(name)
+    await page.locator('form#EditView [name="discontinued"][type="checkbox"]').check()
+    await page.locator('form#EditView [name="unit_price"]').fill('100')
+    const stock = page.locator('form#EditView [name="qtyinstock"]')
+    if (await stock.count()) await stock.fill('100')
+    const tax = page.locator('form#EditView input.taxes[type="checkbox"]').first()
+    await expect(tax, 'a native tax definition is available for the synthetic item').toBeVisible()
+    await tax.check()
+    expect(await fillMandatory(page, 'off')).toEqual([])
+    const saved = page.waitForResponse((response) => isSave(module)(response.request()))
+    await page.locator('form#EditView .saveButton').click()
+    const response = await saved
+    expect(response.status()).toBe(302)
+    const destination = new URL(response.headers()['location'] ?? '', page.url())
+    const id = destination.searchParams.get('record') ?? ''
+    expect(id).toMatch(/^\d+$/)
+    created.push({ module, id })
+    await page.waitForURL(destination.href)
+    result.push({ module, field, name, qty: String(index + 1) })
+  }
+  return result
 }
 
 const created: { module: string; id: string }[] = []
 let originalPersonal: Record<string, unknown> = {}
+let originalLayout: unknown
 
 async function prepare(context: BrowserContext, page: Page): Promise<void> {
   await isolateNetwork(context)
@@ -93,11 +104,11 @@ async function adminPage(browser: Browser): Promise<Page> {
 
 test.beforeAll(async ({ browser }) => {
   const page = await adminPage(browser)
-  if (ITEMS.length === 0) {
-    ITEMS = await serviceItems(page)
-  }
   await openIn(page, 'index.php?module=Home&view=DashBoard', 'on')
   originalPersonal = ((await bootstrap(page))['personal'] as { values: Record<string, unknown> }).values
+  originalLayout = (await globalScope(page)).values['layout.modules']
+  await patchGlobal(page, { 'layout.modules': [] })
+  ITEMS = await catalogItems(page)
   await page.context().close()
 })
 
@@ -113,6 +124,7 @@ test.afterAll(async ({ browser }) => {
     }
   }
   await clearPersonal(page)
+  await patchGlobal(page, { 'layout.modules': originalLayout ?? null })
   if (Object.keys(originalPersonal).length > 0) {
     expect((await savePersonal(page, originalPersonal)).ok).toBe(true)
   }
@@ -277,6 +289,8 @@ async function buildLineItems(page: Page, reorder = true): Promise<void> {
     await expect(row.locator('.productName')).toHaveValue(item.name)
     await row.locator('.qty').fill(item.qty)
     await row.locator('.qty').blur()
+    await row.locator('.listPrice').fill(String(100.5 + index * 25.25))
+    await row.locator('.listPrice').blur()
   }
   // A percentage discount on the first line (the popover of v7), an amount on the overall total, an adjustment. v7 keeps
   // its popovers in the DOM and hides them with opacity 0: the open one is the one drawn opaque.
@@ -290,6 +304,31 @@ async function buildLineItems(page: Page, reorder = true): Promise<void> {
   await discount.locator('.discount_percentage').fill('10')
   await discount.locator('.popoverButton').click()
   await opaque(discount, false).catch(() => undefined)
+  // Stage 14: two distinct line discounts and taxes, retained after row removal/reorder and a real save.
+  await rows.nth(1).locator('.individualDiscount').click()
+  const secondDiscount = page.locator('.popover.discountForm').last()
+  await opaque(secondDiscount, true)
+  await secondDiscount.locator('[data-discount-type="amount"]').check()
+  await secondDiscount.locator('.discount_amount').fill('7')
+  await secondDiscount.locator('.popoverButton').click()
+  await opaque(secondDiscount, false).catch(() => undefined)
+  await choose(page, '#taxtype', ['individual'])
+  for (const [index, percentage] of ['5', '12'].entries()) {
+    const row = rows.nth(index)
+    const taxes = await row.locator('.taxUI .taxPercentage').count()
+    expect(taxes, 'the synthetic catalog has tax definitions').toBeGreaterThan(0)
+    if (taxes > 0) {
+      await row.locator('.individualTax').click()
+      const popup = page.locator('.popover.individualTaxForm').last()
+      await opaque(popup, true)
+      for (const [taxIndex, input] of (await popup.locator('.taxPercentage').all()).entries()) {
+        await input.fill(taxIndex === 0 ? percentage : '0')
+        await input.blur()
+      }
+      await popup.locator('.popoverButton').click()
+      expect(await row.locator('.taxUI .taxPercentage').first().inputValue()).toBe(percentage)
+    }
+  }
   // The overall discount, where the instance shows it (a modified layout of the totals may leave it out).
   if (await page.locator('#finalDiscount').isVisible()) {
     await page.locator('#finalDiscount').click()
@@ -300,8 +339,26 @@ async function buildLineItems(page: Page, reorder = true): Promise<void> {
     await final.locator('.popoverButton').click()
     await opaque(final, false).catch(() => undefined)
   }
+  // Exercise the native shipping/handling popover where the installation exposes charges.
+  const shipping = page.locator('#chargesBlock .chargeValue:not([readonly])')
+  if (await page.locator('#charges').isVisible() && await shipping.count()) {
+    await page.locator('#charges').click()
+    const popup = page.locator('.popover:has(#chargesBlock)')
+    await opaque(popup, true)
+    await shipping.first().fill('11')
+    await shipping.first().blur()
+    await popup.locator('.popoverButton').click()
+    expect(Number(await page.locator('[name="shipping_handling_charge"]').inputValue())).toBeGreaterThan(0)
+  }
   await page.locator('#adjustment').fill('2.5')
   await page.locator('#adjustment').blur()
+  const currencies = await page.locator('#currency_id option').evaluateAll((options) => options.map((option) => (option as HTMLOptionElement).value))
+  const otherCurrency = currencies.find((value) => value !== currencies[0])
+  if (otherCurrency !== undefined) {
+    await choose(page, '#currency_id', [otherCurrency])
+    await settle(page)
+    await expect(page.locator('#currency_id')).toHaveValue(otherCurrency)
+  }
   // The last row is removed, the second one moved to the top (jQuery UI sortable of v7; dragged by a cell without a
   // control — sortable ignores inputs, and its drag image would start a native image drag instead).
   await rows.last().locator('.deleteRow').click()
@@ -362,7 +419,10 @@ interface Saved {
   id: string
   body: [string, string][]
   view: Record<string, string[]>
+  inventory?: Awaited<ReturnType<typeof lineItems>>
 }
+
+let savedInventory: Saved['inventory']
 
 /** Fills and saves a create form with the theme off or on; the record view of the saved record afterwards. */
 async function createThrough(page: Page, module: string, mode: Mode, fill: (page: Page) => Promise<void>): Promise<Saved> {
@@ -384,7 +444,26 @@ async function createThrough(page: Page, module: string, mode: Mode, fill: (page
   created.push({ module, id })
   await openIn(page, `index.php?module=${module}&view=Detail&record=${id}&mode=showDetailViewByMode&requestMode=full`, mode)
   const view = await recordState(page)
-  return { id, body, view }
+  let inventory: Saved['inventory']
+  if (module === 'SalesOrder') {
+    await openIn(page, `index.php?module=${module}&view=Edit&record=${id}`, mode)
+    inventory = await lineItems(page)
+    const persisted = new Map(await formData(page))
+    // Compare entered line values with the actual saved values. The native server recalculates aggregate totals;
+    // those are compared between OFF and ON below, including installations with customized calculations.
+    const lineValue = /^(?:(?:hdnProductId|qty|listPrice|discount_percent|discount_amount|discount_type|tax\d+_percentage)\d+|taxtype|currency_id|shipping_handling_charge)$/
+    const checked = body.filter(([name, value]) => lineValue.test(name) && persisted.has(name) && value !== '')
+    for (const field of ['hdnProductId1', 'hdnProductId2', 'qty1', 'qty2', 'listPrice1', 'listPrice2']) {
+      expect(checked.some(([name]) => name === field), `persisted ${field} is compared`).toBe(true)
+    }
+    for (const [name, value] of checked) {
+      const actual = persisted.get(name) ?? ''
+      const number = (text: string): number => Number(text.replace(/\s/g, '').replace(',', '.'))
+      if (Number.isFinite(number(value))) expect(number(actual), `${mode}: persisted ${name}`).toBeCloseTo(number(value), 2)
+      else expect(actual, `${mode}: persisted ${name}`).toBe(value)
+    }
+  }
+  return { id, body, view, ...(inventory ? { inventory } : {}) }
 }
 
 /** Fields whose values differ between two records by nature (numbers, times, the record itself). */
@@ -399,6 +478,7 @@ function comparable(saved: Saved, mode: Mode): Record<string, string[]> {
 }
 
 test('save: organization, contact and sales order with line items — the same request and the same saved record as v7', async ({ page }) => {
+  test.setTimeout(240_000) // Six native saves and reopenings, including inventory widgets and extension handlers.
   const results: Record<string, Record<string, Saved>> = { Accounts: {}, Contacts: {}, SalesOrder: {} }
   for (const mode of MODES) {
     const account = await createThrough(page, 'Accounts', mode, async (form) => {
@@ -452,9 +532,38 @@ test('save: organization, contact and sales order with line items — the same r
     const viewOff = comparable(off, 'off')
     const unifyView = (view: Record<string, string[]>): Record<string, string[]> => view
     expect(unifyView(viewOn), `${module}: saved record`).toEqual(unifyView(viewOff))
+    expect(on.inventory, `${module}: reopened line values and totals`).toEqual(off.inventory)
   }
+  savedInventory = results['SalesOrder']?.['off']?.inventory
   const items = results['SalesOrder']?.['on']?.view['items'] ?? []
   expect(items.some((row) => row.includes(ITEMS[0]?.name ?? '-')), 'line items saved').toBe(true)
+})
+
+test('save: inventory overlay retains native handlers, totals and line values after returning to the list', async ({ page }) => {
+  await openIn(page, 'index.php?module=SalesOrder&view=List', 'on')
+  await page.locator('#SalesOrder_listView_basicAction_LBL_ADD_RECORD').click()
+  await expect(page.locator('#overlayPageContent form#EditView')).toBeVisible()
+  const organization = created.find((record) => record.module === 'Accounts')
+  expect(organization).toBeDefined()
+  const accountField = page.locator('#overlayPageContent input[name="account_id"]')
+  if (await accountField.count()) {
+    await pickInPopup(page, () => accountField.locator('xpath=ancestor::td[1]').locator('.relatedPopup').click(), 'accountname', marker('off'))
+  }
+  await page.locator('#overlayPageContent [name="subject"]').fill(`${marker('on')} ! Overlay order`)
+  await buildLineItems(page)
+  expect(await fillMandatory(page, 'on')).toEqual([])
+  expect(savedInventory, 'native saved inventory baseline').toBeDefined()
+  const sent = page.waitForRequest(isSave('SalesOrder'))
+  await page.locator('#overlayPageContent .saveButton').evaluate((button: HTMLButtonElement) => { button.click() })
+  await sent
+  await page.waitForFunction(() => document.querySelector('#overlayPageContent .mu-cloud-record')?.getClientRects().length, null, { timeout: 20_000 })
+  const id = await page.evaluate(() => document.documentElement.getAttribute('data-mu-record') ?? '')
+  expect(id).toMatch(/^\d+$/)
+  created.push({ module: 'SalesOrder', id })
+  expect(page.url()).toContain('view=List')
+  await openIn(page, `index.php?module=SalesOrder&view=Edit&record=${id}`, 'off')
+  const reopened = await lineItems(page)
+  expect(reopened).toEqual(savedInventory)
 })
 
 test('documents of a record: the PDF of an extension (ITS4You PDFMaker, where active) is the same document as without the theme', async ({ page }) => {
@@ -831,7 +940,8 @@ test('languages: RU, EN and DE of the theme change neither the forms nor what th
 
 test('narrow screens: record view and edit form without page scroll and with reachable Save, as v7', async ({ page }) => {
   const account = created.find((record) => record.module === 'Accounts')
-  const id = account?.id ?? ''
+  const id = account?.id ?? await firstRecord(page, 'Accounts') ?? ''
+  expect(id).not.toBe('')
   for (const width of [1024, 768, 412]) {
     await page.setViewportSize({ width, height: 860 })
     for (const url of [`index.php?module=Accounts&view=Detail&record=${id}`, `index.php?module=SalesOrder&view=Edit`]) {
@@ -842,6 +952,13 @@ test('narrow screens: record view and edit form without page scroll and with rea
       }
       expect((result['on'] ?? false) || !(result['off'] ?? false), `${url} at ${String(width)}: no page scroll added by the theme`).toBe(true)
       if (url.includes('view=Edit')) {
+        await page.locator('#lineItemTab').scrollIntoViewIfNeeded()
+        await expect(page.locator('.editViewHeader')).toBeInViewport()
+        expect(await page.locator('.editViewHeader').evaluate((header) => {
+          const box = header.getBoundingClientRect()
+          return header.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2))
+        }), 'the direct form header is not covered by the native module toolbar').toBe(true)
+        expect(await page.locator('.editViewPageDiv').evaluate((element) => element.scrollTop)).toBe(0)
         await expect(page.locator('form#EditView button[type="submit"]:visible').last()).toBeInViewport()
       }
     }
@@ -960,7 +1077,14 @@ test('documents and comments (clean stand): upload a file and add a comment thro
       const box = page.locator('textarea.commentcontent:visible').first()
       await box.fill(comment)
       const posted = page.waitForRequest((candidate) => candidate.method() === 'POST' && (candidate.postData() ?? '').includes('ModComments'))
+      const saved = page.waitForResponse((response) => {
+        const data = new Map(payload(response.request()))
+        return data.get('module') === 'ModComments' && data.get('action') === 'SaveAjax'
+      })
       await page.locator('.detailViewSaveComment[data-mode="add"]:visible').first().click()
+      const answer = await (await saved).json() as { success: boolean; result: { _recordId: string | number } }
+      expect(answer.success).toBe(true)
+      created.push({ module: 'ModComments', id: String(answer.result._recordId) })
       commentBody = normalise(payload(await posted), mode).filter(([key]) => !['related_to', 'parent_id', 'record'].includes(key))
       await expect(page.locator('.commentsList, .commentContainer').filter({ hasText: comment }).first()).toBeVisible()
     }

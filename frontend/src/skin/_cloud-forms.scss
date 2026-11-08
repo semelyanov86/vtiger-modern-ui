@@ -1,0 +1,365 @@
+// V07/V08: native forms, with the measured cloud sections, cards and pinned actions.
+// Keep the original tables/cells: conditional-field extensions address them directly.
+@use '../styles/tokens' as *;
+
+:root:not(.mu-off) {
+  .mu-native-form { height: 100%; }
+  .overlayEdit.mu-form-host > .modal-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+  }
+  .overlayEdit.mu-form-host form#EditView { flex: 1 1 auto; min-height: 0; }
+  .mu-form-host {
+    background: #f6f7f8;
+
+    .editViewHeader,
+    .overlayHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      min-height: 61px;
+      height: 61px;
+      flex: 0 0 auto;
+      margin: 0;
+      padding: 12px 24px;
+      border-bottom: 1px solid tok(divider);
+      background: tok(surface);
+
+      h4.editHeader { margin: 0; font-size: fs(16.25); font-weight: 600; }
+      .modal-header { position: static; padding: 0; border: 0; background: transparent; flex: 1; }
+      .modal-header .close { position: absolute; right: 14px; top: 14px; margin: 0; }
+    }
+
+    .overlayHeader { padding-right: 64px; }
+  }
+
+  .editViewPageDiv.mu-form-host {
+    position: fixed;
+    inset: calc(var(--mu-shell-header, 96px) + 52px) 0 0;
+    z-index: 1;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+
+    // v7 assigns an inline minimum height from the full document during resize.
+    > .content-area { padding: 0 !important; margin: 0; width: 100%; height: 100%; min-height: 0 !important; }
+    form#EditView { height: 100%; margin: 0; }
+    .editViewHeader > .row { display: flex; align-items: center; height: auto; margin: 0; }
+    .editViewHeader > .row > div { padding: 0; }
+  }
+
+  .mu-cloud-form {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    margin: 0;
+
+    .editViewBody {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      height: auto !important;
+      max-height: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      overflow: hidden !important;
+      background: #f6f7f8;
+    }
+
+    .editViewContents {
+      flex: 1;
+      min-width: 0;
+      height: auto;
+      padding: 16px 24px 24px 48px;
+      overflow: auto;
+      scroll-padding: 16px;
+      scrollbar-width: thin;
+    }
+
+    .fieldBlockContainer {
+      margin: 0 0 16px;
+      padding: 0 24px 16px;
+      border: 0;
+      border-radius: 6px;
+      background: tok(surface);
+      box-shadow: tok(shadow-block);
+      scroll-margin: 16px;
+
+      > .fieldBlockHeader {
+        min-height: 51px;
+        margin: 0;
+        padding: 13px 0 14px;
+        border: 0;
+        font-size: fs(16);
+        line-height: 24px;
+        font-weight: 500;
+      }
+      > hr { margin: 0 -24px 8px; border-color: tok(divider); }
+    }
+
+    .editViewContents .fieldBlockContainer > .table:not(.lineItemTable):not(#lineItemResult):not(#lineItemTab) {
+      display: block;
+      width: 100%;
+      margin: 0;
+      border: 0;
+
+      > tbody { display: block; }
+      > tbody > tr {
+        display: grid;
+        grid-template-columns: minmax(100px, 1fr) minmax(0, 1.9fr) minmax(100px, 1fr) minmax(0, 1.9fr);
+        align-items: start;
+      }
+      > tbody > tr > td {
+        min-width: 0;
+        width: auto;
+        padding: 8px 8px;
+        border: 0;
+        vertical-align: top;
+      }
+      > tbody > tr > td.fieldLabel {
+        padding-top: 16px;
+        text-align: right;
+        overflow-wrap: anywhere;
+      }
+      > tbody > tr > td[colspan='3'] { grid-column: span 3; }
+      > tbody > tr > td[colspan='4'] { grid-column: 1 / -1; }
+    }
+  }
+
+  .mu-form-navigation {
+    flex: 0 0 240px;
+    width: 240px;
+    padding: 16px 24px;
+    overflow: auto;
+    border-right: 1px solid tok(divider);
+    background: #f6f7f8;
+  }
+
+  .mu-form-sections {
+    h2 { margin: 12px 0 16px; font-size: fs(16.25); line-height: 22px; font-weight: 500; }
+    button {
+      display: block;
+      width: 100%;
+      padding: 8px;
+      min-height: 36px;
+      border: 0;
+      border-left: 4px solid transparent;
+      border-radius: 4px 0 0 4px;
+      background: transparent;
+      color: tok(text-2);
+      text-align: left;
+      font: inherit;
+      overflow-wrap: anywhere;
+      &:hover { background: tok(surface-subtle); }
+      &.active { color: tok(text); background: #e7f1ff; border-left-color: tok(primary); }
+      &:focus-visible { outline: 2px solid tok(primary-strong); outline-offset: -2px; }
+    }
+  }
+
+  .mu-form-search {
+    position: relative;
+    flex: 0 1 260px;
+    min-width: 120px;
+    &::before { content: '\f002'; position: absolute; left: 12px; top: 9px; font-family: FontAwesome; color: tok(text-2); pointer-events: none; }
+    input {
+      width: 100%;
+      height: 36px;
+      padding: 8px 12px 8px 36px;
+      border: 1px solid tok(border-input);
+      border-radius: 4px;
+      background: tok(surface);
+      color: tok(text);
+      &:focus-visible { outline: 2px solid tok(primary-strong); }
+    }
+  }
+
+  :is(.mu-cloud-form, .mu-quick-form) {
+    td.fieldValue {
+      .inputElement:not([type='checkbox']):not([type='radio']),
+      .select2-container, .input-group, .referencefield-wrapper {
+        width: 100% !important;
+        max-width: 100%;
+        min-width: 0;
+      }
+      textarea { resize: vertical; }
+      .cke { width: 100% !important; }
+    }
+
+    .modal-overlay-footer, .overlayFooter, .modal-footer {
+      position: static;
+      flex: 0 0 auto;
+      width: 100%;
+      min-height: 62px;
+      margin: 0;
+      padding: 12px 24px;
+      border-top: 1px solid tok(divider);
+      background: tok(surface);
+      .row { margin: 0; }
+      .textAlignCenter, center, footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 16px;
+        text-align: right;
+      }
+      .saveButton, button[type='submit'], .popoverButton { order: 3; margin: 0; }
+      .cancelLink, .popoverCancel { order: 2; margin: 0; }
+      #goToFullForm { order: 1; margin-right: auto; }
+    }
+
+    .mu-form-no-match { display: none !important; }
+    .mu-form-error { margin-top: 4px; color: tok(danger); font-size: fs(13); line-height: 19.5px; }
+    .mu-form-empty { padding: 24px; color: tok(text-2); }
+  }
+
+  // Quick Create has its own compact dialog, single field column and a link to the full form.
+  .modal:has(.mu-quick-form) { padding: 0 !important; }
+  .modal-dialog:has(.mu-quick-form) { width: min(800px, calc(100% - 32px)); margin: 28px auto; }
+  .modal-content:has(> .mu-quick-form) { border-radius: 12px; overflow: visible; }
+  .mu-quick-form {
+    --mu-input-height: 36px;
+    --mu-button-height: 36px;
+    .modal-header { height: 68px; min-height: 68px; padding: 16px 24px; border-radius: 12px 12px 0 0; }
+    .modal-header h4 { display: flex; align-items: center; gap: 12px; font-size: fs(16.25); line-height: 20px; margin: 0; }
+    .mu-form-module-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 36px; height: 36px; border-radius: 50%; background: tok(primary); }
+    .mu-form-module-icon .mu-module-icon { color: #fff; }
+    .quickCreateContent { margin-top: 0 !important; }
+    .modal-footer .btn { font-size: fs(13); font-weight: 400; line-height: 20px; }
+    .modal-footer .btn strong { font-weight: inherit; }
+    .modal-body { max-height: calc(100dvh - 190px); padding: 16px 24px; overflow: auto; }
+    .modal-footer { border-radius: 0 0 12px 12px; }
+    .quickCreateContent > table {
+      display: block;
+      width: 100%;
+      > tbody { display: block; }
+      > tbody > tr { display: grid; grid-template-columns: minmax(100px, 195px) minmax(0, 425px); align-items: start; }
+      > tbody > tr > td { width: auto; min-width: 0; padding: 8px; border: 0; }
+      > tbody > tr > td.fieldLabel { text-align: right; padding-top: 16px; }
+      > tbody > tr > td[colspan='3'] { grid-column: 2; }
+      > tbody > tr > td[colspan='4'] { grid-column: 1 / -1; }
+    }
+  }
+
+  // The native table owns all inventory calculations and row operations; only its viewport scrolls.
+  .mu-cloud-form .lineitemTableContainer { max-width: 100%; overflow-x: auto; }
+  .mu-cloud-form .fieldBlockContainer:has(#lineItemTab) {
+    > .row { margin: 0 -24px; }
+    > .row > .col-sm-3 { width: 100%; padding: 0 24px; }
+    .fieldBlockHeader { margin: 0 !important; padding: 16px 0; font-size: fs(16); line-height: 20px; }
+    > .row > .well {
+      width: 100%;
+      min-height: 91px;
+      margin: 0;
+      padding: 16px 24px;
+      border: 0;
+      border-radius: 0;
+      background: #f6f7f8;
+      box-shadow: none;
+      > .row { display: flex; flex-wrap: wrap; gap: 16px; margin: 0; }
+      .col-sm-4 { flex: 0 1 200px; width: auto; padding: 0; }
+      // Native non-breaking spaces before the block label must not create an extra text line.
+      .pull-right { position: relative; display: block; float: none !important; font-size: 0; line-height: 0; }
+      label { display: block; margin-bottom: 4px; padding-left: 18px; font-weight: 400; font-size: fs(13); line-height: 19.5px; }
+      .select2-container, .fa { font-size: fs(13); line-height: 19.5px; }
+      .fa-info-circle { position: absolute; top: 0; left: 0; }
+    }
+  }
+  .mu-cloud-form #lineItemTab {
+    min-width: 800px;
+    background: tok(surface);
+    th { padding: 16px 12px; background: #fafbfc; font-weight: 500; }
+    td { padding: 12px; }
+  }
+  .mu-cloud-form #lineItemResult {
+    border: 0;
+    td { border: 0; padding: 6px 12px; vertical-align: middle; }
+    td:last-child { width: 158px; min-width: 158px; }
+    td:last-child > div:not(.hide) { float: none !important; min-height: 38px; padding: 8px 12px; border: 1px solid tok(divider); border-radius: 4px; background: #fafbfc; text-align: right; }
+    strong { font-weight: 400; }
+  }
+  .mu-cloud-form .popover {
+    max-width: min(350px, calc(100vw - 32px));
+    .popover-title { padding: 12px 16px; background: tok(surface); font-size: fs(13); font-weight: 500; }
+    .popover-content { padding: 12px 16px; }
+    .popupTable { margin: 0; table-layout: auto; }
+    .popupTable td { padding: 8px 4px; }
+    .popupTable td:first-child { width: 60%; white-space: nowrap; }
+    .popupTable td:nth-child(2) { width: 40%; }
+    .lineItemPopupModalFooter { min-height: 62px; padding: 12px 16px; }
+    .lineItemPopupModalFooter strong { font-weight: 400; }
+  }
+
+  // The cloud form window uses the same 1% side inset as records, with a 37px bottom gap at 1000px.
+  #overlayPageContent.mu-record-overlay:has(.mu-cloud-form) {
+    bottom: 3.7vh;
+    border: 0;
+    // Native modal placeholders can extend the scroll area. Only the form body/navigation may scroll,
+    // including when a widget or browser focus scrolls a descendant into view.
+    overflow: clip;
+  }
+
+  #overlayPageContent.mu-record-overlay .mu-form-host .overlayHeader {
+    min-height: 61px;
+    height: 61px;
+    padding: 12px 64px 12px 24px;
+    h4 { font-size: fs(16.25); line-height: 20px; font-weight: 600; }
+    .modal-header { box-shadow: none; }
+  }
+}
+
+:root:not(.mu-off):has(.editViewPageDiv.mu-form-host) {
+  &, body { overflow: hidden; }
+}
+
+@media (max-width: 1100px) {
+  :root:not(.mu-off) {
+    .mu-form-navigation { flex-basis: 190px; width: 190px; padding: 16px; }
+    .mu-cloud-form .editViewContents { padding: 16px; }
+    .mu-cloud-form .fieldBlockContainer { padding: 0 12px 12px; }
+    .mu-cloud-form .editViewContents .fieldBlockContainer > .table:not(.lineItemTable):not(#lineItemResult):not(#lineItemTab) > tbody > tr { grid-template-columns: minmax(90px, 1fr) minmax(0, 1.7fr); }
+    .mu-cloud-form .editViewContents .fieldBlockContainer > .table:not(.lineItemTable):not(#lineItemResult):not(#lineItemTab) > tbody > tr > td[colspan='3'] { grid-column: 2; }
+  }
+}
+
+@media (max-width: 767px) {
+  :root:not(.mu-off) {
+    .mu-cloud-form .editViewBody { flex-direction: column; }
+    .mu-form-navigation { flex: 0 0 auto; width: 100%; padding: 8px 12px; border-right: 0; border-bottom: 1px solid tok(divider); }
+    .mu-form-sections {
+      display: flex; gap: 4px; overflow-x: auto;
+      h2 { display: none; }
+      button { flex: 0 0 auto; width: auto; max-width: 180px; padding: 6px 10px; }
+    }
+    .mu-form-host .editViewHeader, .mu-form-host .overlayHeader { gap: 12px; padding-left: 16px; }
+    .mu-form-host :is(.editViewHeader, .overlayHeader) h4 { font-size: fs(16); }
+    .mu-cloud-form .editViewContents { padding: 12px; }
+    .mu-quick-form .modal-body { padding: 12px; }
+    .mu-quick-form .quickCreateContent > table > tbody > tr { grid-template-columns: minmax(90px, 1fr) minmax(0, 1.7fr); }
+    :is(.mu-cloud-form, .mu-quick-form) :is(.modal-overlay-footer, .overlayFooter, .modal-footer) { padding: 12px 16px; }
+  }
+}
+
+:root:not(.mu-off):has(.mu-quick-form) {
+  .modal-backdrop { z-index: 1099; }
+  .modal:has(.mu-quick-form) { z-index: 1100; }
+  #popupModal, .bootbox { z-index: 1110; }
+}
+
+:root:not(.mu-off):has(.mu-cloud-form, .mu-quick-form) .bootbox {
+  z-index: 1110;
+  .modal-dialog { width: min(500px, calc(100% - 32px)); margin: 28px auto; }
+  .modal-content { --mu-button-height: 34.5px; overflow: hidden; }
+  .modal-body { padding: 16px; font-size: fs(13); }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 16px; }
+  .modal-footer::before, .modal-footer::after { display: none; }
+  .modal-footer .btn { float: none !important; margin: 0; }
+  .modal-footer [data-bb-handler='confirm'] { order: 2; }
+}
+
+// Only the newest native backdrop covers the form; its existing backdrop stays behind the form.
+:root:not(.mu-off):has(.mu-cloud-form, .mu-quick-form):has(.bootbox.in) .modal-backdrop:not(:has(~ .modal-backdrop)) {
+  z-index: 1109;
+}

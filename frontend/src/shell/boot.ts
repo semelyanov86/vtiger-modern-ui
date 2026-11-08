@@ -32,6 +32,7 @@ import Brand from './Brand.vue'
 import { createFavorites, type FavoritesStore } from './nav/favorites'
 import { startRecordOverlay, supportsRecordOverlay } from '../record/overlay'
 import { presentRecord } from '../record/presentation'
+import { startForms } from '../forms/presentation'
 
 const READY_CLASS = 'mu-shell-ready'
 const OFF_CLASS = 'mu-off'
@@ -56,8 +57,11 @@ let recordOverlay: ReturnType<typeof createScope> | null = null
 /** The v7 header in the cloud layout: initials, Escape of the search, room of the title (adapters/v7/header.ts). */
 let header: ReturnType<typeof createScope> | null = null
 let lists: ReturnType<typeof createScope> | null = null
+let forms: ReturnType<typeof createScope> | null = null
 
 function stopHeader(): void {
+  forms?.dispose()
+  forms = null
   lists?.dispose()
   lists = null
   header?.dispose()
@@ -301,8 +305,13 @@ export async function boot(): Promise<void> {
         })
       }
       html.classList.add(READY_CLASS)
+      forms = createScope('forms')
+      startForms(forms, {
+        sections: i18n.global.t('record.sections'), search: i18n.global.t('record.search'), empty: i18n.global.t('record.empty'),
+        modules: data.menu.groups.flatMap((group) => group.items),
+      })
       const recordTexts = {
-        fallback: i18n.global.t('record.fallback'), sections: i18n.global.t('record.sections'),
+        fallback: i18n.global.t('record.fallback'), saveFailed: i18n.global.t('forms.saveFailed'), sections: i18n.global.t('record.sections'),
         search: i18n.global.t('record.search'), empty: i18n.global.t('record.empty'),
         close: i18n.global.t('record.close'), open: i18n.global.t('record.open'),
         actions: i18n.global.t('record.actions'), context: i18n.global.t('record.context'), more: i18n.global.t('record.more'),

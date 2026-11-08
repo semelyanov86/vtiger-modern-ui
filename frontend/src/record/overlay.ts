@@ -12,7 +12,7 @@
  *   Details and related data keep their original handlers. Direct Detail URLs remain available in a separate tab.
  * - Edit: OverlayEditView of the core (form#EditView, Vtiger_Edit_Js in overlay mode, post.overLayEditView.loaded for the
  *   extensions). The submit that v7 (validation, pre-save event) and extensions let through is a navigation: it is cancelled
- *   and the same form data (FormData of the navigation) go to the same action (Save) by app.request, so the user stays over
+ *   and the same form data (FormData of the navigation) go to the same action (Save) by the native jQuery transport, so the user stays over
  *   the list and sees the record again.
  *   Errors of the server go to post.save.failed as in v7. Cancel and the close button are those of v7 (with its question
  *   about unsaved changes) and close the overlay.
@@ -31,15 +31,16 @@ import { createScope } from '../boot/runtime'
 import { presentRecord, type RecordTexts } from './presentation'
 import {
   $, ensureRecordScripts, ensureDetailDependencies, installRecordMeta, handlerCount, hidePageOverlay, hideProgress, notifyError, onJQuery, release, reloadList, request, resetRowTimers,
-  showPageOverlay, startCloudDetail, startEdit, tracked, trackedFocus, trigger, urlParams, withCsrf, type AddedHandler,
+  showPageOverlay, startCloudDetail, startEdit, tracked, trackedFocus, trigger, urlParams, submitNativeForm, resetFormSubmit, type AddedHandler,
 } from '../adapters/v7/record'
 import { recordTarget, recordUrl, stateRecord, withRecord, type RecordTarget } from './target'
 
-type State = 'closed' | 'opening' | 'detail' | 'edit'
+type State = 'closed' | 'opening' | 'detail' | 'edit' | 'saving'
 
 export interface RecordOverlayTexts extends RecordTexts {
   /** Shown before the full page opens instead of the overlay. */
   readonly fallback: string
+  readonly saveFailed: string
 }
 
 /** Attribute on <html> while a record is shown over the list (CSS of the overlay, checks of the e2e scenarios). */
@@ -90,6 +91,7 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
   let focusHandlers: AddedHandler[] = []
   /** window.onbeforeunload before the edit form set its own. */
   let beforeUnload: typeof window.onbeforeunload | undefined
+  let editBeforeUnload: typeof window.onbeforeunload = null
   /** A record was saved while it was shown: the list reloads its page when the overlay closes. */
   let dirty = false
   /** The full page is opening on purpose (fallback): our own navigation is not intercepted. */
@@ -123,8 +125,8 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
     overlay.classList.toggle(OVERLAY_CLASS, on)
     overlay.setAttribute('aria-hidden', on ? 'false' : 'true')
     if (on) { overlay.setAttribute('aria-modal', 'true') } else { overlay.removeAttribute('aria-modal') }
-    if (on && target !== null) {
-      html.setAttribute(RECORD_ATTRIBUTE, target.record)
+    if (on) {
+      html.setAttribute(RECORD_ATTRIBUTE, target?.record ?? 'new')
     } else {
       html.removeAttribute(RECORD_ATTRIBUTE)
     }
@@ -226,30 +228,40 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
 
   const showEdit = async (url: string): Promise<void> => {
     const record = target
-    if (record === null || detail === null) {
-      return
-    }
     state = 'opening'
     try {
-      const answer = await request('get', { data: { ...urlParams(url), displayMode: 'overlay' } })
+      await ensureRecordScripts()
+      const answer = await request('get', { data: { ...urlParams(url), module: 'ModernUI', view: 'Form', formModule: module } })
       if (typeof answer !== 'string' || !answer.includes('overlayEdit')) {
         throw new Error('unexpected answer of the overlay edit view')
       }
+      await ensureDetailDependencies(answer)
       if (target !== record) return
       leaveView()
-      const shown = await trackedFocus(() => showPageOverlay(answer))
+      // Dependencies have already been loaded in native order; do not re-evaluate external scripts on each edit.
+      const shown = await trackedFocus(() => showPageOverlay(answer.replace(/<script\b[^>]*\bsrc=[^>]*>[\s\S]*?<\/script>/gi, '')))
       focusHandlers.push(...shown.added)
       const container = shown.result
       mark(true)
+      restoreMetadata?.()
+      const meta = overlay.querySelector<HTMLElement>('.mu-native-form')
+      if (meta === null) throw new Error('missing edit metadata')
+      restoreMetadata = installRecordMeta(meta)
+      const heading = overlay.querySelector('.overlayHeader h4')
+      if (heading !== null && meta.dataset['muFormTitle']) heading.textContent = meta.dataset['muFormTitle']
       beforeUnload = window.onbeforeunload
       const instance = detail
       added = tracked(() => {
-        startEdit(instance, record.module, container)
+        startEdit(instance, module, container)
       }).added
+      editBeforeUnload = window.onbeforeunload
       state = 'edit'
       overlay.querySelector<HTMLElement>('form#EditView input:not([type=hidden]), form#EditView select, form#EditView textarea')?.focus({ preventScroll: true })
     } catch (error) {
-      fullPage(record, error)
+      console.warn('[ModernUI] opening the native edit page:', error)
+      leaving = true
+      leaveView()
+      window.location.assign(url)
     }
   }
 
@@ -309,21 +321,44 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
   /**
    * The edit form was submitted (after the validation and the pre-save event of v7 and of extensions — some of them submit
    * with form.submit(), which fires no submit event, so the navigation itself is the reliable point): the same form data go
-   * to the same action by app.request instead of a page load.
+   * to the same action by the native jQuery transport instead of a page load.
    */
-  const save = (record: RecordTarget, data: FormData): void => {
-    state = 'opening'
+  const save = (data: FormData): void => {
     const form = overlay.querySelector<HTMLFormElement>('form#EditView')
-    request('post', { data: withCsrf(data), contentType: false, processData: false }).then(() => {
-      hideProgress()
-      dirty = true
-      void showRecord(record, false)
-    }, (error: unknown) => {
+    if (form === null) return
+    state = 'saving'
+    const failed = (error: unknown): void => {
       hideProgress()
       state = 'edit'
-      form?.querySelector<HTMLButtonElement>('.saveButton')?.removeAttribute('disabled')
-      trigger('post.save.failed', error instanceof Error ? Reflect.get(error, 'detail') : error)
-    })
+      form.removeAttribute('aria-busy')
+      form.querySelector<HTMLButtonElement>('.saveButton')?.removeAttribute('disabled')
+      resetFormSubmit(form)
+      window.onbeforeunload = editBeforeUnload
+      notifyError(texts.saveFailed)
+      trigger('post.save.failed', (error instanceof Error ? Reflect.get(error, 'detail') : error) ?? { message: texts.saveFailed })
+    }
+    form.setAttribute('aria-busy', 'true')
+    form.querySelector<HTMLButtonElement>('.saveButton')?.setAttribute('disabled', 'disabled')
+    submitNativeForm(form, data).then((url) => {
+      hideProgress()
+      const destination = new URL(url || 'index.php', document.baseURI)
+      // Save is a redirecting native action. A login/error page or an unconfirmed response must not discard the form.
+      if (destination.origin !== location.origin || destination.searchParams.get('view') === 'Login'
+        || destination.searchParams.get('action') !== null || destination.searchParams.get('view') === null) {
+        failed(new Error('unconfirmed save'))
+        return
+      }
+      dirty = true
+      const saved = recordTarget(destination.href, module)
+      if (saved !== null) {
+        history.replaceState(withRecord(history.state, saved), '', location.href)
+        void showRecord(saved, false)
+      } else {
+        // Relation/module-specific return routes belong to the module, not to this presentation.
+        leaving = true
+        window.location.assign(destination.href)
+      }
+    }, failed)
   }
 
   // 1. The navigation v7 starts for a row of the list becomes the overlay; the submit of the edit form becomes a save.
@@ -333,11 +368,20 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
     }
     const submitted: unknown = Reflect.get(event, 'formData')
     if (submitted instanceof FormData) {
-      if (state === 'edit' && target !== null && submitted.get('module') === target.module && submitted.get('action') === 'Save'
-        && submitted.get('record') === target.record) {
+      if ((state === 'edit' || state === 'saving') && submitted.get('module') === module && submitted.get('action') === 'Save') {
         event.preventDefault()
-        save(target, submitted)
+        if (state !== 'saving') save(submitted)
       }
+      return
+    }
+    if (state === 'saving') { event.preventDefault(); return }
+    const route: unknown = Reflect.get(event, 'destination')
+    const href: unknown = typeof route === 'object' && route !== null ? Reflect.get(route, 'url') : null
+    // An explicit standard-view URL must load the actual page, including its native edit controller.
+    if (typeof href === 'string' && new URL(href, document.baseURI).searchParams.get('modernui') === 'off') return
+    if (state === 'edit' && Reflect.get(event, 'navigationType') === 'traverse') {
+      event.preventDefault()
+      overlay.querySelector<HTMLElement>('.cancelLink')?.click()
       return
     }
     if (state !== 'closed' && state !== 'opening') {
@@ -369,6 +413,16 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
       return
     }
     const record = recordTarget(url, module)
+    const edit = new URL(url, document.baseURI)
+    if (state === 'closed' && edit.origin === location.origin && edit.pathname === new URL('index.php', document.baseURI).pathname
+      && edit.searchParams.get('view') === 'Edit' && edit.searchParams.get('module') === module
+      && !edit.searchParams.has('parent') && !edit.searchParams.get('record')) {
+      event.preventDefault()
+      const scroller = table()
+      restore = { x: window.scrollX, y: window.scrollY, table: scroller === null ? null : [scroller.scrollTop, scroller.scrollLeft], focus: document.activeElement, row: '' }
+      void showEdit(url)
+      return
+    }
     const row = record !== null ? listRow(record.record) : null
     if (record === null || row === null) {
       return
@@ -404,6 +458,12 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
       finish()
     }
   })
+  const offHide = onJQuery(overlay, 'hide.bs.modal', (event) => {
+    if (state === 'saving' && Reflect.get(event as object, 'target') === overlay) {
+      const prevent: unknown = Reflect.get(event as object, 'preventDefault')
+      if (typeof prevent === 'function') Reflect.apply(prevent, event, [])
+    }
+  })
   const offEdit = onJQuery(overlay, 'click', (event) => {
     const button: unknown = Reflect.get(event as object, 'currentTarget')
     const url = button instanceof HTMLElement ? (button.getAttribute('value') ?? '') : ''
@@ -417,6 +477,7 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
   }, '.editRelatedRecord')
   scope.onDispose(() => {
     offHidden()
+    offHide()
     offEdit()
     if (state !== 'closed') {
       hidePageOverlay()

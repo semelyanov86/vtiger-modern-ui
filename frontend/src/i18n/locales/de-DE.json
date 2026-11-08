@@ -122,5 +122,8 @@
     "search": "Spalten durchsuchen",
     "more": "Weitere Optionen zum Hinzufügen",
     "close": "Listen und Tags schließen"
+  },
+  "forms": {
+    "saveFailed": "Das Speichern konnte nicht bestätigt werden. Ihre Werte bleiben im Formular. Prüfen Sie den Datensatz vor dem erneuten Senden."
   }
 }

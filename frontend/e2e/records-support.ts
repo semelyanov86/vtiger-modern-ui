@@ -289,9 +289,12 @@ export async function fillMandatory(page: Page, mode: Mode, selector = 'form#Edi
   const left: string[] = []
   for (const name of names) {
     const control = form.locator(`[name="${name}"]`).first()
-    const kind = await control.evaluate((element: HTMLInputElement) => element instanceof HTMLSelectElement ? 'select'
+    const kind = await control.evaluate((element: HTMLInputElement) => {
+      const native = (window as unknown as { uimeta?: { field: { getType: (name: string) => string } } }).uimeta?.field.getType(element.name) ?? ''
+      return element instanceof HTMLSelectElement ? 'select'
       : element.classList.contains('dateField') ? 'date' : element.classList.contains('autoComplete') || element.closest('.referencefield-wrapper') !== null ? 'reference'
-        : element.getAttribute('data-rule-currency') === 'true' || element.getAttribute('data-rule-positive') === 'true' || /number|integer/i.test(element.getAttribute('data-fieldtype') ?? '') ? 'number' : 'text')
+        : element.getAttribute('data-rule-currency') === 'true' || element.getAttribute('data-rule-positive') === 'true' || /number|integer|double|positive|digits/i.test(['data-fieldtype', 'data-validator', 'data-specific-rules'].map((name) => element.getAttribute(name) ?? '').join(' ') + native) ? 'number' : 'text'
+    })
     if (kind === 'select') {
       const first = await control.evaluate((element: HTMLSelectElement) => Array.from(element.options).find((option) => option.value !== '')?.value ?? '')
       await choose(page, `${selector} [name="${name}"]`, [first])

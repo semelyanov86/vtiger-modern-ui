@@ -2,7 +2,7 @@
  * Bridge to the native Vtiger 8.4 Detail controller (docs/architecture.md A15). ModernUI composes the native view in
  * the existing page overlay; subsequent tabs, inline saves and forms use the CRM routes, metadata and handlers.
  * Native dependencies load once, and controller/metadata/handlers are scoped to the lifetime of the open record.
- * Requests deliberately use app.request so csrf-magic and extension ajaxComplete hooks behave as in v7.
+ * Requests use the native app.request/jQuery transport so csrf-magic and extension ajaxComplete hooks behave as in v7.
  */
 import { isRecord } from '../../api/guards'
 
@@ -152,7 +152,7 @@ export async function ensureRecordScripts(): Promise<void> {
   }
 }
 
-/** Load the same dependencies as the module's full Detail view, once, in the native order. */
+/** Load native header and field-template dependencies once, before their inline initialization runs. */
 export async function ensureDetailDependencies(html: string): Promise<void> {
   const parsed = new DOMParser().parseFromString(html, 'text/html')
   const styles: unknown = JSON.parse(parsed.querySelector('[data-mu-record-styles]')?.getAttribute('data-mu-record-styles') ?? '[]')
@@ -183,7 +183,10 @@ export async function ensureDetailDependencies(html: string): Promise<void> {
     throw new Error('v7: invalid record dependencies')
   }
   const loaded = new Set(Array.from(document.scripts).filter((script) => script.src !== '').map((script) => new URL(script.src).pathname))
-  for (const src of scripts) {
+  // Some native uitypes declare their libraries in the field template, outside getHeaderScripts().
+  // Preload those too before inserting the form; its inline handlers must see the original plugins.
+  const embedded = Array.from(parsed.querySelectorAll<HTMLScriptElement>('script[src]')).map((script) => script.getAttribute('src') ?? '')
+  for (const src of [...scripts, ...embedded]) {
     const url = new URL(src, document.baseURI)
     if (url.origin !== location.origin || !url.pathname.endsWith('.js')) {
       throw new Error('v7: unsupported record dependency')
@@ -335,8 +338,18 @@ export function startCloudDetail(module: string, container: unknown, failed: (er
  * for the extensions that change overlay forms.
  */
 export function startEdit(detail: unknown, module: string, container: unknown): void {
-  method(detail, 'registerOverlayEditEvents')(module, container)
+  const instance = detail ?? method(global('Vtiger_Detail_Js'), 'getInstanceByModuleName')(module)
+  method(instance, 'registerOverlayEditEvents')(module, container)
   trigger('post.overLayEditView.loaded', $('.overlayEdit'))
+}
+
+/** Read the existing validator; never initialise another one or replace the module's rules/submit callback. */
+export function nativeFormErrors(form: HTMLFormElement): { element: HTMLElement; message: string }[] {
+  const validator: unknown = method($(form), 'data')('validator')
+  const list: unknown = isRecord(validator) ? validator['errorList'] : null
+  if (!Array.isArray(list)) { return [] }
+  return (list as unknown[]).flatMap((error) => isRecord(error) && error['element'] instanceof HTMLElement && typeof error['message'] === 'string'
+    ? [{ element: error['element'], message: error['message'] }] : [])
 }
 
 /** csrf-magic token of the page: a form loaded by AJAX has no hidden field of it (output rewriting is off for AJAX). */
@@ -347,6 +360,29 @@ export function withCsrf(data: FormData): FormData {
     data.append(name, value)
   }
   return data
+}
+
+/** Same native Save body and jQuery transport/prefilters. app.request drops the xhr option, losing responseURL. */
+export function submitNativeForm(form: HTMLFormElement, data: FormData): Promise<string> {
+  const xhr = new XMLHttpRequest()
+  const action = form.getAttribute('action') ?? ''
+  return new Promise((resolve, reject) => {
+    method(window.jQuery, 'ajax')({
+      // The native hidden input name="action" shadows HTMLFormElement.action.
+      url: action === '' ? 'index.php' : action, method: 'POST', data: withCsrf(data), contentType: false, processData: false,
+      xhr: () => xhr,
+      success: (answer: unknown) => {
+        if (isRecord(answer) && answer['success'] === false) reject(new V7RequestError(answer['error']))
+        else resolve(xhr.responseURL)
+      },
+      error: () => { reject(new V7RequestError({ message: xhr.statusText || 'Save request failed' })) },
+    })
+  })
+}
+
+/** Re-enable the native retry path after a refused request, without changing its validator or pre-save handlers. */
+export function resetFormSubmit(form: HTMLFormElement): void {
+  method($(form), 'removeData')('submit')
 }
 
 /**

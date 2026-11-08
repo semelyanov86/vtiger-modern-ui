@@ -3,9 +3,9 @@
 //
 // Rules of this layer:
 // - every rule lives under :root:not(.mu-off), so "switch to the standard view" turns the skin off in place;
-// - only appearance: colours, fonts, borders, radii, shadows, spacing inside elements. No display/position/order
-//   changes, nothing hidden or shown (.hide, [hidden], inline display:none stay as they are), no structure
-//   changes of tables and forms, ids/names/data attributes are not touched;
+// - the cloud composition may change display/position/order of native nodes; conditional visibility (.hide,
+//   [hidden], inline display:none), field identities and business handlers stay native. Own search filters are
+//   cleared before native validation. Tables and forms are never cloned or rendered by Vue;
 // - meaning stays: success/danger/warning/info keep their meaning, inline colours of extensions (rows, picklist
 //   values, labels) are never painted over, disabled/readonly/error states stay distinguishable;
 // - click areas never shrink;
@@ -38,6 +38,7 @@
 @use 'layout';
 @use 'cloud-lists';
 @use 'cloud-records';
+@use 'cloud-forms';
 
 :root:not(.mu-off) {
   @each $name, $value in $defaults {

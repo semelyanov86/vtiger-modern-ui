@@ -1,0 +1,672 @@
+{
+  "_doc": "Stage 14 native forms against the cloud. Field count, labels, native inventory columns and data differ; geometry compares corresponding stable regions. Reference measurements and all images stay private. Quick Create height follows its native field count.",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "banner": 0,
+  "tolerance": {
+    "size": 2,
+    "position": 4
+  },
+  "states": [
+    {
+      "id": "V07-create",
+      "reference": "V07-create",
+      "screenshot": "V07-create.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": [
+        "open-create"
+      ],
+      "elements": {
+        "window": {
+          "ref": [
+            "window"
+          ],
+          "theme": "#overlayPageContent",
+          "check": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "styles": []
+        },
+        "header": {
+          "ref": [
+            "header"
+          ],
+          "theme": "#overlayPageContent .overlayHeader",
+          "check": [
+            "x",
+            "y",
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "title": {
+          "ref": [
+            "title"
+          ],
+          "theme": "#overlayPageContent .overlayHeader h4",
+          "check": [],
+          "styles": [
+            "size",
+            "weight"
+          ]
+        },
+        "sections": {
+          "ref": [
+            "sections"
+          ],
+          "theme": ".mu-form-navigation",
+          "check": [
+            "x",
+            "y",
+            "w"
+          ],
+          "styles": []
+        },
+        "sectionTitle": {
+          "ref": [
+            "sectionTitle"
+          ],
+          "theme": ".mu-form-sections h2",
+          "check": [],
+          "styles": [
+            "size",
+            "weight"
+          ]
+        },
+        "active": {
+          "ref": [
+            "active"
+          ],
+          "theme": ".mu-form-sections button.active",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "color"
+          ]
+        },
+        "card": {
+          "ref": [
+            "card"
+          ],
+          "theme": ".mu-cloud-form .fieldBlockContainer",
+          "check": [
+            "x",
+            "y"
+          ],
+          "styles": [
+            "bg",
+            "radius",
+            "shadow"
+          ]
+        },
+        "cardTitle": {
+          "ref": [
+            "cardTitle"
+          ],
+          "theme": ".mu-cloud-form .fieldBlockHeader",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "size",
+            "weight"
+          ]
+        },
+        "input": {
+          "ref": [
+            "input"
+          ],
+          "theme": ".mu-cloud-form input.inputElement[type=text]",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "radius",
+            "bg"
+          ]
+        },
+        "footer": {
+          "ref": [
+            "footer"
+          ],
+          "theme": "#overlayPageContent .overlayFooter",
+          "check": [
+            "x",
+            "y",
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "save": {
+          "ref": [
+            "save"
+          ],
+          "theme": "#overlayPageContent .saveButton",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "color",
+            "radius"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V07-edit",
+      "reference": "V07-edit",
+      "screenshot": "V07-edit.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": [
+        "all-records",
+        "open-first-record",
+        "open-edit"
+      ],
+      "elements": {
+        "window": {
+          "ref": [
+            "window"
+          ],
+          "theme": "#overlayPageContent",
+          "check": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "styles": []
+        },
+        "header": {
+          "ref": [
+            "header"
+          ],
+          "theme": "#overlayPageContent .overlayHeader",
+          "check": [
+            "x",
+            "y",
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "title": {
+          "ref": [
+            "title"
+          ],
+          "theme": "#overlayPageContent .overlayHeader h4",
+          "check": [],
+          "styles": [
+            "size",
+            "weight"
+          ]
+        },
+        "sections": {
+          "ref": [
+            "sections"
+          ],
+          "theme": ".mu-form-navigation",
+          "check": [
+            "x",
+            "y",
+            "w"
+          ],
+          "styles": []
+        },
+        "sectionTitle": {
+          "ref": [
+            "sectionTitle"
+          ],
+          "theme": ".mu-form-sections h2",
+          "check": [],
+          "styles": [
+            "size",
+            "weight"
+          ]
+        },
+        "active": {
+          "ref": [
+            "active"
+          ],
+          "theme": ".mu-form-sections button.active",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "color"
+          ]
+        },
+        "card": {
+          "ref": [
+            "card"
+          ],
+          "theme": ".mu-cloud-form .fieldBlockContainer",
+          "check": [
+            "x",
+            "y"
+          ],
+          "styles": [
+            "bg",
+            "radius",
+            "shadow"
+          ]
+        },
+        "cardTitle": {
+          "ref": [
+            "cardTitle"
+          ],
+          "theme": ".mu-cloud-form .fieldBlockHeader",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "size",
+            "weight"
+          ]
+        },
+        "input": {
+          "ref": [
+            "input"
+          ],
+          "theme": ".mu-cloud-form input.inputElement[type=text]",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "radius",
+            "bg"
+          ]
+        },
+        "footer": {
+          "ref": [
+            "footer"
+          ],
+          "theme": "#overlayPageContent .overlayFooter",
+          "check": [
+            "x",
+            "y",
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "save": {
+          "ref": [
+            "save"
+          ],
+          "theme": "#overlayPageContent .saveButton",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "color",
+            "radius"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V07-error",
+      "reference": "V07-error",
+      "screenshot": "V07-error.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": [
+        "open-create",
+        "required-error"
+      ],
+      "elements": {
+        "window": {
+          "ref": [
+            "window"
+          ],
+          "theme": "#overlayPageContent",
+          "check": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "styles": []
+        },
+        "header": {
+          "ref": [
+            "header"
+          ],
+          "theme": "#overlayPageContent .overlayHeader",
+          "check": [
+            "x",
+            "y",
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "title": {
+          "ref": [
+            "title"
+          ],
+          "theme": "#overlayPageContent .overlayHeader h4",
+          "check": [],
+          "styles": [
+            "size",
+            "weight"
+          ]
+        },
+        "sections": {
+          "ref": [
+            "sections"
+          ],
+          "theme": ".mu-form-navigation",
+          "check": [
+            "x",
+            "y",
+            "w"
+          ],
+          "styles": []
+        },
+        "sectionTitle": {
+          "ref": [
+            "sectionTitle"
+          ],
+          "theme": ".mu-form-sections h2",
+          "check": [],
+          "styles": [
+            "size",
+            "weight"
+          ]
+        },
+        "cardTitle": {
+          "ref": [
+            "cardTitle"
+          ],
+          "theme": ".mu-cloud-form .fieldBlockHeader",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "size",
+            "weight"
+          ]
+        },
+        "input": {
+          "ref": [
+            "input"
+          ],
+          "theme": ".mu-cloud-form input.inputElement[type=text]",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "radius",
+            "bg"
+          ]
+        },
+        "footer": {
+          "ref": [
+            "footer"
+          ],
+          "theme": "#overlayPageContent .overlayFooter",
+          "check": [
+            "x",
+            "y",
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "save": {
+          "ref": [
+            "save"
+          ],
+          "theme": "#overlayPageContent .saveButton",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "color",
+            "radius"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V07-confirm",
+      "reference": "V07-confirm",
+      "screenshot": "V07-confirm.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": [
+        "open-create",
+        "cancel-confirmation"
+      ],
+      "elements": {
+        "window": {
+          "ref": [
+            "window"
+          ],
+          "theme": ".bootbox .modal-content",
+          "check": [
+            "x",
+            "y",
+            "w"
+          ],
+          "styles": [
+            "bg",
+            "radius",
+            "shadow"
+          ]
+        },
+        "body": {
+          "ref": [
+            "body"
+          ],
+          "theme": ".bootbox .modal-body",
+          "check": [],
+          "styles": [
+            "size",
+            "pad"
+          ]
+        },
+        "footer": {
+          "ref": [
+            "footer"
+          ],
+          "theme": ".bootbox .modal-footer",
+          "check": [],
+          "styles": [
+            "pad"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V07-quick",
+      "reference": "V07-quick",
+      "screenshot": "V07-quick.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": [
+        "quick-create"
+      ],
+      "elements": {
+        "window": {
+          "ref": [
+            "window"
+          ],
+          "theme": ".modal-content:has(.mu-quick-form)",
+          "check": [
+            "x",
+            "y",
+            "w"
+          ],
+          "styles": [
+            "radius"
+          ]
+        },
+        "header": {
+          "ref": [
+            "header"
+          ],
+          "theme": ".mu-quick-form .modal-header",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "pad"
+          ]
+        },
+        "input": {
+          "ref": [
+            "input"
+          ],
+          "theme": ".mu-quick-form [name=accountname]",
+          "check": [
+            "w",
+            "h"
+          ],
+          "styles": [
+            "radius"
+          ]
+        },
+        "footer": {
+          "ref": [
+            "footer"
+          ],
+          "theme": ".mu-quick-form .modal-footer",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "pad"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V08-items",
+      "reference": "V08-items",
+      "screenshot": "V08-items.png",
+      "module": "SalesOrder",
+      "url": "index.php?module=SalesOrder&view=List",
+      "steps": [
+        "open-create",
+        "inventory-items"
+      ],
+      "elements": {
+        "window": {
+          "ref": [
+            "window"
+          ],
+          "theme": "#overlayPageContent",
+          "check": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "styles": []
+        },
+        "header": {
+          "ref": [
+            "header"
+          ],
+          "theme": "#overlayPageContent .overlayHeader",
+          "check": [
+            "x",
+            "y",
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "title": {
+          "ref": [
+            "title"
+          ],
+          "theme": "#overlayPageContent .overlayHeader h4",
+          "check": [],
+          "styles": [
+            "size",
+            "weight"
+          ]
+        },
+        "sections": {
+          "ref": [
+            "sections"
+          ],
+          "theme": ".mu-form-navigation",
+          "check": [
+            "x",
+            "y",
+            "w"
+          ],
+          "styles": []
+        },
+        "footer": {
+          "ref": [
+            "footer"
+          ],
+          "theme": "#overlayPageContent .overlayFooter",
+          "check": [
+            "x",
+            "y",
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "save": {
+          "ref": [
+            "save"
+          ],
+          "theme": "#overlayPageContent .saveButton",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "color",
+            "radius"
+          ]
+        },
+        "parameters": {
+          "ref": [
+            "parameters"
+          ],
+          "theme": ".mu-cloud-form .fieldBlockContainer:has(#lineItemTab) > .row > .well",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        }
+      }
+    }
+  ]
+}

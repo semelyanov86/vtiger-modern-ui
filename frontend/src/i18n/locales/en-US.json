@@ -122,5 +122,8 @@
     "search": "Search columns",
     "more": "More create options",
     "close": "Close lists and tags"
+  },
+  "forms": {
+    "saveFailed": "The save could not be confirmed. Your values are still in the form. Check the record before submitting again."
   }
 }

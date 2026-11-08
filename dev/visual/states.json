@@ -123,7 +123,7 @@
         "window": {"ref": ["dialog"], "theme": "#overlayPageContent", "check": ["x", "y", "w", "h"]},
         "header": {"ref": ["editHeader"], "theme": "#overlayPageContent .overlayHeader", "check": ["h"], "styles": ["bg"]},
         "title": {"ref": ["editTitle"], "theme": "#overlayPageContent .overlayHeader h4, #overlayPageContent .overlayHeader .modal-title", "styles": ["size", "weight"]},
-        "sections": {"ref": ["sectionsNav"], "theme": "#overlayPageContent .mu-sections", "check": ["w"]},
+        "sections": {"ref": ["sectionsNav"], "theme": "#overlayPageContent .mu-form-navigation", "check": ["w"]},
         "blockCard": {"ref": ["blockCard"], "theme": "#overlayPageContent .fieldBlockContainer", "styles": ["bg", "radius", "shadow"]},
         "input": {"ref": ["input"], "theme": "#overlayPageContent form#EditView input.inputElement[type=text]", "check": ["h"], "styles": ["radius", "bBottom"]},
         "footer": {"ref": ["footer"], "theme": "#overlayPageContent .overlayFooter", "check": ["h"], "styles": ["bg"]},
