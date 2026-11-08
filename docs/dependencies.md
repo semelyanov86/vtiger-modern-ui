@@ -115,6 +115,7 @@ cyrillic-ext). Lint PHP 8.1 — `php:8.1-cli@sha256:76e563191d1ade120313a8736df2
 | `vue-draggable-plus` + `sortablejs` | 0.6.1 + 1.15.7 | MIT | перетаскивание в редакторе меню (только мышь/касание; клавиатура — кнопками и `Alt+↑/↓`); установлены на этапе 05, chunk `editor` |
 | `@fontsource/poppins` | 5.3.0 | OFL-1.1 | шрифт облачного вида (этап 10, `design.md` §13.4): только начертания облака 400/600, подмножества latin (ä ö ü ß) и latin-ext; официальные файлы Google Fonts / Indian Type Foundry в упаковке Fontsource |
 | `@fontsource/arimo` | 5.3.0 | OFL-1.1 | закреплённая кириллица облачного вида: метрически совместим с Arial (облако рисует кириллицу Arial); подключается только при отсутствии системного Arial (`local()` первым), начертания 400/700, подмножества cyrillic и cyrillic-ext |
+| `@fontsource/open-sans` | 5.3.0 | OFL-1.1 | шрифт системных настроек (этап 15, `design.md` §13.11): облако рисует настройки (layout v8) Open Sans в одном начертании Regular; в пакете — 400 normal, подмножества latin, latin-ext, cyrillic, cyrillic-ext (4 woff2, ~63 КБ), браузер загружает их только на страницах настроек; официальные файлы Google Fonts в упаковке Fontsource, опубликованы 2026-07-19 |
 | `@fontsource-variable/inter` | 5.3.0 | OFL-1.1 | шрифт настройки `appearance.font = inter` (до 0.8.0 — по умолчанию); браузер загружает его только при этом выборе |
 | `@lucide/vue` | 1.66.0 | ISC | значки групп меню и элементов темы (tree-shaking, только разрешённый набор) |
 

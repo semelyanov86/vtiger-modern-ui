@@ -49,7 +49,7 @@ export default defineConfig({
       nodeModules: resolve(here, 'node_modules'),
       // Fonts come in through CSS; the "vue" package only re-exports @vue/runtime-dom, so its own modules
       // disappear from the chunks, but it is the package the code depends on.
-      extraPackages: ['@fontsource/poppins', '@fontsource/arimo', '@fontsource-variable/inter', 'vue'],
+      extraPackages: ['@fontsource/poppins', '@fontsource/arimo', '@fontsource/open-sans', '@fontsource-variable/inter', 'vue'],
       allowed: ['MIT', 'ISC', 'Apache-2.0', 'OFL-1.1', 'BSD-2-Clause', 'BSD-3-Clause'],
       fileName: 'THIRD_PARTY_LICENSES.txt',
     }),

@@ -23,6 +23,13 @@ class ModernUI_Tokens_Model {
 	const DEFAULT_PRIMARY_HOVER = '#315dff';
 	const DEFAULT_PRIMARY_SOFT = '#e7f1ff';
 	const DEFAULT_PRIMARY_CHECK = '#2e81ff';
+	/**
+	 * The system settings of the cloud (layout v8, docs/design.md §13.11, measured 2026-11-08) have an accent of their own:
+	 * primary buttons, the header of dialogs and the current tab are #448aff, links of the catalog and of the breadcrumb
+	 * #0070d2. A primary colour of the settings replaces both with its strong variant.
+	 */
+	const DEFAULT_SETTINGS_PRIMARY = '#448aff';
+	const DEFAULT_SETTINGS_LINK = '#0070d2';
 
 	/**
 	 * A colour of the settings fills the buttons as it is while white text on it reaches the contrast of the reference
@@ -90,6 +97,8 @@ class ModernUI_Tokens_Model {
 			'primary-hover' => $default ? self::DEFAULT_PRIMARY_HOVER : self::darken($strong, self::HOVER_DARKEN),
 			'primary-soft' => $default ? self::DEFAULT_PRIMARY_SOFT : self::mixWithWhite($primary, self::SOFT_MIX),
 			'primary-check' => $default ? self::DEFAULT_PRIMARY_CHECK : $strong,
+			'settings-primary' => $default ? self::DEFAULT_SETTINGS_PRIMARY : $strong,
+			'settings-link' => $default ? self::DEFAULT_SETTINGS_LINK : $strong,
 			'bg' => $appearance['background'],
 			'surface' => $appearance['surface'],
 			'font-scale' => self::scale($appearance['fontScale']),

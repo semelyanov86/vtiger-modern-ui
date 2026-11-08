@@ -125,5 +125,12 @@
   },
   "forms": {
     "saveFailed": "Das Speichern konnte nicht bestätigt werden. Ihre Werte bleiben im Formular. Prüfen Sie den Datensatz vor dem erneuten Senden."
+  },
+  "settings": {
+    "back": "Zurück zum CRM",
+    "backHint": "Zur letzten Seite des CRM zurückkehren",
+    "empty": "Keine Treffer gefunden",
+    "emptyHint": "Ändern Sie die Suche oder leeren Sie sie, um alle Einstellungen zu sehen",
+    "catalog": "Einstellungen"
   }
 }

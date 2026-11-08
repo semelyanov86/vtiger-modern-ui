@@ -1,0 +1,1372 @@
+// The system settings of the CRM in the cloud layout of the settings (V09, docs/design.md §13.11, docs/architecture.md
+// §7.12). The cloud draws its settings as a family of their own (layout v8): Open Sans 13 px, white pages, a header with
+// "← Back to CRM" and a grey bar with the breadcrumb (skin/_shell.scss), a dark side navigation of 180 px on the inner
+// pages and, as the start page, a catalog: summary tiles, a search and the groups of the settings in four columns.
+//
+// Everything here is CSS over the original nodes of v7; nothing is cloned or rendered by Vue:
+// - the catalog of the start page IS the side navigation of the settings of v7 — the server prints there exactly the items
+//   this administrator may open (extensions included), with their translated labels and URLs, their pins and the native
+//   search (instaFilta), which filters it; the summary and the pinned shortcuts are the native ones of the start page;
+// - the inner pages keep their templates, handlers and dialogs; tables, buttons, tabs, fields and dialogs get the look of
+//   the settings of the cloud.
+// The layout (fixed navigation, the grid of the start page) applies only while the shell can run, like the header: without
+// scripts, after a failed shell and in the standard view the settings of v7 are back as they were. The look (font, colours)
+// is part of the skin.
+@use '../styles/tokens' as *;
+@use '../styles/components' as *;
+
+// Gate of the layout (skin/_shell.scss) and the family of the settings: the side navigation of the settings of v7.
+$gate: ':root:not(.mu-off):not([data-mu-failed]):not([data-mu-level="skin"])';
+$family: ':has(#page > .main-container > #modnavigator.settingsNav)';
+// The start page of the settings (module=Vtiger&parent=Settings&view=Index).
+$home: ':has(#page > .main-container > .settingsPageDiv > .settingsIndexPage)';
+$look: ':root:not(.mu-off)#{$family}';
+// The own page of ModernUI (its editor is reworked on stage 16; stage 10 measured its components in the working family):
+// it gets the frame of the settings, not their font and the look of their content.
+$own: ':has(#page > .main-container > .settingsPageDiv > .modernui-page)';
+$layout: '#{$gate}#{$family}';
+
+// Measured in the cloud (layout v8, 1440 × 1000, 2026-11-08).
+$nav-width: 180px;
+$nav-bg: #263238;
+$nav-active: #010101;
+$text: #212121;
+$muted: #555555;
+$line: #dddddd;
+$row-line: #eeeeee;
+$bar-bg: #f5f5f5;
+$head-bg: #fafafa;
+$button-border: #cccccc;
+$desktop: 992px;
+
+// Icons of the summary tiles (Lucide, ISC: users, settings, layout-grid), white strokes on the colour of the tile.
+$icon-users: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/%3E%3Cpath d='M16 3.128a4 4 0 0 1 0 7.744'/%3E%3Cpath d='M22 21v-2a4 4 0 0 0-3-3.87'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3C/svg%3E";
+$icon-workflows: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E";
+$icon-modules: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='7' height='7' x='3' y='3' rx='1'/%3E%3Crect width='7' height='7' x='14' y='3' rx='1'/%3E%3Crect width='7' height='7' x='14' y='14' rx='1'/%3E%3Crect width='7' height='7' x='3' y='14' rx='1'/%3E%3C/svg%3E";
+
+// ---- Parts of the settings of the cloud ----
+
+/// Secondary button of the settings (Add User, Export, A–Z): white, #ccc border, radius 2, 32 px, 13 px #555.
+@mixin settings-button {
+  min-height: 32px;
+  padding: 6px 12px;
+  border: 1px solid $button-border;
+  border-radius: 2px;
+  background-color: #ffffff;
+  box-shadow: none;
+  color: $muted;
+  font-size: fs(13);
+  font-weight: 400;
+  line-height: 18px;
+  text-shadow: none;
+  text-transform: none;
+
+  .fa,
+  [class^='vicon-'],
+  [class*=' vicon-'] {
+    color: $muted;
+  }
+
+  &:hover,
+  &:focus {
+    border-color: #adadad;
+    background-color: #f5f5f5;
+    color: #333333;
+  }
+}
+
+/// Primary button of the settings (Save, the current toggle): the accent of the settings, white text, radius 2.
+@mixin settings-primary {
+  min-height: 32px;
+  padding: 6px 16px;
+  border: 1px solid tok(settings-primary);
+  border-radius: 2px;
+  background-color: tok(settings-primary);
+  box-shadow: none;
+  color: #ffffff;
+  font-size: fs(13);
+  font-weight: 400;
+  line-height: 18px;
+  text-transform: none;
+
+  .fa,
+  [class^='vicon-'],
+  [class*=' vicon-'],
+  .caret {
+    color: #ffffff;
+    border-top-color: #ffffff;
+  }
+
+  &:hover,
+  &:focus {
+    border-color: tok(settings-primary);
+    background-color: tok(settings-primary);
+    color: #ffffff;
+    filter: brightness(0.93);
+  }
+}
+
+// ---- Look of the family (skin): font, colours, page ----
+
+// Open Sans for the settings when the theme draws the cloud font; Inter or the system font chosen in the settings stay.
+#{$look}:not(#{$own}) {
+  --mu-font-cloud: #{$font-settings};
+}
+
+#{$look} {
+  body {
+    background-color: #ffffff;
+    color: $text;
+    line-height: 1.4;
+  }
+
+  #page > .main-container,
+  #page > .main-container > .settingsPageDiv.content-area,
+  .settingsPageDiv :is(.listViewPageDiv, .content-area, .listViewContentDiv, .detailViewContainer, .editViewPageDiv, .container-fluid, .listview-actions-container) {
+    background-color: #ffffff;
+  }
+
+  // ---- Breadcrumb of the bar: HOME 16/500 uppercase, the group and the page 12 px, angles of 10 px ----
+  #page > nav.app-fixed-navbar .module-action-content > :first-child {
+    color: $text;
+    font-size: fs(12);
+    line-height: 18px;
+
+    h4.module-title {
+      margin: 0;
+      color: $text;
+      font-size: fs(16);
+      font-weight: 500;
+      line-height: 20px;
+      text-transform: uppercase;
+    }
+
+    a:hover h4.module-title {
+      color: tok(settings-link);
+    }
+
+    // The angles of the cloud are 10 px boxes (a 10 px glyph of its icon font); the first one has 5 px before it.
+    > .fa-angle-right {
+      display: inline-block;
+      box-sizing: content-box;
+      min-width: 10px;
+      padding: 0 0 0 5px !important;
+      font-size: 10px;
+      line-height: 10px;
+    }
+
+    .current-filter-name,
+    .filter-name {
+      margin: 0;
+      color: $text;
+      font-size: fs(12);
+      font-weight: 400;
+      line-height: 18px;
+
+      a {
+        color: $text;
+      }
+
+      a:hover {
+        color: tok(settings-link);
+      }
+
+      .fa-angle-right {
+        display: inline-block;
+        min-width: 10px;
+        font-size: 10px;
+      }
+    }
+
+    > .current-filter-name:first-of-type,
+    > .fa-angle-right + .current-filter-name {
+      padding-left: 0;
+    }
+  }
+
+  // Actions of the page in the bar (Add User, Import, the tools menu): the secondary buttons of the cloud bar.
+  #page > nav.app-fixed-navbar #appnav {
+    > .nav > li {
+      padding: 0 4px;
+    }
+
+    .btn {
+      @include settings-button;
+    }
+
+    .btn-success,
+    .btn-primary {
+      @include settings-primary;
+    }
+  }
+
+  // ---- Content of the inner pages (not the own page of ModernUI) ----
+  .settingsPageDiv:not(:has(> .modernui-page)) {
+    color: $text;
+    font-size: fs(13);
+
+    a:where(:not(.btn, [class*='select2'], .dropdown-toggle, .nav-tabs > li > a)) {
+      color: tok(settings-link);
+    }
+
+    // Labels of the forms of the settings: #555 as the cloud (the field labels of the records are lighter).
+    .fieldLabel,
+    .control-label,
+    .fieldLabel label {
+      color: #616161;
+    }
+
+    // Picklist editors: "Select module / Select picklist" bold on the left and the values as a table of the full width
+    // with its actions above it, as in the cloud.
+    #listViewContent.detailViewContainer .form-horizontal .row.form-group > .control-label.fieldLabel {
+      text-align: left;
+
+      label {
+        font-weight: 700;
+      }
+    }
+
+    #modulePickListValuesContainer .tab-pane > .row > [class*='col-'] {
+      width: 100%;
+      margin-left: 0;
+      float: none;
+    }
+
+    // "Add …" actions inside a page (block, custom field, picklist value): blue outlined buttons of the cloud.
+    .btn.addButton:not(#appnav .btn):is(.addCustomBlock, .addCustomField, .btnRelatedBlocksLists, #addItem),
+    #addItem {
+      min-height: 28px;
+      padding: 4px 12px;
+      border-color: tok(settings-primary);
+      background: #ffffff;
+      color: tok(settings-primary);
+
+      .fa {
+        color: tok(settings-primary);
+      }
+
+      &:hover,
+      &:focus {
+        border-color: tok(settings-primary);
+        background: #f3f7ff;
+        color: tok(settings-primary);
+      }
+    }
+
+    // The role tree (Roles): thin #ddd lines, the organisation as a green button, every role a blue outlined button.
+    .treeView {
+      li {
+        border-left-width: 1px;
+        border-left-color: $line;
+      }
+
+      li .toolbar-handle a::before {
+        top: 14px;
+        height: 1px;
+        background: $line;
+      }
+
+      li .toolbar-handle > .btn {
+        min-height: 29px;
+        padding: 4px 16px 5px;
+        border: 1px solid tok(settings-primary);
+        border-radius: 2px 0 0 2px;
+        background: #ffffff;
+        color: tok(settings-primary);
+        font-size: fs(13);
+        line-height: 18px;
+        text-transform: none;
+      }
+
+      // The organisation (v7 paints it in the colour of an app with !important).
+      > ul > li > .toolbar-handle > .btn {
+        min-height: 32px;
+        padding: 6px 16px;
+        border-color: #3cb878 !important;
+        background: #3cb878 !important;
+        color: #ffffff !important;
+      }
+
+      li .toolbar-handle > .btn:hover,
+      li .toolbar-handle > .btn:focus {
+        background: #f3f7ff;
+      }
+
+      > ul > li > .toolbar-handle > .btn:hover,
+      > ul > li > .toolbar-handle > .btn:focus {
+        background: #35a76c !important;
+      }
+
+      .toolbar a {
+        color: tok(settings-primary);
+      }
+    }
+
+    h3,
+    h4,
+    .settingsHeader,
+    .listViewHeader h4 {
+      color: $text;
+      font-weight: 500;
+    }
+
+    hr {
+      border-top-color: $line;
+    }
+
+    // Buttons: secondary is white with a grey border, the action is the accent of the settings.
+    .btn-default,
+    .btn.addButton {
+      @include settings-button;
+    }
+
+    .btn-success,
+    .btn-primary,
+    .btn.saveButton {
+      @include settings-primary;
+    }
+
+    .btn-group > .btn + .btn {
+      margin-left: -1px;
+    }
+
+    .cancelLink,
+    .btn-link {
+      color: tok(settings-link);
+    }
+
+    // Toggles of a pair (Active / Inactive users, Standard / …): the current one is the accent.
+    .btn-group > .btn.active,
+    .btn-group > .btn.btn-primary {
+      @include settings-primary;
+    }
+
+    // Tables of the settings: white, 13 px, a bold header row, #eee lines between the rows, a #ddd frame.
+    table.table,
+    table.listview-table,
+    table.listViewEntriesTable,
+    table.table-bordered {
+      border-color: $line;
+      background-color: #ffffff;
+      color: $text;
+      font-size: fs(13);
+    }
+
+    table.table > thead > tr > th,
+    table.listview-table > thead > tr > th,
+    table.listViewEntriesTable > thead > tr > th,
+    table.table-bordered > thead > tr > th,
+    table.table > tbody > tr.blockHeader > th,
+    table.table > tbody > tr.listViewHeaders > th {
+      height: auto;
+      padding: 8px;
+      border-bottom: 1px solid $line;
+      background-color: #ffffff;
+      background-image: none;
+      color: $text;
+      font-size: fs(13);
+      font-weight: 700;
+      line-height: 18.2px;
+      text-transform: none;
+      vertical-align: middle;
+
+      a,
+      .listViewContentHeaderValues {
+        color: $text;
+        font-weight: 700;
+        text-transform: none;
+      }
+    }
+
+    table.table > tbody > tr > td,
+    table.listview-table > tbody > tr > td,
+    table.listViewEntriesTable > tbody > tr > td,
+    table.table-bordered > tbody > tr > td {
+      height: auto;
+      padding: 8px;
+      border-top: 1px solid $row-line;
+      color: $text;
+      font-size: fs(13);
+      line-height: 18.2px;
+      vertical-align: middle;
+    }
+
+    table > tbody > tr.listViewEntries:hover > td,
+    table.table-hover > tbody > tr:hover > td {
+      background-color: #f5f5f5;
+    }
+
+    // Pagination of the lists of the settings: "1 to 20 of ?" with small borderless arrows (cloud .s-btn-sm 21 × 18).
+    .listViewPagination,
+    .listViewActions {
+      .btn,
+      .btn-default {
+        min-width: 24px;
+        min-height: 24px;
+        padding: 0 4px;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        color: $muted;
+      }
+
+      .btn:hover,
+      .btn:focus {
+        background: #f0f0f0;
+        color: $text;
+      }
+
+      .pageNumbers,
+      .pageNumbersText {
+        color: $text;
+        font-size: fs(13);
+      }
+    }
+
+    // Tabs (layout editor, picklists, sharing rules) as the cloud: text tabs 12 px apart, the current one bold #333 with a
+    // 2 px #212121 line under its item, the others #666.
+    .nav-tabs {
+      border-bottom: 1px solid $line;
+
+      > li {
+        margin: 0 0 -1px;
+        padding: 0 12px;
+        border-bottom: 2px solid transparent;
+      }
+
+      > li:first-child {
+        padding-left: 0;
+      }
+
+      > li > a,
+      > li > a:hover,
+      > li > a:focus {
+        margin: 0;
+        padding: 8px 0;
+        border: 0;
+        border-radius: 2px 2px 0 0;
+        background: transparent;
+        color: #666666;
+        font-size: fs(13);
+        font-weight: 400;
+        line-height: 18.2px;
+      }
+
+      > li > a:hover {
+        color: #333333;
+      }
+
+      > li.active {
+        border-bottom-color: $text;
+      }
+
+      > li.active > a,
+      > li.active > a:hover,
+      > li.active > a:focus {
+        border: 0;
+        background: transparent;
+        color: #333333;
+        font-weight: 700;
+      }
+
+      > li > a:focus-visible {
+        @include focus-ring;
+      }
+    }
+
+    // Module Manager: names in the regular weight, the check boxes of the cloud instead of the image check of v7.
+    .modulesTable {
+      .moduleName h5 {
+        color: $text;
+        font-size: fs(13);
+        font-weight: 400;
+      }
+
+      input[type='checkbox'][name='moduleStatus'] {
+        @include checkbox(14px);
+
+        &::after {
+          content: none;
+        }
+      }
+    }
+
+    // Layout editor: a field is a card of the cloud — a #f3f3f3 header "⠿ Label * (Type)" and the properties under it.
+    .connectedSortable > li > .row.border1px {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      margin-right: 0;
+      margin-left: 0;
+      border: 1px solid $button-border;
+      border-radius: 0;
+      background: #ffffff;
+
+      &::before,
+      &::after {
+        content: none;
+      }
+
+      > [class*='col-sm-'] {
+        width: auto;
+        min-width: 0;
+        padding: 0;
+        float: none;
+      }
+
+      > .col-sm-4 {
+        background-color: #f3f3f3;
+      }
+
+      .editFields {
+        min-height: 0;
+        margin: 0;
+
+        > .row {
+          display: flex;
+          align-items: center;
+          min-height: 30px;
+          margin: 0;
+
+          &::before,
+          &::after {
+            content: none;
+          }
+
+          > span.col-sm-1 {
+            display: flex;
+            flex: none;
+            align-items: center;
+            width: 28px;
+            min-height: 0;
+            padding: 0 0 0 8px;
+            float: none;
+            font-size: 0;
+            line-height: 0;
+          }
+
+          > .col-sm-9 {
+            flex: 1 1 auto;
+            width: auto;
+            min-width: 0;
+            padding: 6px 0;
+            float: none;
+          }
+        }
+      }
+
+      .fieldLabelContainer {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0 4px;
+        margin: 0;
+        padding: 0;
+        text-align: left;
+
+        &::before,
+        &::after {
+          content: none;
+        }
+
+        > br {
+          display: none;
+        }
+
+        .fieldLabel b {
+          color: #616161;
+          font-weight: 500;
+          line-height: 18.2px;
+        }
+
+        > .pull-right {
+          float: none;
+          color: $text;
+          opacity: 1 !important;
+
+          &::before {
+            content: '(';
+          }
+
+          &::after {
+            content: ')';
+          }
+        }
+      }
+
+      > .fieldPropertyContainer > .row {
+        margin: 0;
+        padding: 8px 0 !important;
+      }
+    }
+
+    // Fields of the settings forms.
+    input.inputElement,
+    textarea.inputElement,
+    select.inputElement,
+    .inputElement:not(.select2-container) {
+      border-color: $button-border;
+      border-radius: 2px;
+      font-size: fs(13);
+    }
+
+    // Information boxes.
+    .alert-info {
+      border: 1px solid tok(settings-primary);
+      border-radius: 0;
+      background-color: #ffffff;
+      color: $text;
+    }
+  }
+
+  // ---- Dialogs of the settings (v8): a blue header with a white 20 px title, a grey footer with the actions ----
+  // Not the windows of ModernUI (record and form over a list, Quick Create of the header).
+  .modal:not(#overlayPageContent):not(:has(.mu-quick-form)) .modal-content:not(:has(form[name='QuickCreate'])) {
+    border: 0;
+    border-radius: 0;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+
+    > .modal-header:first-child,
+    > form > .modal-header:first-child,
+    > :first-child > .modal-header:first-child,
+    .modal-header {
+      min-height: 55px;
+      padding: 0 0 0 13px;
+      border-bottom: 1px solid #e5e5e5;
+      border-radius: 0;
+      background: tok(settings-primary);
+      box-shadow: none;
+      color: #ffffff;
+
+      h4,
+      h3,
+      .modal-title,
+      .pageTitle {
+        padding: 13px 0;
+        color: #ffffff;
+        font-size: fs(20);
+        font-weight: 500;
+        line-height: 28.5px;
+      }
+
+      .close,
+      button.close {
+        min-width: 34px;
+        min-height: 36px;
+        margin: 6px 6px 0 0;
+        color: #ffffff;
+        opacity: 1;
+
+        &:hover,
+        &:focus {
+          background-color: rgba(255, 255, 255, 0.15);
+          color: #ffffff;
+        }
+
+        .fa,
+        i {
+          color: #ffffff;
+        }
+      }
+    }
+
+    .modal-body {
+      padding: 16px;
+      color: $text;
+      font-size: fs(13);
+    }
+
+    .modal-footer,
+    .modal-footer:last-child {
+      padding: 8px 16px;
+      border-top: 1px solid $line;
+      border-radius: 0;
+      background-color: #f9f9f9;
+      text-align: center;
+
+      .btn-success,
+      .btn-primary,
+      button[type='submit'] {
+        @include settings-primary;
+      }
+
+      .btn-default {
+        @include settings-button;
+      }
+
+      .cancelLink,
+      .btn-link {
+        min-height: 32px;
+        border-color: transparent;
+        background: transparent;
+        color: tok(settings-link);
+      }
+    }
+  }
+
+  // The dialogs of the settings start at the top edge of the window (v7: 30 px lower).
+  @media (min-width: 768px) {
+    .modal:not(#overlayPageContent):not(:has(.mu-quick-form)):not(:has(form[name='QuickCreate'])) > .modal-dialog {
+      margin-top: 0;
+    }
+  }
+}
+
+// ---- The side navigation of the inner pages: 180 px, #263238, fixed under the header, scrolls on its own ----
+
+@media screen and (scripting: enabled) {
+  #{$layout}:not(#{$home}) #page > .main-container > #modnavigator.settingsNav {
+    background-color: $nav-bg;
+    color: #ffffff;
+
+    .settingsgroup,
+    .settingsgroup .panel-collapse {
+      width: 100%;
+    }
+
+    .settingsgroup {
+      height: auto;
+      margin: 0;
+      padding: 0 0 24px;
+      background: transparent;
+
+      > br {
+        display: none;
+      }
+
+      // The search of the settings (the native field, instaFilta of v7).
+      #settingsMenuSearch {
+        display: block;
+        float: none;
+        width: calc(100% - 16px);
+        height: 30px;
+        margin: 12px 8px 0;
+        padding: 5px 10px;
+        border: 1px solid $line;
+        border-radius: 0;
+        background-color: #ffffff;
+        box-shadow: none;
+        color: #000000;
+        font-size: fs(13);
+        line-height: 18.2px;
+
+        &::placeholder {
+          color: #999999;
+        }
+
+        &:focus-visible {
+          @include focus-ring;
+        }
+      }
+
+      > div:first-child {
+        margin: 0;
+        padding: 0;
+      }
+
+      .panel-group {
+        margin: 0;
+        padding-top: 15px;
+      }
+
+      .panel-group .panel,
+      .settingsgroup-panel {
+        margin: 0;
+        border: 0;
+        border-radius: 0;
+        background-color: transparent;
+        box-shadow: none;
+      }
+
+      .panel-group .panel + .panel {
+        margin-top: 0;
+      }
+
+      div.panel-collapse {
+        background-color: transparent;
+      }
+
+      // Group: 13 px white, padding 10, the chevron of 13 px at 10 px.
+      .settingsgroup-accordion {
+        font-size: fs(13);
+
+        a {
+          display: block;
+          padding: 10px;
+          color: #ffffff;
+          font-size: fs(13);
+          font-weight: 400;
+          line-height: 18.2px;
+          text-decoration: none;
+        }
+
+        a i,
+        a .fa {
+          width: 13px;
+          margin-right: 5px;
+          color: #ffffff;
+          font-size: 13px;
+          text-align: center;
+        }
+
+        a span {
+          text-transform: none;
+        }
+
+        a:focus-visible {
+          @include focus-ring(true);
+        }
+      }
+
+      // Items: 12 px white, padding 8 30 8 38; the current one #010101.
+      ul.list-group {
+        margin: 0;
+        padding: 5px 0;
+        font-size: fs(12);
+      }
+
+      ul li a,
+      ul li a.menuItemLabel {
+        padding: 8px 30px 8px 38px;
+        color: #ffffff;
+        font-size: fs(12);
+        line-height: 16.8px;
+        text-decoration: none;
+      }
+
+      ul li a:hover {
+        background-color: rgba(0, 0, 0, 0.25);
+        color: #ffffff;
+      }
+
+      ul li a:focus-visible {
+        @include focus-ring(true);
+      }
+
+      ul li a.settingsgroup-menu-color,
+      .panel-collapse ul li a.settingsgroup-menu-color {
+        background-color: $nav-active;
+        color: #ffffff;
+      }
+
+      .instafilta-match {
+        font-weight: 700;
+        text-decoration: underline;
+      }
+    }
+
+    // The navigation of a user without the settings of the CRM (My Preferences …) has no search.
+    .settingsgroup:not(:has(#settingsMenuSearch)) .panel-group {
+      padding-top: 12px;
+    }
+  }
+
+  // Own "no matches" message (adapters/v7/settings.ts): shown while the search hides every group.
+  #{$layout} .settingsgroup > .mu-settings-empty {
+    display: none;
+    padding: 24px 12px;
+    color: #ffffff;
+    font-size: fs(12);
+    text-align: center;
+
+    p {
+      margin: 0;
+    }
+
+    .mu-settings-empty__hint {
+      margin-top: 6px;
+      opacity: 0.75;
+    }
+  }
+
+  #{$layout} .settingsgroup:has(#settingsMenuSearch:not(:placeholder-shown)):not(:has(.instaSearch:not([style*='display: none']))) > .mu-settings-empty {
+    display: block;
+  }
+}
+
+@media screen and (scripting: enabled) and (min-width: $desktop) {
+  #{$layout}:not(#{$home}) {
+    #page > .main-container > #modnavigator.settingsNav {
+      position: fixed;
+      top: calc(var(--mu-shell-header) + var(--mu-shell-tools));
+      bottom: 0;
+      left: 0;
+      z-index: 10;
+      width: $nav-width;
+      height: auto;
+      min-height: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+
+      > div {
+        height: auto;
+      }
+    }
+
+    #page > .main-container > .settingsPageDiv {
+      padding-left: $nav-width;
+    }
+
+    // The footer of the overlay forms of v7 continued the 230 px dark navigation.
+    .settingsPageDiv .modal-overlay-footer {
+      border-left: $nav-width solid $nav-bg;
+    }
+
+    // A direct form of the settings (a user, a role …, the pinned form of stage 14): under the bar of the settings,
+    // next to the navigation, above the footer of the page.
+    .settingsPageDiv .editViewPageDiv.mu-form-host {
+      inset: calc(var(--mu-shell-header) + var(--mu-shell-tools)) 0 27px $nav-width;
+    }
+  }
+}
+
+@media screen and (scripting: enabled) and (max-width: $desktop - 1) {
+  #{$layout}:not(#{$home}) .settingsPageDiv .editViewPageDiv.mu-form-host {
+    inset: calc(var(--mu-shell-header) + var(--mu-shell-tools)) 0 27px;
+  }
+}
+
+// ---- The start page: the catalog of the settings ----
+//
+// The containers of v7 lose their boxes (display: contents) and the main container lays their parts out as the cloud:
+// the summary tiles, the search, the groups in four columns, and the pinned shortcuts of v7 after the catalog. The
+// accordion of the side navigation is open (every group of the catalog shows its items); the search of v7 hides the items
+// and groups that do not match, the columns close up.
+
+@media screen and (scripting: enabled) {
+  #{$layout}#{$home} {
+    #page > .main-container {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      align-content: start;
+      padding: 0 0 40px;
+      overflow-x: clip;
+    }
+
+    #page > .main-container > #modnavigator.settingsNav,
+    #page > .main-container > #modnavigator.settingsNav > div,
+    #page > .main-container > #modnavigator.settingsNav .settingsgroup,
+    #page > .main-container > .settingsPageDiv,
+    #page > .main-container > .settingsPageDiv > .settingsIndexPage {
+      display: contents !important;
+    }
+
+    // The anonymous text of the start page of v7 (spaces between its parts) takes no room.
+    #page > .main-container > .settingsPageDiv > .settingsIndexPage {
+      font-size: 0;
+      line-height: 0;
+    }
+
+    .settingsIndexPage > div:first-child,
+    .settingsIndexPage > hr,
+    .settingsIndexPage > br,
+    .settingsgroup > br {
+      display: none;
+    }
+
+    // ---- Summary tiles: four columns of a quarter of the window, a tile of 265 × 70 with a coloured square ----
+    .settingsIndexPage > .row {
+      grid-row: 1;
+      display: grid;
+      grid-template-columns: repeat(4, 25vw);
+      margin: 0;
+      padding: 11px 0 0;
+      font-size: fs(13);
+      line-height: 18.2px;
+
+      &::before,
+      &::after {
+        content: none;
+      }
+    }
+
+    .settingsIndexPage .settingsSummary {
+      width: auto;
+      margin: 0;
+      padding: 0 15px;
+      float: none;
+      text-align: left;
+
+      > a {
+        display: grid;
+        grid-template-columns: 80px minmax(0, 1fr);
+        grid-template-rows: 1px 33px 19.6px 1fr;
+        box-sizing: border-box;
+        width: min(265px, 100%);
+        min-width: 0;
+        height: 70px;
+        padding: 0;
+        border: 1px solid $line;
+        border-radius: 2px;
+        background-color: #ffffff;
+        color: #444444;
+        text-decoration: none;
+
+        &::before {
+          content: '';
+          grid-column: 1;
+          grid-row: 1 / -1;
+          border-radius: 2px;
+          background-color: #008080;
+          background-image: url($icon-users);
+          background-position: center;
+          background-repeat: no-repeat;
+          background-size: 38px;
+        }
+
+        &:hover,
+        &:focus {
+          border-color: #bbbbbb;
+        }
+
+        &:focus-visible {
+          @include focus-ring;
+        }
+      }
+
+      .summaryCount {
+        grid-column: 2;
+        grid-row: 2;
+        margin: 0;
+        overflow: hidden;
+        color: #444444;
+        font-size: fs(24);
+        font-weight: 400;
+        line-height: 33.6px;
+        text-align: center;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .summaryText {
+        grid-column: 2;
+        grid-row: 3;
+        margin: 0 !important;
+        overflow: hidden;
+        color: #444444;
+        font-size: fs(14);
+        font-weight: 700;
+        line-height: 19.6px;
+        text-align: center;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    .settingsIndexPage .settingsSummary:nth-child(2) > a::before {
+      background-color: #0088aa;
+      background-image: url($icon-workflows);
+    }
+
+    .settingsIndexPage .settingsSummary:nth-child(3) > a::before {
+      background-color: #5a2ca0;
+      background-image: url($icon-modules);
+    }
+
+    // ---- Search: a 300 × 32 field in the middle, 16 px under the tiles ----
+    .settingsgroup > div:first-child {
+      grid-row: 2;
+      display: flex;
+      justify-content: center;
+      margin: 0;
+      padding: 16px 15px 0;
+
+      // Cloud: the field starts the middle third of the window (col-lg-4 col-lg-offset-4).
+      @media (min-width: 1200px) {
+        justify-content: flex-start;
+        padding-left: calc(100vw / 3);
+      }
+
+      font-size: fs(13);
+      line-height: 18.2px;
+
+      #settingsMenuSearch {
+        width: 300px;
+        max-width: 100%;
+        height: 32px;
+        margin: 0;
+        padding: 6px 12px;
+        border: 1px solid $button-border;
+        border-radius: 2px;
+        color: $text;
+
+        &::placeholder {
+          color: $button-border;
+        }
+
+        &:focus {
+          @include field-focus;
+        }
+      }
+    }
+
+    // ---- The catalog: the groups in four columns of a quarter of the window, 16 px under the search ----
+    .settingsgroup .panel-group {
+      grid-row: 3;
+      width: 100vw;
+      margin: 16px 0 0;
+      padding: 0;
+      column-count: 4;
+      column-gap: 0;
+      font-size: fs(13);
+      line-height: 18.2px;
+    }
+
+    .settingsgroup .panel-group .settingsgroup-panel,
+    .settingsgroup .panel-group .panel {
+      display: block;
+      width: 280px;
+      max-width: 100%;
+      margin: 0;
+      padding: 5px 15px;
+      border: 0;
+      border-radius: 2px;
+      background: transparent;
+      box-shadow: none;
+      break-inside: avoid;
+    }
+
+    .settingsgroup .panel-group .panel + .panel {
+      margin-top: 0;
+    }
+
+    // Group heading: 16/500 #212121, margin 10 0 (the accordion header of v7 without its chevron).
+    .settingsgroup-panel > .app-nav {
+      margin: 10px 0;
+      padding: 0;
+      background: transparent;
+    }
+
+    .settingsgroup-accordion {
+      cursor: default;
+
+      // No strut of the link (its chevron and space are hidden by font-size 0): the line is the 17.6 px of the label.
+      a {
+        display: block;
+        padding: 0;
+        color: $text;
+        font-size: 0;
+        line-height: 0;
+        text-decoration: none;
+        pointer-events: none;
+      }
+
+      a i,
+      a .fa {
+        display: none;
+      }
+
+      a span {
+        display: inline-block;
+        color: $text;
+        font-size: fs(16);
+        font-weight: 500;
+        line-height: 17.6px;
+        text-transform: none;
+        vertical-align: top;
+      }
+    }
+
+    // The items of every group are shown (the accordion of v7 is open here).
+    .settingsgroup .panel-collapse,
+    .settingsgroup .panel-collapse.collapse,
+    .settingsgroup .panel-collapse.collapsing {
+      display: block !important;
+      width: auto;
+      height: auto !important;
+      background: transparent;
+    }
+
+    .settingsgroup ul.list-group {
+      margin: 0 0 10px;
+      padding: 0;
+      font-size: fs(13);
+    }
+
+    .settingsgroup ul.list-group > li {
+      padding: 4px 0;
+      border: 0;
+      background: transparent;
+    }
+
+    // A link of 13 px in the colour of the links of the settings.
+    .settingsgroup ul li a,
+    .settingsgroup ul li a.menuItemLabel,
+    .panel-collapse ul li a.settingsgroup-menu-color {
+      padding: 0;
+      background: transparent;
+      color: tok(settings-link);
+      font-size: fs(13);
+      line-height: 18.2px;
+      text-decoration: none;
+    }
+
+    .settingsgroup ul li a:hover,
+    .settingsgroup li:hover a {
+      background: transparent;
+      color: tok(settings-link);
+      text-decoration: underline;
+    }
+
+    .settingsgroup ul li a:focus-visible {
+      @include focus-ring;
+    }
+
+    // Items the search of v7 hid: their row goes too (v7 hides the link only).
+    .settingsgroup ul.list-group > li:has(> a[data-instafilta-hide='true']) {
+      display: none;
+    }
+
+    // The pin of v7 (pin/unpin a shortcut of the start page): after the label, while the item is hovered or focused.
+    .settingsgroup-panel .widgetContainer .menuItemLabel .pinUnpinShortCut {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      margin: 0 0 0 6px;
+      float: none;
+      vertical-align: -2px;
+      opacity: 0;
+    }
+
+    .settingsgroup-panel .widgetContainer .menuItemLabel:is(:hover, :focus-visible) .pinUnpinShortCut,
+    .settingsgroup-panel .widgetContainer .menuItemLabel .pinUnpinShortCut[data-action='unpin'] {
+      opacity: 0.8;
+    }
+
+    .instafilta-match {
+      font-weight: 700;
+    }
+
+    // ---- No matches: in the middle, as the cloud ----
+    .settingsgroup > .mu-settings-empty {
+      grid-row: 3;
+      margin-top: 16px;
+      padding: 160px 15px 150px;
+      color: $text;
+      font-size: fs(16);
+      line-height: 22px;
+
+      .mu-settings-empty__hint {
+        color: $muted;
+        font-size: fs(13);
+        opacity: 1;
+      }
+    }
+
+    // ---- The pinned shortcuts of v7: after the catalog, compact cards ----
+    .settingsIndexPage > h4 {
+      grid-row: 4;
+      margin: 24px 15px 10px;
+      color: $text;
+      font-size: fs(16);
+      font-weight: 500;
+      line-height: 17.6px;
+    }
+
+    .settingsIndexPage:not(:has(#settingsShortCutsContainer .moduleBlock)) > h4 {
+      display: none;
+    }
+
+    #settingsShortCutsContainer {
+      grid-row: 5;
+      min-height: 0 !important;
+      padding: 0 15px;
+      font-size: fs(13);
+      line-height: 18.2px;
+
+      > .col-lg-12 {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        width: auto;
+        margin: 0 0 12px;
+        padding: 0;
+        float: none;
+      }
+
+      .moduleBlock {
+        position: relative;
+        display: block;
+        width: 265px !important;
+        min-height: 70px;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 12px 36px 12px 15px;
+        float: none;
+        border: 1px solid $line;
+        border-radius: 2px;
+        background: #ffffff;
+        box-shadow: none;
+
+        &:hover {
+          border-color: #bbbbbb;
+        }
+
+        b,
+        .themeTextColor {
+          color: tok(settings-link);
+          font-weight: 400;
+        }
+
+        > div + div {
+          margin-top: 4px;
+          color: $muted;
+          font-size: fs(12);
+        }
+
+        .unpin {
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          display: block;
+          opacity: 0;
+        }
+
+        &:is(:hover, :focus-within) .unpin {
+          opacity: 0.8;
+        }
+      }
+    }
+
+    // While searching, the catalog is the result: no shortcuts.
+    .main-container:has(#settingsMenuSearch:not(:placeholder-shown)) :is(.settingsIndexPage > h4, #settingsShortCutsContainer) {
+      display: none;
+    }
+  }
+}
+
+// Narrower windows: three columns, two, one; the tiles two per row, then one.
+@media screen and (scripting: enabled) and (max-width: 1199px) {
+  #{$layout}#{$home} .settingsgroup .panel-group {
+    column-count: 3;
+  }
+}
+
+@media screen and (scripting: enabled) and (max-width: $desktop - 1) {
+  #{$layout}#{$home} {
+    .settingsgroup .panel-group {
+      column-count: 2;
+    }
+
+    .settingsIndexPage > .row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      row-gap: 12px;
+    }
+  }
+}
+
+@media screen and (scripting: enabled) and (max-width: 599px) {
+  #{$layout}#{$home} {
+    .settingsgroup .panel-group {
+      column-count: 1;
+    }
+
+    .settingsIndexPage > .row {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .settingsIndexPage .settingsSummary > a {
+      width: 100%;
+    }
+  }
+}

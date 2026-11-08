@@ -34,6 +34,12 @@ test('tokens: the fill keeps the colour while white text is as readable as on th
 	assert_same('#315dff', $default['primary-hover']);
 	assert_same('#2e81ff', $default['primary-check']);
 	assert_same('#e7f1ff', $default['primary-soft']);
+	// The accent of the system settings of the cloud (layout v8, docs/design.md §13.11); a custom colour replaces it.
+	assert_same('#448aff', $default['settings-primary']);
+	assert_same('#0070d2', $default['settings-link']);
+	$custom = ModernUI_Tokens_Model::forAppearance(array('primaryColor' => '#1d3557'));
+	assert_same($custom['primary-strong'], $custom['settings-primary']);
+	assert_same($custom['primary-strong'], $custom['settings-link']);
 	assert_same('var(--mu-font-cloud)', $default['font-family'], 'the cloud font is the default');
 	assert_same('40px', $default['row-height']);
 	assert_same('1', $default['font-scale']);

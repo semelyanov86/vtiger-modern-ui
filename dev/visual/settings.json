@@ -1,0 +1,1103 @@
+{
+  "_doc": "Stage 15 (V09): the system settings against the cloud settings (layout v8, OpenSans), 1440 x 1000. The catalog of the start page, its search with matches and without, and the inner pages Users, Roles, Profiles, Layouts & Fields, Picklists, Workflows and Module Manager with a picklist dialog. Labels, languages, the number of settings and the data of the two systems differ: the table compares the frame (header, bar, navigation, tiles, search, catalog headings and links) and the components (buttons, tables, tabs, dialogs) by stable elements. Coordinates of elements whose place depends on the length of the label or on the data (a role tree, a wrapped group name) are compared by their styles and sizes only. 'cloud' holds the selectors of the cloud reference capture; reference measurements and all images stay private.",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "banner": 0,
+  "tolerance": {
+    "size": 2,
+    "position": 4
+  },
+  "states": [
+    {
+      "id": "V09-home",
+      "reference": "V09-home",
+      "screenshot": "V09-home.png",
+      "module": "Accounts",
+      "url": "index.php?module=Vtiger&parent=Settings&view=Index",
+      "cloudUrl": "index.php?module=Vtiger&parent=Settings&view=Index",
+      "steps": [],
+      "elements": {
+        "topbar": {
+          "ref": [
+            "topbar"
+          ],
+          "cloud": ".v8-top-bar",
+          "theme": "#page > nav.app-fixed-navbar > .global-nav",
+          "check": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "styles": []
+        },
+        "back": {
+          "ref": [
+            "back"
+          ],
+          "cloud": ".v8-top-bar a",
+          "theme": ".mu-settings-back",
+          "check": [
+            "x"
+          ],
+          "styles": [
+            "color",
+            "size"
+          ]
+        },
+        "bar": {
+          "ref": [
+            "bar"
+          ],
+          "cloud": ".module-action-content",
+          "theme": "#page > nav.app-fixed-navbar .module-action-bar",
+          "check": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "home": {
+          "ref": [
+            "home"
+          ],
+          "cloud": ".module-action-content h4.module-title",
+          "theme": "#page > nav.app-fixed-navbar .module-action-content h4.module-title",
+          "check": [
+            "x",
+            "h"
+          ],
+          "styles": [
+            "size",
+            "weight",
+            "color",
+            "tt"
+          ]
+        },
+        "tile": {
+          "ref": [
+            "tile"
+          ],
+          "cloud": ".settingsSummary a",
+          "theme": ".settingsSummary > a",
+          "check": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "radius",
+            "bTop"
+          ]
+        },
+        "tile2": {
+          "ref": [
+            "tile2"
+          ],
+          "cloud": ".settingsSummary:nth-child(2) a",
+          "theme": ".settingsSummary:nth-child(2) > a",
+          "check": [
+            "x",
+            "y"
+          ],
+          "styles": []
+        },
+        "tile3": {
+          "ref": [
+            "tile3"
+          ],
+          "cloud": ".settingsSummary:nth-child(3) a",
+          "theme": ".settingsSummary:nth-child(3) > a",
+          "check": [
+            "x",
+            "y"
+          ],
+          "styles": []
+        },
+        "count": {
+          "ref": [
+            "count"
+          ],
+          "cloud": ".settingsSummary .summaryCount",
+          "theme": ".settingsSummary .summaryCount",
+          "check": [
+            "y",
+            "h"
+          ],
+          "styles": [
+            "size",
+            "color"
+          ]
+        },
+        "label": {
+          "ref": [
+            "label"
+          ],
+          "cloud": ".settingsSummary .summaryText",
+          "theme": ".settingsSummary .summaryText",
+          "check": [
+            "y",
+            "h"
+          ],
+          "styles": [
+            "size",
+            "weight",
+            "color"
+          ]
+        },
+        "search": {
+          "ref": [
+            "search"
+          ],
+          "cloud": ".settingsIndexPage .row:has(> div > #settingsMenuSearch) > div",
+          "theme": ".settingsgroup #settingsMenuSearch",
+          "check": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "styles": []
+        },
+        "groupTitle": {
+          "ref": [
+            "groupTitle"
+          ],
+          "cloud": "#settingsContainer .settings-block-menu h4",
+          "theme": ".settingsgroup-panel .settingsgroup-accordion span",
+          "check": [
+            "x",
+            "y"
+          ],
+          "styles": [
+            "size",
+            "weight",
+            "color"
+          ]
+        },
+        "link": {
+          "ref": [
+            "link"
+          ],
+          "cloud": "#settingsContainer .settings-block-menu li a",
+          "theme": ".settingsgroup-panel ul li a.menuItemLabel",
+          "check": [
+            "x",
+            "y"
+          ],
+          "styles": [
+            "color",
+            "size"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V09-home-search",
+      "reference": "V09-home-search",
+      "screenshot": "V09-home-search.png",
+      "module": "Accounts",
+      "url": "index.php?module=Vtiger&parent=Settings&view=Index",
+      "cloudUrl": "index.php?module=Vtiger&parent=Settings&view=Index",
+      "steps": [
+        "settings-search"
+      ],
+      "elements": {
+        "search": {
+          "ref": [
+            "search"
+          ],
+          "cloud": ".settingsIndexPage .row:has(> div > #settingsMenuSearch) > div",
+          "theme": ".settingsgroup #settingsMenuSearch",
+          "check": [
+            "x",
+            "y"
+          ],
+          "styles": []
+        },
+        "groupTitle": {
+          "ref": [
+            "groupTitle"
+          ],
+          "cloud": "#settingsContainer .settings-block-menu:not([style*='none']) h4",
+          "theme": ".settingsgroup-panel:not([style*='none']) .settingsgroup-accordion span",
+          "check": [
+            "x",
+            "y"
+          ],
+          "styles": [
+            "size",
+            "color"
+          ]
+        },
+        "link": {
+          "ref": [
+            "link"
+          ],
+          "cloud": "#settingsContainer .instafilta-target:not([style*='none']) a",
+          "theme": ".settingsgroup-panel:not([style*='none']) li > a.menuItemLabel:not([data-instafilta-hide='true'])",
+          "check": [
+            "x",
+            "y"
+          ],
+          "styles": [
+            "color"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V09-home-search-empty",
+      "reference": "V09-home-search-empty",
+      "screenshot": "V09-home-search-empty.png",
+      "module": "Accounts",
+      "url": "index.php?module=Vtiger&parent=Settings&view=Index",
+      "cloudUrl": "index.php?module=Vtiger&parent=Settings&view=Index",
+      "steps": [
+        "settings-search-empty"
+      ],
+      "elements": {
+        "empty": {
+          "ref": [
+            "empty"
+          ],
+          "cloud": "#settingsContainer .emptyMessage h4",
+          "theme": ".settingsgroup > .mu-settings-empty .mu-settings-empty__title",
+          "check": [
+            "y"
+          ],
+          "styles": [
+            "size",
+            "color"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V09-users",
+      "reference": "V09-users",
+      "screenshot": "V09-users.png",
+      "module": "Accounts",
+      "url": "index.php?module=Users&parent=Settings&view=List",
+      "cloudUrl": "index.php?module=Users&parent=Settings&view=List&block=2&fieldid=1",
+      "steps": [],
+      "elements": {
+        "topbar": {
+          "ref": [
+            "topbar"
+          ],
+          "cloud": ".v8-top-bar",
+          "theme": "#page > nav.app-fixed-navbar > .global-nav",
+          "check": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "styles": []
+        },
+        "back": {
+          "ref": [
+            "back"
+          ],
+          "cloud": ".v8-top-bar a",
+          "theme": ".mu-settings-back",
+          "check": [
+            "x"
+          ],
+          "styles": [
+            "color",
+            "size"
+          ]
+        },
+        "bar": {
+          "ref": [
+            "bar"
+          ],
+          "cloud": ".module-action-content",
+          "theme": "#page > nav.app-fixed-navbar .module-action-bar",
+          "check": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "home": {
+          "ref": [
+            "home"
+          ],
+          "cloud": ".module-action-content h4.module-title",
+          "theme": "#page > nav.app-fixed-navbar .module-action-content h4.module-title",
+          "check": [
+            "x",
+            "h"
+          ],
+          "styles": [
+            "size",
+            "weight",
+            "color",
+            "tt"
+          ]
+        },
+        "crumb": {
+          "ref": [
+            "crumb"
+          ],
+          "cloud": ".module-action-content .current-filter-name.filter-name",
+          "theme": "#page > nav.app-fixed-navbar .module-action-content .current-filter-name.filter-name",
+          "check": [
+            "y"
+          ],
+          "styles": [
+            "size",
+            "color"
+          ]
+        },
+        "barButton": {
+          "ref": [
+            "barButton"
+          ],
+          "cloud": "#appnav .btn, .module-action-content button.module-buttons",
+          "theme": "#page > nav.app-fixed-navbar #appnav .btn",
+          "check": [
+            "y",
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "color",
+            "radius",
+            "size",
+            "bTop"
+          ]
+        },
+        "sidebar": {
+          "ref": [
+            "sidebar"
+          ],
+          "cloud": "#modnavigator",
+          "theme": "#modnavigator.settingsNav",
+          "check": [
+            "x",
+            "w"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "sidebarSearch": {
+          "ref": [
+            "sidebarSearch"
+          ],
+          "cloud": "#modnavigator #settingsMenuSearch",
+          "theme": "#modnavigator #settingsMenuSearch",
+          "check": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "size"
+          ]
+        },
+        "groupHeader": {
+          "ref": [
+            "groupHeader"
+          ],
+          "cloud": "#modnavigator .app-settings-accordion",
+          "theme": "#modnavigator .app-settings-accordion",
+          "check": [
+            "x",
+            "y",
+            "w"
+          ],
+          "styles": []
+        },
+        "groupLink": {
+          "ref": [
+            "groupLink"
+          ],
+          "cloud": "#modnavigator .settingsgroup-accordion a",
+          "theme": "#modnavigator .settingsgroup-accordion a",
+          "check": [],
+          "styles": [
+            "color",
+            "size",
+            "pad"
+          ]
+        },
+        "activeItem": {
+          "ref": [
+            "activeItem"
+          ],
+          "cloud": "#modnavigator .settingsgroup-menu-color",
+          "theme": "#modnavigator .settingsgroup-menu-color",
+          "check": [
+            "x",
+            "w",
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "color",
+            "size",
+            "pad"
+          ]
+        },
+        "item": {
+          "ref": [
+            "item"
+          ],
+          "cloud": "#modnavigator .ulBlock li a:not(.settingsgroup-menu-color)",
+          "theme": "#modnavigator .panel-collapse.in li a:not(.settingsgroup-menu-color)",
+          "check": [
+            "x",
+            "w"
+          ],
+          "styles": [
+            "color",
+            "size",
+            "pad"
+          ]
+        },
+        "toggle": {
+          "ref": [
+            "toggle"
+          ],
+          "cloud": ".settingsPageDiv .btn-group .p-btn, .settingsPageDiv button.p-btn",
+          "theme": ".settingsPageDiv .btn-group .btn-primary, .settingsPageDiv .btn-group .btn.active",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "color",
+            "size"
+          ]
+        },
+        "th": {
+          "ref": [
+            "th"
+          ],
+          "cloud": ".settingsPageDiv table thead th",
+          "theme": ".settingsPageDiv table.listview-table:not(.floatThead-table) thead th",
+          "check": [],
+          "styles": [
+            "size",
+            "weight",
+            "color",
+            "tt"
+          ]
+        },
+        "td": {
+          "ref": [
+            "td"
+          ],
+          "cloud": ".settingsPageDiv table tbody td",
+          "theme": ".settingsPageDiv table.listview-table tbody tr.listViewEntries td",
+          "check": [],
+          "styles": [
+            "size",
+            "color",
+            "bTop"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V09-roles",
+      "reference": "V09-roles",
+      "screenshot": "V09-roles.png",
+      "module": "Accounts",
+      "url": "index.php?module=Roles&parent=Settings&view=Index",
+      "cloudUrl": "index.php?module=Roles&parent=Settings&view=Index&block=2&fieldid=2",
+      "steps": [],
+      "elements": {
+        "bar": {
+          "ref": [
+            "bar"
+          ],
+          "cloud": ".module-action-content",
+          "theme": "#page > nav.app-fixed-navbar .module-action-bar",
+          "check": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "sidebar": {
+          "ref": [
+            "sidebar"
+          ],
+          "cloud": "#modnavigator",
+          "theme": "#modnavigator.settingsNav",
+          "check": [
+            "x",
+            "w"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "activeItem": {
+          "ref": [
+            "activeItem"
+          ],
+          "cloud": "#modnavigator .settingsgroup-menu-color",
+          "theme": "#modnavigator .settingsgroup-menu-color",
+          "check": [
+            "x",
+            "w",
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "color"
+          ]
+        },
+        "root": {
+          "ref": [
+            "root"
+          ],
+          "cloud": ".treeView .roleOrgName",
+          "theme": ".treeView > ul > li > .toolbar-handle > .btn",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "color",
+            "radius",
+            "size"
+          ]
+        },
+        "node": {
+          "ref": [
+            "node"
+          ],
+          "cloud": ".treeView .roleButton",
+          "theme": ".treeView ul ul li > .toolbar-handle > .btn",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "color",
+            "radius",
+            "size",
+            "bTop"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V09-profiles",
+      "reference": "V09-profiles",
+      "screenshot": "V09-profiles.png",
+      "module": "Accounts",
+      "url": "index.php?module=Profiles&parent=Settings&view=List",
+      "cloudUrl": "index.php?module=Profiles&parent=Settings&view=List&block=2&fieldid=3",
+      "steps": [],
+      "elements": {
+        "bar": {
+          "ref": [
+            "bar"
+          ],
+          "cloud": ".module-action-content",
+          "theme": "#page > nav.app-fixed-navbar .module-action-bar",
+          "check": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "barButton": {
+          "ref": [
+            "barButton"
+          ],
+          "cloud": ".module-action-content button.module-buttons, .module-action-content .btn",
+          "theme": "#page > nav.app-fixed-navbar #appnav .btn",
+          "check": [
+            "y",
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "color",
+            "radius",
+            "size",
+            "bTop"
+          ]
+        },
+        "activeItem": {
+          "ref": [
+            "activeItem"
+          ],
+          "cloud": "#modnavigator .settingsgroup-menu-color",
+          "theme": "#modnavigator .settingsgroup-menu-color",
+          "check": [
+            "x",
+            "w",
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "color"
+          ]
+        },
+        "table": {
+          "ref": [
+            "table"
+          ],
+          "cloud": ".settingsPageDiv table",
+          "theme": ".settingsPageDiv table.listview-table:not(.floatThead-table)",
+          "check": [
+            "x"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "th": {
+          "ref": [
+            "th"
+          ],
+          "cloud": ".settingsPageDiv table thead th",
+          "theme": ".settingsPageDiv table.listview-table:not(.floatThead-table) thead th",
+          "check": [],
+          "styles": [
+            "size",
+            "weight",
+            "color",
+            "tt"
+          ]
+        },
+        "td": {
+          "ref": [
+            "td"
+          ],
+          "cloud": ".settingsPageDiv table tbody td",
+          "theme": ".settingsPageDiv table.listview-table tbody tr.listViewEntries td",
+          "check": [],
+          "styles": [
+            "size",
+            "color",
+            "bTop"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V09-layout",
+      "reference": "V09-layout",
+      "screenshot": "V09-layout.png",
+      "module": "Accounts",
+      "url": "index.php?module=LayoutEditor&parent=Settings&view=Index&sourceModule=Accounts",
+      "cloudUrl": "index.php?module=LayoutEditor&parent=Settings&view=Index&sourceModule=Accounts",
+      "steps": [],
+      "elements": {
+        "bar": {
+          "ref": [
+            "bar"
+          ],
+          "cloud": ".module-action-content",
+          "theme": "#page > nav.app-fixed-navbar .module-action-bar",
+          "check": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "activeItem": {
+          "ref": [
+            "activeItem"
+          ],
+          "cloud": "#modnavigator .settingsgroup-menu-color",
+          "theme": "#modnavigator .settingsgroup-menu-color",
+          "check": [
+            "x",
+            "w"
+          ],
+          "styles": [
+            "bg",
+            "color"
+          ]
+        },
+        "tabActive": {
+          "ref": [
+            "tabActive"
+          ],
+          "cloud": ".settingsPageDiv .nav-tabs > li.active > a",
+          "theme": ".settingsPageDiv .nav-tabs > li.active > a",
+          "check": [],
+          "styles": [
+            "color",
+            "size",
+            "bBottom"
+          ]
+        },
+        "addButton": {
+          "ref": [
+            "addButton"
+          ],
+          "cloud": ".settingsPageDiv .addCustomField",
+          "theme": ".settingsPageDiv .addCustomField",
+          "check": [],
+          "styles": [
+            "radius",
+            "size",
+            "tt"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V09-picklist",
+      "reference": "V09-picklist",
+      "screenshot": "V09-picklist.png",
+      "module": "Accounts",
+      "url": "index.php?parent=Settings&module=Picklist&view=Index&source_module=Accounts",
+      "cloudUrl": "index.php?parent=Settings&module=Picklist&view=Index&source_module=Accounts",
+      "steps": [],
+      "elements": {
+        "bar": {
+          "ref": [
+            "bar"
+          ],
+          "cloud": ".module-action-content",
+          "theme": "#page > nav.app-fixed-navbar .module-action-bar",
+          "check": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "activeItem": {
+          "ref": [
+            "activeItem"
+          ],
+          "cloud": "#modnavigator .settingsgroup-menu-color",
+          "theme": "#modnavigator .settingsgroup-menu-color",
+          "check": [
+            "x",
+            "w"
+          ],
+          "styles": [
+            "bg",
+            "color"
+          ]
+        },
+        "label": {
+          "ref": [
+            "label"
+          ],
+          "cloud": ".settingsPageDiv .fieldLabel label",
+          "theme": ".settingsPageDiv .detailViewInfo .control-label.fieldLabel label",
+          "check": [
+            "x"
+          ],
+          "styles": [
+            "size",
+            "color"
+          ]
+        },
+        "tabActive": {
+          "ref": [
+            "tabActive"
+          ],
+          "cloud": ".settingsPageDiv .nav-tabs > li.active > a",
+          "theme": ".settingsPageDiv .nav-tabs > li.active > a",
+          "check": [],
+          "styles": [
+            "color",
+            "size"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V09-picklist-dialog",
+      "reference": "V09-picklist-dialog",
+      "screenshot": "V09-picklist-dialog.png",
+      "module": "Accounts",
+      "url": "index.php?parent=Settings&module=Picklist&view=Index&source_module=Accounts",
+      "cloudUrl": "index.php?parent=Settings&module=Picklist&view=Index&source_module=Accounts",
+      "steps": [
+        "picklist-add"
+      ],
+      "elements": {
+        "dialog": {
+          "ref": [
+            "dialog"
+          ],
+          "cloud": ".modal.in .modal-dialog .modal-content",
+          "theme": ".modal.in .modal-dialog .modal-content",
+          "check": [
+            "y",
+            "w"
+          ],
+          "styles": [
+            "bg",
+            "radius"
+          ]
+        },
+        "header": {
+          "ref": [
+            "header"
+          ],
+          "cloud": ".modal.in .modal-dialog .modal-header",
+          "theme": ".modal.in .modal-dialog .modal-header",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "title": {
+          "ref": [
+            "title"
+          ],
+          "cloud": ".modal.in .modal-dialog .modal-header :is(h4, h3, .modal-title)",
+          "theme": ".modal.in .modal-dialog .modal-header :is(h4, h3, .modal-title, .pageTitle)",
+          "check": [],
+          "styles": [
+            "color",
+            "size",
+            "weight"
+          ]
+        },
+        "footer": {
+          "ref": [
+            "footer"
+          ],
+          "cloud": ".modal.in .modal-dialog .modal-footer",
+          "theme": ".modal.in .modal-dialog .modal-footer",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "save": {
+          "ref": [
+            "save"
+          ],
+          "cloud": ".modal.in .modal-dialog .modal-footer button[type=submit], .modal.in .modal-dialog .modal-footer .btn-success",
+          "theme": ".modal.in .modal-dialog .modal-footer :is(button[type=submit], .btn-success)",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "color",
+            "radius",
+            "size"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V09-workflows",
+      "reference": "V09-workflows",
+      "screenshot": "V09-workflows.png",
+      "module": "Accounts",
+      "url": "index.php?module=Workflows&parent=Settings&view=List",
+      "cloudUrl": "index.php?module=Workflows&parent=Settings&view=List&block=6&fieldid=26",
+      "steps": [],
+      "elements": {
+        "bar": {
+          "ref": [
+            "bar"
+          ],
+          "cloud": ".module-action-content",
+          "theme": "#page > nav.app-fixed-navbar .module-action-bar",
+          "check": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "barButton": {
+          "ref": [
+            "barButton"
+          ],
+          "cloud": ".module-action-content button.module-buttons, .module-action-content .btn",
+          "theme": "#page > nav.app-fixed-navbar #appnav .btn",
+          "check": [
+            "y",
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "color",
+            "radius",
+            "size",
+            "bTop"
+          ]
+        },
+        "activeItem": {
+          "ref": [
+            "activeItem"
+          ],
+          "cloud": "#modnavigator .settingsgroup-menu-color",
+          "theme": "#modnavigator .settingsgroup-menu-color",
+          "check": [
+            "x",
+            "w",
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "color"
+          ]
+        },
+        "th": {
+          "ref": [
+            "th"
+          ],
+          "cloud": ".settingsPageDiv table thead th",
+          "theme": ".settingsPageDiv table.listview-table:not(.floatThead-table) thead th",
+          "check": [],
+          "styles": [
+            "size",
+            "weight",
+            "color",
+            "tt"
+          ]
+        },
+        "td": {
+          "ref": [
+            "td"
+          ],
+          "cloud": ".settingsPageDiv table tbody td",
+          "theme": ".settingsPageDiv table.listview-table tbody tr td",
+          "check": [],
+          "styles": [
+            "size",
+            "color"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V09-modules",
+      "reference": "V09-modules",
+      "screenshot": "V09-modules.png",
+      "module": "Accounts",
+      "url": "index.php?module=ModuleManager&parent=Settings&view=List",
+      "cloudUrl": "index.php?module=ModuleManager&parent=Settings&view=List&block=1&fieldid=9",
+      "steps": [],
+      "elements": {
+        "bar": {
+          "ref": [
+            "bar"
+          ],
+          "cloud": ".module-action-content",
+          "theme": "#page > nav.app-fixed-navbar .module-action-bar",
+          "check": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "activeItem": {
+          "ref": [
+            "activeItem"
+          ],
+          "cloud": "#modnavigator .settingsgroup-menu-color",
+          "theme": "#modnavigator .settingsgroup-menu-color",
+          "check": [
+            "x",
+            "w"
+          ],
+          "styles": [
+            "bg",
+            "color"
+          ]
+        },
+        "title": {
+          "ref": [
+            "title"
+          ],
+          "cloud": ".settingsPageDiv h4, .settingsPageDiv h3",
+          "theme": ".settingsPageDiv :is(h4, h3)",
+          "check": [
+            "x"
+          ],
+          "styles": [
+            "size",
+            "color"
+          ]
+        },
+        "button": {
+          "ref": [
+            "button"
+          ],
+          "cloud": ".settingsPageDiv .btn",
+          "theme": ".settingsPageDiv .btn",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "color",
+            "radius",
+            "size"
+          ]
+        },
+        "td": {
+          "ref": [
+            "td"
+          ],
+          "cloud": ".settingsPageDiv table tbody td",
+          "theme": ".settingsPageDiv table.modulesTable tbody td",
+          "check": [],
+          "styles": [
+            "size",
+            "color"
+          ]
+        }
+      }
+    }
+  ]
+}

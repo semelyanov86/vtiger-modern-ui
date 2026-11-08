@@ -443,7 +443,13 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
         }
       }
     }
+    // While a dialog is open, the page behind it takes no clicks in v7 either: only the dialog is compared.
+    const dialog = document.querySelector('.modal.in') !== null
     const visible = (element: Element): boolean => {
+      // The original select of a Select2 control is clipped away on purpose; its action is the visible Select2 control.
+      if (element.matches('.select2-offscreen') || (dialog && element.closest('.modal.in') === null)) {
+        return false
+      }
       const rect = element.getBoundingClientRect()
       if (rect.width < 1 || rect.height < 1) {
         return false

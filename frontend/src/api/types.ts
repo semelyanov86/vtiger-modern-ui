@@ -34,6 +34,8 @@ export const TOKEN_NAMES = [
   'primary-hover',
   'primary-soft',
   'primary-check',
+  'settings-primary',
+  'settings-link',
   'bg',
   'surface',
   'font-scale',

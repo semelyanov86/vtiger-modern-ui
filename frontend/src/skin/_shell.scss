@@ -704,3 +704,91 @@ $rail-strip: '#modnavigator > .mod-switcher-container';
     }
   }
 }
+
+// ---- The system settings (V09, docs/design.md §13.11): the header of the settings of the cloud ----
+//
+// The settings of the cloud (layout v8) are a space of their own: one white row of 53 px with "← Back to CRM" on the left
+// (the island settings-back) and the actions on the right, and under it a #f5f5f5 bar of 47 px with the breadcrumb of the
+// settings and the actions of the page — the module header of v7 itself (.module-action-bar: the breadcrumb on the left,
+// #appnav on the right), so nothing moves between columns. No favorites bar and no menu button: the way back is the link.
+// The icons of the CRM and of extensions stay in the row (the cloud tab of the settings has only the avatar; an extension's
+// icon must stay reachable). A page of the settings is recognised by the side navigation of the settings of v7.
+$settings: ':has(#page > .main-container > #modnavigator.settingsNav)';
+$settings-row: 53px;
+$settings-bar: 47px;
+
+@media screen and (scripting: enabled) {
+  #{$gate}#{$settings} {
+    --mu-shell-bar: 0px;
+    --mu-shell-overlap: 0px;
+    --mu-shell-row: #{$settings-row};
+    --mu-shell-tools: #{$settings-bar};
+
+    [data-mu-root='favorites'],
+    #page > nav.app-fixed-navbar .mu-mega-root {
+      display: none !important;
+    }
+
+    #page > nav.app-fixed-navbar {
+      background-image: none;
+    }
+  }
+}
+
+@media screen and (scripting: enabled) and (min-width: 768px) {
+  #{$gate}#{$settings} #page > nav.app-fixed-navbar {
+    > .global-nav {
+      padding-left: 28px;
+      box-shadow: none;
+    }
+
+    // "← Back to CRM" (settings-back): first in the row, where the menu button is on the working screens.
+    .mu-settings-back-root {
+      display: flex;
+      flex: 0 1 auto;
+      align-items: center;
+      order: 0;
+      min-width: 0;
+      height: var(--mu-shell-row);
+    }
+
+    > .app-nav .module-action-bar {
+      height: var(--mu-shell-tools);
+      padding: 0 19px 0 31px;
+      background-color: #f5f5f5;
+
+      // The breadcrumb stays in the bar (on the working screens the title moves into the main row).
+      > .module-action-content > :first-child {
+        position: static;
+        top: auto;
+        left: auto;
+        flex: 1 1 auto;
+        max-width: none;
+        height: 100%;
+      }
+    }
+  }
+}
+
+@media screen and (scripting: enabled) and (max-width: $narrow) {
+  #{$gate}#{$settings} #page > nav.app-fixed-navbar {
+    .mu-settings-back-root {
+      display: flex;
+      flex: 1 1 auto;
+      align-items: center;
+      order: -1;
+      min-width: 0;
+      height: var(--mu-shell-row);
+    }
+
+    // The menu button of the theme is not in the settings: the app navigator column keeps no room for it.
+    > .global-nav > .row > .app-navigator-container {
+      flex: 0 0 auto;
+    }
+
+    > .app-nav .module-action-bar {
+      height: var(--mu-shell-tools);
+      background-color: #f5f5f5;
+    }
+  }
+}

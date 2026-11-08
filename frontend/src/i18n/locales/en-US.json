@@ -125,5 +125,12 @@
   },
   "forms": {
     "saveFailed": "The save could not be confirmed. Your values are still in the form. Check the record before submitting again."
+  },
+  "settings": {
+    "back": "Back to CRM",
+    "backHint": "Return to the last page of the CRM",
+    "empty": "No matches found",
+    "emptyHint": "Change the search or clear it to see all settings",
+    "catalog": "Settings"
   }
 }

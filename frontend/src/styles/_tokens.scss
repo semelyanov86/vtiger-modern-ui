@@ -3,7 +3,7 @@
 // values come from the tokens stylesheet of the server (action=Tokens) and from the inline style the shell sets on <html>.
 //
 // Runtime tokens (changed by the settings, computed by ModernUI_Tokens_Model and checked by the Bootstrap guard):
-// primary, primary-strong, primary-hover, primary-soft, primary-check, bg, surface, font-scale, font-family and the
+// primary, primary-strong, primary-hover, primary-soft, primary-check, settings-primary, settings-link, bg, surface, font-scale, font-family and the
 // density sizes. Everything else is fixed by the reference. Values that differ from the cloud on purpose are the local
 // exceptions of docs/design.md §13.5 (keyboard focus ring, success text) — nothing else is darkened.
 @use 'sass:map';
@@ -15,6 +15,9 @@ $defaults: (
   primary-hover: #315dff,
   primary-soft: #e7f1ff,
   primary-check: #2e81ff,
+  // Accent of the system settings (layout v8 of the cloud, runtime, docs/design.md §13.11).
+  settings-primary: #448aff,
+  settings-link: #0070d2,
   link: #0065ff,
   // Surfaces (bg and surface are runtime)
   bg: #eff0f2,
@@ -122,6 +125,9 @@ $defaults: (
 $font-cloud: "Poppins, 'ModernUI Cyrillic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif";
 $font-inter: "'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif";
 $font-system: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif";
+// The system settings of the cloud are another family of screens (layout v8, docs/design.md §13.11): Open Sans in one
+// regular face for Latin, Cyrillic and umlauts alike (bold is synthesised from it, as the cloud does).
+$font-settings: "'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif";
 
 /// Keyboard focus ring of buttons, links, tabs and menu items. The cloud shows no focus at all on them (measured: no
 /// outline, no shadow on :focus-visible) — a local accessibility exception (docs/design.md §13.5), visible only on

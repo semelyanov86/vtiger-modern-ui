@@ -82,7 +82,8 @@ function presentForm(scope: IslandScope, form: HTMLFormElement, texts: FormTexts
       }
       // Hidden conditional blocks remain hidden; the presentation never calls show() or changes inline styles.
       if (getComputedStyle(block).display === 'none' && !block.classList.contains(FILTERED)) { continue }
-      const title = block.querySelector('.fieldBlockHeader')
+      // Some native forms (the user of the settings) title their blocks with a plain h4.
+      const title = block.querySelector('.fieldBlockHeader') ?? block.querySelector(':scope > h4, :scope > div > h4')
       if (title !== null) { next.push({ id: block.id, label: title.textContent.trim() }) }
     }
     if (next.length !== sections.value.length || next.some((item, index) => item.id !== sections.value[index]?.id || item.label !== sections.value[index]?.label)) {

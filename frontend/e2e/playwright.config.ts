@@ -15,6 +15,9 @@
  *              synthetic records MU07 and deletes them);
  * - special  — adapters of extensions, pages outside the CRM interface, printing, export, rich text editors, dashboard and
  *              calendar drag and drop (stage 08, both stands; synthetic events MU08 on the clean stand);
+ * - cloud-settings — the system settings in the cloud layout of the settings (stage 15, both stands): catalog, search,
+ *              navigation, inner pages, dialogs, languages, widths and recovery against v7; on the clean stand a restricted
+ *              user and real changes (role, user, field, picklist value, workflow MU15, deleted again);
  * - foundation — the visual foundation (stage 10): tokens of the server = preview, the cloud font and the pinned Cyrillic
  *              face, the states of buttons, fields, Select2, check boxes, rows, menus, tabs, dialogs, notifications, the
  *              settings editor, densities and 200 % against the measured cloud reference (both stands, read-only for the CRM);
@@ -57,7 +60,7 @@ export default defineConfig({
     { name: 'auth', testMatch: /auth\.setup\.ts$/ },
     { name: 'modernui', testMatch: /modernui\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'clean', testMatch: /(?:clean|access|extensions)\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
-    { name: 'settings', testMatch: /settings\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
+    { name: 'settings', testMatch: /(?:^|[\\/])settings\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'navigation', testMatch: /navigation\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'records', testMatch: /records\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'special', testMatch: /special\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
@@ -65,6 +68,7 @@ export default defineConfig({
     { name: 'layout', testMatch: /layout\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'cloud-records', testMatch: /cloud-records\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'cloud-forms', testMatch: /cloud-forms\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
+    { name: 'cloud-settings', testMatch: /cloud-settings\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'foundation', testMatch: /foundation\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'lists', testMatch: /lists\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'pairs', testMatch: /pairs\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },

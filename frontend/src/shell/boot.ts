@@ -18,6 +18,7 @@ import { detectPageLevel, hostReady } from '../adapters/v7/host'
 import { contextEntries, coveredBy, scanMenu, type ExtraLink } from '../adapters/v7/appMenu'
 import { startHeader } from '../adapters/v7/header'
 import { startLists } from '../adapters/v7/lists'
+import { crmReturnUrl, isSettingsPage, rememberCrmPage, startSettings } from '../adapters/v7/settings'
 import { pageContext } from '../adapters/v7/page'
 import { createThemeI18n } from '../i18n'
 import { createContainer, createScope, IslandRuntime, setReplaced } from '../boot/runtime'
@@ -29,6 +30,7 @@ import MegaMenu from './MegaMenu.vue'
 import FavoritesBar from './FavoritesBar.vue'
 import ContextNav from './ContextNav.vue'
 import Brand from './Brand.vue'
+import SettingsBack from './SettingsBack.vue'
 import { createFavorites, type FavoritesStore } from './nav/favorites'
 import { startRecordOverlay, supportsRecordOverlay } from '../record/overlay'
 import { presentRecord } from '../record/presentation'
@@ -58,8 +60,11 @@ let recordOverlay: ReturnType<typeof createScope> | null = null
 let header: ReturnType<typeof createScope> | null = null
 let lists: ReturnType<typeof createScope> | null = null
 let forms: ReturnType<typeof createScope> | null = null
+let settings: ReturnType<typeof createScope> | null = null
 
 function stopHeader(): void {
+  settings?.dispose()
+  settings = null
   forms?.dispose()
   forms = null
   lists?.dispose()
@@ -111,6 +116,17 @@ function registerIslands(data: Bootstrap, i18n: ReturnType<typeof createThemeI18
     create: () => createApp(SystemMenu, { bootstrap: data, onStandardView: teardown }).use(i18n),
   })
   registerNavigation(data, i18n, favorites)
+  if (isSettingsPage()) {
+    runtime.register({
+      id: 'settings-back',
+      // First in the main row of the header of the settings, where the menu button is on the working screens (V09).
+      place: () => {
+        const row = document.querySelector('#page > nav.app-fixed-navbar > .global-nav > .row')
+        return row === null ? null : { kind: 'insert', parent: row, before: row.firstChild, className: 'mu-settings-back-root' }
+      },
+      create: () => createApp(SettingsBack, { href: crmReturnUrl() }).use(i18n),
+    })
+  }
   const branding = data.branding
   if (branding.logoUrl !== null || branding.title !== null) {
     const brand = {
@@ -305,6 +321,9 @@ export async function boot(): Promise<void> {
         })
       }
       html.classList.add(READY_CLASS)
+      rememberCrmPage()
+      settings = createScope('settings')
+      startSettings(settings, { empty: i18n.global.t('settings.empty'), emptyHint: i18n.global.t('settings.emptyHint') })
       forms = createScope('forms')
       startForms(forms, {
         sections: i18n.global.t('record.sections'), search: i18n.global.t('record.search'), empty: i18n.global.t('record.empty'),

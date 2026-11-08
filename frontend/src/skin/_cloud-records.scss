@@ -82,6 +82,8 @@
     }
     strong { font-weight: 400; }
     .nav-tabs > li.active > a { color: tok(text); border-bottom-color: tok(primary); }
+    // Hover of an inactive tab: the text colour of the cloud tabs (docs/design.md §13.4, foundation reference).
+    .nav-tabs > li:not(.active) > a:hover { color: tok(text); }
     .tab-icon { display: inline-flex; align-items: center; order: -1; min-width: 16px; }
     .tab-icon i { font-size: 15px !important; }
     .tab-icon .content { display: none; }

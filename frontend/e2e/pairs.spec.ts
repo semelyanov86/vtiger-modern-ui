@@ -107,6 +107,21 @@ async function step(page: Page, name: string): Promise<void> {
     await expect(page.locator('.bootbox')).toBeVisible()
   } else if (name === 'inventory-items') {
     await page.locator('.mu-form-sections button').last().click()
+  } else if (name === 'settings-search' || name === 'settings-search-empty') {
+    // The native search of the settings reacts to keys (instaFilta): type, do not fill. The term with matches is the start
+    // of the label of the picklist editor in the language of this CRM (the cloud reference types "pick").
+    const label = (await page.locator('.settingsgroup a.menuItemLabel[href*="module=Picklist&"]').first().textContent() ?? '').trim()
+    const term = name === 'settings-search' ? label.slice(0, 4) : 'zzqq'
+    expect(term.length, 'a term of the search').toBe(4)
+    const search = page.locator('.settingsgroup #settingsMenuSearch')
+    await search.click()
+    await search.pressSequentially(term, { delay: 40 })
+    // Characters outside the keyboard layout (Cyrillic) are inserted without key events; a key up runs the search.
+    await search.press('End')
+    await expect(name === 'settings-search' ? page.locator('.settingsgroup a.menuItemLabel[data-instafilta-hide="false"]').first() : page.locator('.mu-settings-empty')).toBeVisible()
+  } else if (name === 'picklist-add') {
+    await page.locator('#addItem').click()
+    await expect(page.locator('.modal.in .modal-footer')).toBeVisible()
   } else {
     throw new Error(`unknown step ${name}`)
   }

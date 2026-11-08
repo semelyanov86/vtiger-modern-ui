@@ -75,6 +75,7 @@ task test:foundation # основа 10: токены сервера = предп
 task test:lists    # этап 12: облачная компоновка списка, фильтры, запросы/ID как v7, колонки/теги, RU/EN/DE, узкие экраны и права
 task test:cloud-records # этап 13: облачная карточка, поля/действия, inline, связи, история, ошибки и права; синтетические MU13
 task test:cloud-forms # этап 14: создание/правка/quick create, ошибки/повтор, custom CRUD, права и ширины; синтетические MU14
+task test:cloud-settings # этап 15: каталог/поиск/навигация/внутренние страницы настроек против v7, диалоги, языки, ширины; чистый стенд — реальные изменения MU15
 task visual:pairs  # снимки и замеры ModernUI по dev/visual/states.json в MU_VISUAL_DIR (dev — приватный каталог)
 task visual:compare # пары и таблица геометрии против закреплённого облачного эталона (MU_VISUAL_REFERENCE, приватный)
 task test:devcycle # правка → результат на dev-стенде (PHP, Smarty, словарь, CSS, Vue), всё откатывает

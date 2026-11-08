@@ -39,6 +39,7 @@
 @use 'cloud-lists';
 @use 'cloud-records';
 @use 'cloud-forms';
+@use 'cloud-settings';
 
 :root:not(.mu-off) {
   @each $name, $value in $defaults {

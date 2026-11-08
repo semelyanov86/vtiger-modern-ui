@@ -16,6 +16,9 @@ const DEFAULT_PRIMARY_STRONG = '#3978fe'
 const DEFAULT_PRIMARY_HOVER = '#315dff'
 const DEFAULT_PRIMARY_SOFT = '#e7f1ff'
 const DEFAULT_PRIMARY_CHECK = '#2e81ff'
+/** Accent of the system settings of the cloud (layout v8, docs/design.md §13.11): buttons/dialogs and links. */
+const DEFAULT_SETTINGS_PRIMARY = '#448aff'
+const DEFAULT_SETTINGS_LINK = '#0070d2'
 const HOVER_DARKEN = 0.08
 const SOFT_MIX = 0.12
 
@@ -81,6 +84,8 @@ export function tokensFor(appearance: Partial<Record<keyof AppearanceSettings, u
     'primary-hover': isDefault ? DEFAULT_PRIMARY_HOVER : darken(strong, HOVER_DARKEN),
     'primary-soft': isDefault ? DEFAULT_PRIMARY_SOFT : mixWithWhite(primary, SOFT_MIX),
     'primary-check': isDefault ? DEFAULT_PRIMARY_CHECK : strong,
+    'settings-primary': isDefault ? DEFAULT_SETTINGS_PRIMARY : strong,
+    'settings-link': isDefault ? DEFAULT_SETTINGS_LINK : strong,
     bg: background,
     surface,
     'font-scale': SCALE[fontScale],
