@@ -1,0 +1,619 @@
+{
+  "_doc": "Stage 16 (V10): the page of ModernUI in the settings and the personal preferences. The cloud has no page for this module, so the pairs compare the components the page is built of with the cloud components of the same role, measured on 2026-11-09 at 1440 x 1000: the frame and the title of a settings page of the cloud (layout v8, Configuration Editor), the record tabs and a secondary button of the record header, the toolbar of a list with its view selector (the scope bar), the cards, labels, fields, footer and Save of the edit window, the discard confirmation, the 'Personalize' editor of the menu with its 'Add modules' panel (groups column, active group, tiles, the Customize button, favourites tiles). Every ModernUI state refers to one cloud state; several ModernUI states share a page. Positions are compared only where the place is the same by construction (the frame, the title); otherwise sizes and computed styles. 'cloud' holds the selectors of the capture (Playwriter, Chrome of the user); measurements and images stay private. The active record tab of the stage 10 components draws its 3 px line as an inset shadow (the cloud: a 3 px bottom border, the same line) — its colour is checked by the foundation scenario, here size, weight and colour of the text. The secondary button of the cloud record header is the left part of a group (radius 4 0 0 4): its radius is compared with the Cancel of the cloud confirmation instead.",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "banner": 0,
+  "tolerance": {
+    "size": 2,
+    "position": 4
+  },
+  "states": [
+    {
+      "id": "V10-frame",
+      "reference": "V10-cloud-settings",
+      "screenshot": "V10-cloud-settings.png",
+      "module": "Accounts",
+      "url": "index.php?module=ModernUI&parent=Settings&view=Index",
+      "cloudUrl": "index.php?module=Vtiger&parent=Settings&view=ConfigEditorDetail",
+      "steps": [
+        "mu-tab:appearance"
+      ],
+      "elements": {
+        "bar": {
+          "ref": [
+            "bar"
+          ],
+          "cloud": ".module-action-content",
+          "theme": "#page > nav.app-fixed-navbar .module-action-bar",
+          "check": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "sidebar": {
+          "ref": [
+            "sidebar"
+          ],
+          "cloud": "#modnavigator",
+          "theme": "#modnavigator.settingsNav",
+          "check": [
+            "x",
+            "w"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "activeItem": {
+          "ref": [
+            "activeItem"
+          ],
+          "cloud": "#modnavigator .settingsgroup-menu-color",
+          "theme": "#modnavigator .settingsgroup-menu-color",
+          "check": [
+            "x",
+            "w"
+          ],
+          "styles": [
+            "bg",
+            "color",
+            "size"
+          ]
+        },
+        "pageTitle": {
+          "ref": [
+            "pageTitle"
+          ],
+          "cloud": "h4 (Configuration Editor)",
+          "theme": ".modernui-page__title",
+          "check": [
+            "x",
+            "y",
+            "h"
+          ],
+          "styles": [
+            "size",
+            "weight"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V10-tabs",
+      "reference": "V10-cloud-record",
+      "screenshot": "V10-cloud-record.png",
+      "module": "Accounts",
+      "url": "index.php?module=ModernUI&parent=Settings&view=Index",
+      "cloudUrl": "/view/list?module=Accounts (record over the list)",
+      "steps": [
+        "mu-tab:appearance"
+      ],
+      "elements": {
+        "tabsBar": {
+          "ref": [
+            "tabsBar"
+          ],
+          "cloud": "#relatedTabSidebar",
+          "theme": ".mu-editor__tabbar",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bBottom"
+          ]
+        },
+        "tabActive": {
+          "ref": [
+            "tabActive"
+          ],
+          "cloud": "#relation___summary__ .c-pointer",
+          "theme": ".mu-tabs__tab[data-state='active']",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "size",
+            "weight",
+            "color"
+          ]
+        },
+        "tab": {
+          "ref": [
+            "tab"
+          ],
+          "cloud": "#relation___details__ .c-pointer",
+          "theme": ".mu-tabs__tab[data-state='inactive']",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "size",
+            "color"
+          ]
+        },
+        "secondary": {
+          "ref": [
+            "headerBtnSecondary"
+          ],
+          "cloud": "#headerStatus button",
+          "theme": "[data-mu-footer] [data-mu-action='cancel']",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "color",
+            "size"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V10-scope",
+      "reference": "V10-cloud-list",
+      "screenshot": "V10-cloud-list.png",
+      "module": "Accounts",
+      "url": "index.php?module=ModernUI&parent=Settings&view=Index",
+      "cloudUrl": "/view/list?module=Accounts",
+      "steps": [
+        "mu-tab:appearance"
+      ],
+      "elements": {
+        "scopebar": {
+          "ref": [
+            "toolbar"
+          ],
+          "cloud": ".vds-bodyfixedheader",
+          "theme": ".mu-scopebar",
+          "check": [
+            "h"
+          ],
+          "styles": []
+        },
+        "scopeButton": {
+          "ref": [
+            "filterBtn"
+          ],
+          "cloud": "#defaultListFilter",
+          "theme": ".mu-scope-button",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "radius",
+            "size",
+            "weight"
+          ]
+        },
+        "page": {
+          "ref": [
+            "toolbar"
+          ],
+          "cloud": ".vds-bodyfixedheader",
+          "theme": ".mu-editor__body",
+          "check": [],
+          "styles": [
+            "bg"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V10-form",
+      "reference": "V10-cloud-edit",
+      "screenshot": "V10-cloud-edit.png",
+      "module": "Accounts",
+      "url": "index.php?module=ModernUI&parent=Settings&view=Index",
+      "cloudUrl": "/view/list?module=Accounts (edit window of a record)",
+      "steps": [
+        "mu-tab:appearance"
+      ],
+      "elements": {
+        "card": {
+          "ref": [
+            "blockCard"
+          ],
+          "cloud": "[id^=editView_] .rounded-6.shadow-sm",
+          "theme": "[data-mu-section='appearance'] .mu-card",
+          "check": [],
+          "styles": [
+            "bg",
+            "radius",
+            "shadow"
+          ]
+        },
+        "cardHeader": {
+          "ref": [
+            "blockHeaderText"
+          ],
+          "cloud": "[id^=editView_] [id^=editBlockHeader_] h5",
+          "theme": "[data-mu-section='appearance'] .mu-card__header",
+          "check": [
+            "h"
+          ],
+          "styles": []
+        },
+        "cardTitle": {
+          "ref": [
+            "blockHeaderText"
+          ],
+          "cloud": "[id^=editView_] [id^=editBlockHeader_] h5",
+          "theme": "[data-mu-section='appearance'] .mu-card__title",
+          "check": [],
+          "styles": [
+            "size",
+            "weight"
+          ]
+        },
+        "label": {
+          "ref": [
+            "fieldLabel"
+          ],
+          "cloud": "[id^=editView_] .deepDiveFieldLbl .label",
+          "theme": "[data-mu-key='appearance.density'] .mu-row__label > *",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "size",
+            "weight",
+            "color"
+          ]
+        },
+        "field": {
+          "ref": [
+            "input"
+          ],
+          "cloud": "[id^=editView_] .fieldEdit input.form-control",
+          "theme": "#mu-locale-default",
+          "check": [
+            "w",
+            "h"
+          ],
+          "styles": [
+            "radius",
+            "bg",
+            "size",
+            "color"
+          ]
+        },
+        "footer": {
+          "ref": [
+            "footer"
+          ],
+          "cloud": "[id^=editView_] .editViewFooter",
+          "theme": "[data-mu-footer]",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "save": {
+          "ref": [
+            "saveBtn"
+          ],
+          "cloud": "[id^=editView_] .editViewFooter .btn-primary",
+          "theme": "[data-mu-footer] [data-mu-action='save']",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "color",
+            "radius",
+            "size"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V10-menu",
+      "reference": "V10-cloud-personalize",
+      "screenshot": "V10-cloud-personalize.png",
+      "module": "Accounts",
+      "url": "index.php?module=ModernUI&parent=Settings&view=Index",
+      "cloudUrl": "/view/list?module=Accounts -> main menu -> Personalize",
+      "steps": [
+        "mu-tab:menu"
+      ],
+      "elements": {
+        "groupsCol": {
+          "ref": [
+            "appsCol"
+          ],
+          "cloud": "the column of the apps",
+          "theme": ".mu-menu-groups",
+          "check": [],
+          "styles": [
+            "bg"
+          ]
+        },
+        "groupsCaption": {
+          "ref": [
+            "appsCaption"
+          ],
+          "cloud": "'Apps'",
+          "theme": ".mu-menu-groups__caption",
+          "check": [],
+          "styles": [
+            "size",
+            "weight",
+            "color"
+          ]
+        },
+        "groupActive": {
+          "ref": [
+            "appActive"
+          ],
+          "cloud": "the active app",
+          "theme": ".mu-group-item--active .mu-group-item__button",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "bLeft",
+            "shadow"
+          ]
+        },
+        "groupActiveLabel": {
+          "ref": [
+            "appActiveLabel"
+          ],
+          "cloud": "the label of the active app",
+          "theme": ".mu-group-item--active .mu-group-item__label",
+          "check": [],
+          "styles": [
+            "size",
+            "weight",
+            "color"
+          ]
+        },
+        "group": {
+          "ref": [
+            "app"
+          ],
+          "cloud": "an app",
+          "theme": ".mu-group-item:not(.mu-group-item--active) .mu-group-item__button",
+          "check": [
+            "h"
+          ],
+          "styles": []
+        },
+        "groupLabel": {
+          "ref": [
+            "appLabel"
+          ],
+          "cloud": "the label of an app",
+          "theme": ".mu-group-item:not(.mu-group-item--active) .mu-group-item__label",
+          "check": [],
+          "styles": [
+            "size",
+            "weight",
+            "color"
+          ]
+        },
+        "tile": {
+          "ref": [
+            "itemTile"
+          ],
+          "cloud": "a module tile",
+          "theme": ".mu-group .mu-tile",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "radius"
+          ]
+        },
+        "tileLabel": {
+          "ref": [
+            "itemLabel"
+          ],
+          "cloud": "the label of a tile",
+          "theme": ".mu-group .mu-tile__label",
+          "check": [],
+          "styles": [
+            "size",
+            "color"
+          ]
+        },
+        "addButton": {
+          "ref": [
+            "customize"
+          ],
+          "cloud": "+ Customize",
+          "theme": "[data-mu-action='add-modules']",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "radius",
+            "size",
+            "color"
+          ]
+        },
+        "dialogPrimary": {
+          "ref": [
+            "update"
+          ],
+          "cloud": "Update",
+          "theme": "[data-mu-footer] [data-mu-action='save']",
+          "check": [],
+          "styles": [
+            "color",
+            "radius",
+            "size"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V10-picker",
+      "reference": "V10-cloud-picker",
+      "screenshot": "V10-cloud-picker.png",
+      "module": "Accounts",
+      "url": "index.php?module=ModernUI&parent=Settings&view=Index",
+      "cloudUrl": "Personalize -> + Customize",
+      "steps": [
+        "mu-tab:menu",
+        "mu-open-picker"
+      ],
+      "elements": {
+        "picker": {
+          "ref": [
+            "picker"
+          ],
+          "cloud": "the 'Add modules to' panel",
+          "theme": "[data-mu-panel='add-modules']",
+          "check": [],
+          "styles": [
+            "bg",
+            "radius",
+            "bTop",
+            "shadow"
+          ]
+        },
+        "pickerItem": {
+          "ref": [
+            "pickerItem"
+          ],
+          "cloud": "a module with its check box",
+          "theme": "[data-mu-panel='add-modules'] .mu-picker__item",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "radius"
+          ]
+        },
+        "pickerAdd": {
+          "ref": [
+            "pickerAdd"
+          ],
+          "cloud": "Add",
+          "theme": "[data-mu-action='add-picked']",
+          "check": [],
+          "styles": [
+            "radius",
+            "size"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V10-confirm",
+      "reference": "V10-cloud-confirm",
+      "screenshot": "V10-cloud-confirm.png",
+      "module": "Accounts",
+      "url": "index.php?module=ModernUI&parent=Settings&view=Index",
+      "cloudUrl": "edit window -> close with a change",
+      "steps": [
+        "mu-tab:menu",
+        "mu-open-confirm"
+      ],
+      "elements": {
+        "dialog": {
+          "ref": [
+            "content"
+          ],
+          "cloud": ".modal-content (Your changes will be lost)",
+          "theme": "[data-mu-dialog='confirm']",
+          "check": [
+            "w"
+          ],
+          "styles": [
+            "bg",
+            "radius",
+            "shadow"
+          ]
+        },
+        "ok": {
+          "ref": [
+            "okBtn"
+          ],
+          "cloud": ".modal-footer .btn-primary",
+          "theme": "[data-mu-dialog='confirm'] [data-mu-action='confirm-ok']",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "radius",
+            "size",
+            "color"
+          ]
+        },
+        "cancel": {
+          "ref": [
+            "cancelBtn"
+          ],
+          "cloud": ".modal-footer .btn-secondary",
+          "theme": "[data-mu-dialog='confirm'] [data-mu-action='confirm-cancel']",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "radius",
+            "size",
+            "color"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V10-prefs",
+      "reference": "V10-cloud-personalize",
+      "screenshot": "V10-cloud-personalize.png",
+      "module": "Accounts",
+      "url": "index.php?module=ModernUI&view=Preferences",
+      "cloudUrl": "Personalize: favourites",
+      "steps": [
+        "mu-prefs-favorite"
+      ],
+      "elements": {
+        "favCaption": {
+          "ref": [
+            "favCaption"
+          ],
+          "cloud": "'Favourites'",
+          "theme": ".mu-column__title--tiles",
+          "check": [],
+          "styles": [
+            "size",
+            "weight",
+            "color"
+          ]
+        },
+        "favorite": {
+          "ref": [
+            "favTile"
+          ],
+          "cloud": "a favourite tile",
+          "theme": "[data-mu-list='favorites'] > li",
+          "check": [
+            "w",
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "radius",
+            "pad"
+          ]
+        }
+      }
+    }
+  ]
+}

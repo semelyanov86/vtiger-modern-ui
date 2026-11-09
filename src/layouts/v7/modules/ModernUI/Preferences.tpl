@@ -3,23 +3,25 @@
  * A server form without JavaScript: the user can always switch the new interface off for themselves.
  *}
 {strip}
-<div class="modernui-page" lang="{$MU_LOCALE|escape}">
-	<div class="col-lg-8 col-md-10 col-sm-12 col-xs-12">
-		{if $MU_MESSAGE}
-			<div class="alert alert-{$MU_MESSAGE.kind}" role="status">{mu_t key=$MU_MESSAGE.key}</div>
-		{/if}
-		{if !$MU_READY}
-			<div class="alert alert-warning" role="alert">{mu_t key='LBL_NOT_READY'}</div>
-		{else}
+<div class="modernui-page modernui-page--prefs" lang="{$MU_LOCALE|escape}">
+		<div class="modernui-page__messages">
+			{if $MU_MESSAGE}
+				<div class="alert alert-{$MU_MESSAGE.kind}" role="status">{mu_t key=$MU_MESSAGE.key}</div>
+			{/if}
+			{if !$MU_READY}
+				<div class="alert alert-warning" role="alert">{mu_t key='LBL_NOT_READY'}</div>
+			{/if}
+		</div>
+		{if $MU_READY}
 			{if $MU_EDITOR}
 				<div class="modernui-preferences-editor" data-mu-root="preferences-editor" data-mu-build="{$MU_BUILD|escape}">
-					<p class="text-muted">{mu_t key='LBL_EDITOR_LOADING'}</p>
+					<p class="text-muted modernui-classic-link">{mu_t key='LBL_EDITOR_LOADING'}</p>
 				</div>
-				<p class="help-block" data-mu-fallback-link="preferences"><a href="index.php?module=ModernUI&amp;view=Preferences&amp;editor=off">{mu_t key='LBL_CLASSIC_PAGE'}</a></p>
+				<p class="help-block modernui-classic-link" data-mu-fallback-link="preferences"><a href="index.php?module=ModernUI&amp;view=Preferences&amp;editor=off">{mu_t key='LBL_CLASSIC_PAGE'}</a></p>
 			{elseif $MU_EDITOR_OFF}
-				<p><a href="index.php?module=ModernUI&amp;view=Preferences">{mu_t key='LBL_EDITOR_PAGE'}</a></p>
+				<p class="modernui-classic-link"><a href="index.php?module=ModernUI&amp;view=Preferences">{mu_t key='LBL_EDITOR_PAGE'}</a></p>
 			{/if}
-			<div data-mu-fallback="preferences">
+			<div class="modernui-server" data-mu-fallback="preferences">
 			<h4>{mu_t key='LBL_STATUS'}</h4>
 			<p>
 				{if $MU_ACTIVE}
@@ -119,7 +121,7 @@
 			{/if}
 			</div>
 		{/if}
-		<hr>
+		<div class="modernui-server modernui-server--safe">
 		<h4>{mu_t key='LBL_SAFE_MODE_TITLE'}</h4>
 		{if $MU_SAFE_MODE}
 			<p>{mu_t key='LBL_SAFE_MODE_ON'}</p>
@@ -128,6 +130,7 @@
 			<p>{mu_t key='LBL_SAFE_MODE_HELP'}</p>
 			<p><a class="btn btn-default" href="index.php?modernui=off">{mu_t key='LBL_SAFE_MODE_ENTER'}</a></p>
 		{/if}
+		</div>
 		{foreach item=CSS from=$MU_ASSETS.css}
 			<link rel="stylesheet" href="{$CSS|escape}">
 		{/foreach}
@@ -137,6 +140,5 @@
 		{if $MU_EDITOR && $MU_ASSETS.script}
 			<script type="module" src="{$MU_ASSETS.script|escape}"></script>
 		{/if}
-	</div>
 </div>
 {/strip}

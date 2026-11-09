@@ -1,51 +1,280 @@
-// Styles of the settings editor and the preferences editor (docs/design.md §4): only inside .mu-root containers of
-// the module's own pages and the overlay root, px units, tokens of the theme.
+// Styles of the page of ModernUI in the settings and of the personal preferences (docs/design.md §13.12): the parts of
+// the working family of the cloud measured on stage 10 (cards and field rows of the form V07, the toolbar of the list
+// with its view selector, record tabs, buttons, fields, check boxes, menus, dialogs) and the "Personalize" editor of
+// the cloud for the menu. Only inside .mu-root containers of the module's own pages, the overlay root and the server
+// template of the page (.modernui-page); px units, tokens of the theme.
 @use '../styles/tokens' as *;
 @use '../styles/components' as *;
 
-.mu-root {
-  .mu-editor {
-    max-width: 1200px;
-    margin: 0 0 16px;
-    color: tok(text);
+// ---- The server page around the editor (Index.tpl / Preferences.tpl), with and without JavaScript ----
+.modernui-page {
+  // The content of the page is the working family of the cloud (the frame of the settings is Open Sans).
+  --mu-font-cloud: #{$font-cloud};
+
+  color: tok(text);
+  font-family: tok(font-family);
+  font-size: fs(13);
+  line-height: 1.5;
+}
+
+.modernui-page__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  min-height: 44px;
+  padding: 4px 16px;
+  background: tok(surface);
+}
+
+.modernui-page__title {
+  margin: 0;
+  color: tok(text);
+  font-family: tok(font-family);
+  font-size: fs(16);
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.modernui-page__tools {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px 16px;
+  min-width: 0;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.modernui-page__messages {
+  padding: 0 16px;
+
+  &:empty {
+    display: none;
   }
 
-  .mu-editor__header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px 16px;
-    margin-bottom: 12px;
+  .alert {
+    margin: 8px 0;
   }
+}
 
-  .mu-editor__title {
-    margin: 0;
+// The server part: on its own (no JavaScript, "&editor=off", the editor failed) and inside "Service" of the editor.
+.modernui-server {
+  padding: 8px 16px 24px;
+
+  h4,
+  h5 {
+    margin: 16px 0 8px;
     color: tok(text);
-    font-size: fs(19.5);
+    font-family: tok(font-family);
+    font-size: fs(15);
     font-weight: 500;
-    line-height: 1.3;
   }
 
-  .mu-editor__scope {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px 16px;
-    margin: 12px 0;
-    padding: 12px 16px;
-    border: 1px solid tok(border);
-    border-radius: tok(radius-md);
-    background: tok(surface-subtle);
+  > h4:first-child,
+  > h5:first-child {
+    margin-top: 0;
+  }
 
-    .mu-help {
-      flex: 1 1 280px;
-      margin: 0;
+  p {
+    margin: 0 0 8px;
+  }
+
+  .table {
+    max-width: 960px;
+    margin: 0 0 16px;
+    border-color: tok(divider);
+    background: tok(surface);
+
+    > tbody > tr > th,
+    > tbody > tr > td {
+      padding: 8px 12px;
+      border-color: tok(divider);
+      font-size: fs(13);
+      font-weight: 400;
+      vertical-align: middle;
+    }
+
+    > tbody > tr > th {
+      width: 40%;
+      color: tok(text-label);
     }
   }
 
+  .btn {
+    @include button-base;
+    @include button-secondary;
+  }
+
+  .btn-success,
+  .btn-primary {
+    @include button-primary;
+  }
+
+  .btn-danger {
+    @include button-danger;
+  }
+
+  .modernui-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .modernui-inline-form {
+    display: inline-block;
+    margin: 0;
+  }
+
+  code {
+    padding: 1px 4px;
+    border-radius: tok(radius-sm);
+    background: tok(surface-readonly);
+    color: tok(text-2);
+  }
+}
+
+.mu-server-host .modernui-server {
+  padding: 16px;
+
+  h5 strong {
+    font-weight: 500;
+  }
+
+  .modernui-status {
+    max-width: none;
+  }
+}
+
+.modernui-classic-link {
+  margin: 8px 16px;
+}
+
+// The page of the personal preferences: no sidebar of v7 (its content area kept 283 px for one), a column of a readable
+// width, the full title in the header (v7 cuts module titles at 160 px).
+#modernui-preferences-page.content-area {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.modernui-page--prefs {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+body:has(#modernui-preferences-page) .module-action-content h4.module-title {
+  max-width: none;
+}
+
+.mu-root {
+  // ---- Frame of the editor: tabs, the grey page with the scope bar and cards, the footer kept at the bottom ----
+  .mu-editor {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - var(--mu-editor-top, 144px));
+    margin: 0;
+    color: tok(text);
+  }
+
+  .mu-editor--loading {
+    padding: 16px;
+  }
+
+  .mu-editor__tabbar {
+    padding: 0 16px;
+    border-bottom: 1px solid tok(divider);
+    background: tok(surface);
+  }
+
+  .mu-editor__tabs {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+  }
+
+  .mu-editor__body {
+    flex: 1 1 auto;
+    padding: 0 16px 16px;
+    background: tok(bg);
+  }
+
   .mu-editor__panel {
-    padding: 16px 0;
+    &:focus-visible {
+      outline: none;
+    }
+
+    &[hidden],
+    &[data-state='inactive'] {
+      display: none;
+    }
+  }
+
+  .mu-editor__notice {
+    margin: 0 0 16px;
+  }
+
+  .mu-editor__footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    min-height: 62px;
+    padding: 12px 16px;
+    border-top: 1px solid tok(border);
+    background: tok(surface);
+  }
+
+  // One line: the state shortens with an ellipsis rather than pushing the actions to rows of their own.
+  .mu-editor__state {
+    flex: 1 1 0;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    font-size: fs(13);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mu-editor__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+
+    // The buttons of the footer as the main action of the cloud form (36.5 px; the secondary of the record header, 36).
+    .mu-btn {
+      height: auto;
+      min-height: 36.5px;
+    }
+  }
+
+  // ---- Header tools (teleported next to the title of the server page) ----
+  .mu-page-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px 16px;
+    font-family: tok(font-family);
+    font-size: fs(13);
+  }
+
+  .mu-page-tools__link {
+    color: tok(link);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
 
     &:focus-visible {
       outline: none;
@@ -53,40 +282,50 @@
     }
   }
 
-  .mu-editor__toolbar {
-    position: sticky;
-    bottom: 0;
-    z-index: 2;
-    display: flex;
-    flex-wrap: wrap;
+  .mu-page-tools__language {
+    display: inline-flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 8px 16px;
-    margin-top: 8px;
-    padding: 12px 16px;
-    border: 1px solid tok(border);
-    border-radius: tok(radius-md);
-    background: tok(surface);
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
-  }
-
-  .mu-editor__state {
-    flex: 1 1 260px;
-    margin: 0;
-  }
-
-  .mu-editor__actions {
-    display: flex;
-    flex-wrap: wrap;
     gap: 8px;
+    margin: 0;
+    color: tok(text-label);
+    font-weight: 400;
   }
 
-  // ---- Tabs ----
+  .mu-status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 12px;
+    background: tok(btn-secondary);
+    color: tok(text-2);
+    font-size: fs(12);
+    white-space: nowrap;
+
+    &[data-mu-mode='pilot'] {
+      background: tok(warning-soft);
+      color: tok(warning);
+    }
+
+    &[data-mu-mode='all'] {
+      background: tok(success-soft);
+      color: tok(success);
+    }
+  }
+
+  .mu-status-chip__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  // ---- Tabs (record tabs of the cloud, stage 10) ----
   .mu-tabs {
     display: flex;
     flex-wrap: wrap;
     gap: 0 4px;
-    border-bottom: 1px solid tok(border);
   }
 
   .mu-tabs__tab {
@@ -95,7 +334,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    min-height: 40px;
+    min-height: 52px;
     margin-bottom: -1px;
     padding: 0 12px;
     cursor: pointer;
@@ -106,7 +345,12 @@
 
     &:focus-visible {
       outline: none;
+      @include focus-ring(true);
     }
+  }
+
+  .mu-tabs__tab--service {
+    margin-left: auto;
   }
 
   .mu-tabs__dot {
@@ -117,34 +361,217 @@
     background: tok(warning);
   }
 
-  // ---- Form controls ----
+  // ---- Scope bar: the toolbar of the cloud list with its view selector ----
+  .mu-scopebar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    min-height: 52px;
+    padding: 8px 0;
+  }
+
+  .mu-scopebar__label {
+    color: tok(text-label);
+    font-size: fs(13);
+  }
+
+  .mu-scopebar__text {
+    flex: 1 1 320px;
+    min-width: 0;
+    margin: 0;
+    color: tok(text-2);
+    font-size: fs(12);
+    line-height: 1.5;
+  }
+
+  .mu-scopebar__inherit {
+    flex: none;
+    font-size: fs(12);
+  }
+
+  .mu-scopebar__reset {
+    flex: none;
+    margin: 0 0 0 auto;
+  }
+
+  .mu-scope-button {
+    @include button-base;
+    @include button-toolbar;
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 8px;
+    max-width: 360px;
+    height: 36px;
+    padding: 0 12px;
+    color: tok(text);
+    cursor: pointer;
+  }
+
+  .mu-scope-button__text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // ---- Sections and cards (the blocks of the cloud form V07) ----
   .mu-section {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
   }
 
-  .mu-section__heading {
-    margin: 12px 0 4px;
-    color: tok(text);
-    font-size: fs(15);
-    font-weight: 600;
+  .mu-section__intro {
+    margin: 0;
+    color: tok(text-2);
+    font-size: fs(12);
   }
 
-  .mu-subsection {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding-top: 4px;
-  }
-
-  .mu-grid {
+  .mu-section--aside {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 16px 24px;
+    grid-template-columns: minmax(0, 1fr) 320px;
     align-items: start;
   }
 
+  .mu-section__main {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  .mu-section__aside {
+    position: sticky;
+    top: var(--mu-editor-sticky, 112px);
+    min-width: 0;
+  }
+
+  .mu-card {
+    min-width: 0;
+    border-radius: tok(radius-md);
+    background: tok(surface);
+    box-shadow: tok(shadow-block);
+  }
+
+  .mu-card__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    min-height: 51px;
+    padding: 8px 16px;
+  }
+
+  .mu-card__heading {
+    min-width: 0;
+  }
+
+  .mu-card__title {
+    margin: 0;
+    color: tok(text);
+    font-family: tok(font-family);
+    font-size: fs(16);
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  .mu-card__subtitle {
+    margin: 0;
+    color: tok(text-2);
+    font-size: fs(12);
+  }
+
+  .mu-card__tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mu-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0 16px 16px;
+  }
+
+  .mu-card__body--rows {
+    gap: 0;
+  }
+
+  // ---- Field rows: the label on the left (right-aligned, as the cloud form), the control on the right ----
+  .mu-row {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 4px 24px;
+    padding: 8px 0;
+    border-top: 1px solid tok(divider);
+
+    &:first-child {
+      border-top: 0;
+    }
+  }
+
+  .mu-row--stacked {
+    grid-template-columns: minmax(0, 1fr);
+    border-top: 0;
+    padding-top: 0;
+
+    .mu-row__label {
+      display: none;
+    }
+  }
+
+  .mu-row__label {
+    padding-top: 8px;
+    color: tok(text);
+    font-size: fs(13);
+    line-height: 19.5px;
+    text-align: right;
+    overflow-wrap: anywhere;
+
+    label {
+      margin: 0;
+      font-weight: 400;
+    }
+  }
+
+  .mu-row__control {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    min-width: 0;
+    padding-top: 0;
+
+    > * {
+      max-width: 100%;
+    }
+  }
+
+  .mu-row--stacked .mu-row__control {
+    align-items: stretch;
+  }
+
+  .mu-row__origin {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    margin: 0;
+    color: tok(text-label);
+    font-size: fs(12);
+    line-height: 1.5;
+
+    .mu-link-btn {
+      margin: 0;
+    }
+  }
+
+  // ---- Form controls ----
   .mu-field {
     display: flex;
     flex-direction: column;
@@ -152,7 +579,16 @@
     min-width: 0;
   }
 
-  .mu-field__label {
+  // Captions of a group of tiles: "Favourites" / "Apps" of "Personalize" (14 px regular).
+  .mu-column__title.mu-column__title--tiles {
+    margin: 0;
+    color: tok(text);
+    font-size: fs(14);
+    font-weight: 400;
+  }
+
+  .mu-field__label,
+  .mu-column__title {
     margin: 0;
     padding: 0;
     color: tok(text);
@@ -179,11 +615,19 @@
     align-items: center;
     gap: 8px;
     max-width: 100%;
+    margin: 0;
 
     .mu-select {
-      flex: 1 1 160px;
+      flex: 1 1 200px;
       min-width: 0;
     }
+  }
+
+  .mu-inline-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
   }
 
   // Tables scroll inside their own box on narrow screens; the page itself never scrolls sideways.
@@ -218,31 +662,35 @@
     padding-right: 4px;
   }
 
+  .mu-select--field {
+    width: 317px;
+  }
+
   .mu-select--small {
-    height: 28px;
+    height: 30px;
+    padding: 0 4px 0 8px;
     font-size: fs(12);
   }
 
   .mu-choice {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
     min-width: 0;
     margin: 0;
     padding: 0;
     border: 0;
-
-    &:disabled {
-      opacity: 0.75;
-    }
   }
 
-  .mu-check {
+  .mu-check,
+  .mu-switch {
     display: inline-flex;
     align-items: flex-start;
     gap: 8px;
     margin: 0;
+    font-size: fs(13);
     font-weight: 400;
+    line-height: 19.5px;
     cursor: pointer;
 
     input[type='checkbox'] {
@@ -258,24 +706,230 @@
     }
   }
 
-  .mu-check--block {
+  .mu-check--block,
+  .mu-switch--block {
     display: flex;
   }
 
-  .mu-scoped {
+  .mu-radios {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
+    padding-top: 8px;
+  }
+
+  .mu-check-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px 24px;
+    width: 100%;
+    padding-top: 8px;
+  }
+
+  // Segmented choice (density, text size): one 36 px row of options, the chosen one in the soft accent.
+  .mu-segmented {
+    display: inline-flex;
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+
+  .mu-segmented__item {
+    position: relative;
+    margin: 0 0 0 -1px;
+    font-weight: 400;
+    cursor: pointer;
+
+    &:first-child {
+      margin-left: 0;
+    }
+
+    // The native radio covers its option (invisible): clicks, keys and the accessible name stay those of the input.
+    input {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      height: tok(input-height);
+      padding: 0 14px;
+      border: 1px solid tok(border-input);
+      background: tok(surface);
+      color: tok(text);
+      font-size: fs(13);
+      white-space: nowrap;
+    }
+
+    &:first-child span {
+      border-radius: tok(radius-sm) 0 0 tok(radius-sm);
+    }
+
+    &:last-child span {
+      border-radius: 0 tok(radius-sm) tok(radius-sm) 0;
+    }
+
+    input:checked + span {
+      position: relative;
+      z-index: 1;
+      border-color: tok(primary-strong);
+      background: tok(primary-soft);
+    }
+
+    input:focus-visible + span {
+      position: relative;
+      z-index: 2;
+      @include focus-ring;
+    }
+  }
+
+  // Large radio options (the mode of the theme).
+  .mu-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+
+  .mu-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0;
+    padding: 12px 16px;
+    border: 1px solid tok(border-input);
+    border-radius: tok(radius-md);
+    background: tok(surface);
+    font-weight: 400;
+    cursor: pointer;
+
+    input {
+      @include radio(18px);
+      flex: none;
+      margin: 1px 0 0;
+    }
+
+    &:hover {
+      border-color: tok(border-check-hover);
+    }
+  }
+
+  .mu-option--checked {
+    border-color: tok(primary-strong);
+    background: tok(primary-soft);
+
+    &:hover {
+      border-color: tok(primary-strong);
+    }
+  }
+
+  .mu-option__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    strong {
+      color: tok(text);
+      font-weight: 600;
+    }
+
+    span {
+      color: tok(text-2);
+      font-size: fs(12);
+    }
+  }
+
+  .mu-columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px 32px;
+  }
+
+  .mu-column {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
     min-width: 0;
   }
 
-  .mu-scoped--inherited > :not(.mu-scoped__toggle) {
-    opacity: 0.7;
+  // Chips (pilot users and roles): the 36 px tiles of the cloud "Personalize".
+  .mu-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
-  .mu-scoped__toggle {
-    color: tok(text-2);
-    font-size: fs(12);
+  .mu-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    height: 36px;
+    padding: 0 6px 0 12px;
+    border-radius: tok(radius-sm);
+    background: tok(surface-subtle);
+    color: tok(text);
+  }
+
+  .mu-chip__label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mu-chip__remove,
+  .mu-favorite__remove {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: tok(radius-sm);
+    background: transparent;
+    color: tok(text);
+    cursor: pointer;
+
+    &:hover {
+      color: tok(danger);
+    }
+
+    &:focus-visible {
+      outline: none;
+      @include focus-ring;
+    }
+  }
+
+  .mu-list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mu-list__row {
+    display: flex;
+    align-items: center;
+    gap: 8px 16px;
+    min-height: 40px;
+    border-top: 1px solid tok(divider);
+
+    &:first-child {
+      border-top: 0;
+    }
   }
 
   // ---- Buttons ----
@@ -312,9 +966,50 @@
     @include button-danger;
   }
 
+  // The main action of the footer as the Save of the cloud form (37 px).
+  .mu-btn--save {
+    height: auto;
+    min-height: 37px;
+    padding: 7.5px 16px;
+  }
+
+  .mu-btn--quiet {
+    @include button-toolbar;
+    color: tok(text-2);
+
+    &:hover:not(:disabled) {
+      color: tok(text);
+    }
+  }
+
+  .mu-btn--toolbar {
+    @include button-toolbar;
+  }
+
+  .mu-btn--danger-text {
+    color: tok(danger);
+
+    &:hover:not(:disabled),
+    &:focus:not(:disabled) {
+      color: tok(danger);
+    }
+  }
+
   .mu-btn--small {
-    height: 28px;
-    padding: 0 8px;
+    height: 30px;
+    padding: 0 10px;
+    font-size: fs(12);
+  }
+
+  .mu-btn--block {
+    width: 100%;
+  }
+
+  // "+ Customize" of the cloud "Personalize": the small secondary button, 32 px, 12 px text, radius 3.2 px.
+  .mu-btn--add {
+    height: 32px;
+    min-height: 32px;
+    border-radius: 3.2px;
     font-size: fs(12);
   }
 
@@ -353,12 +1048,16 @@
     align-items: center;
     gap: 4px;
     margin: 4px 0 0;
-    padding: 2px 4px;
+    padding: 0;
     border: 0;
     background: transparent;
     color: tok(link);
     font-size: fs(12);
     cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
 
     &:focus-visible {
       outline: none;
@@ -382,17 +1081,18 @@
     }
   }
 
-  // ---- Notes, texts, badges ----
+  // ---- Notes, texts, badges, empty states ----
   .mu-note {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 8px 12px;
     margin: 0;
-    padding: 8px 12px;
+    padding: 10px 12px;
     border-left: 3px solid tok(border-input);
     border-radius: tok(radius-sm);
     background: tok(surface-subtle);
+    font-size: fs(13);
   }
 
   .mu-note--info {
@@ -403,6 +1103,12 @@
   .mu-note--warning {
     border-left-color: tok(warning);
     background: tok(warning-soft);
+  }
+
+  .mu-note__actions {
+    display: inline-flex;
+    gap: 8px;
+    margin-left: auto;
   }
 
   .mu-text-success {
@@ -426,6 +1132,7 @@
     display: inline-flex;
     flex: none;
     align-items: center;
+    gap: 3px;
     height: 20px;
     padding: 0 6px;
     background: tok(surface-readonly);
@@ -435,9 +1142,24 @@
     white-space: nowrap;
   }
 
+  .mu-badge--info {
+    background: tok(primary-soft);
+    color: tok(text);
+  }
+
   .mu-badge--warning {
     background: tok(warning-soft);
     color: tok(warning);
+  }
+
+  .mu-empty {
+    margin: 0;
+    padding: 16px;
+    border: 1px dashed tok(border);
+    border-radius: tok(radius-md);
+    color: tok(text-2);
+    font-size: fs(12);
+    text-align: center;
   }
 
   .mu-visually-hidden {
@@ -472,7 +1194,7 @@
   }
 
   .mu-color-field__text {
-    width: 110px;
+    width: 120px;
     font-family: monospace;
   }
 
@@ -489,6 +1211,8 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
+    width: 100%;
+    max-width: 520px;
     min-width: 0;
     margin: 0;
     padding: 0;
@@ -558,13 +1282,13 @@
     font-size: fs(12);
   }
 
-  // ---- Logo, preview ----
+  // ---- Logo ----
   .mu-logo {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
-    padding-left: 24px;
+    padding-left: 26px;
   }
 
   .mu-logo__preview {
@@ -575,36 +1299,168 @@
     background: tok(surface);
   }
 
-  .mu-preview {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 16px;
+  // ---- Preview of the appearance: a small working screen, in view while the form scrolls ----
+  .mu-preview__frame {
+    margin: 0 16px;
+    overflow: hidden;
     border: 1px solid tok(border);
     border-radius: tok(radius-md);
     background: tok(bg);
   }
 
-  .mu-preview__bar {
+  .mu-preview__topbar {
     display: flex;
-    flex-wrap: wrap;
+    align-items: center;
     gap: 8px;
+    height: 40px;
+    padding: 0 10px;
+    background: tok(surface);
+    box-shadow: tok(shadow-header);
   }
 
-  .mu-preview__table,
+  .mu-preview__menu {
+    width: 24px;
+    height: 24px;
+    border-radius: tok(radius-sm);
+    background: tok(primary-strong);
+  }
+
+  .mu-preview__logo {
+    max-width: 90px;
+    max-height: 22px;
+  }
+
+  .mu-preview__brand {
+    min-width: 0;
+    overflow: hidden;
+    font-size: fs(12);
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mu-preview__search {
+    margin-left: auto;
+    color: tok(text-heading);
+  }
+
+  .mu-preview__page {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .mu-preview__tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid tok(divider);
+    background: tok(surface);
+  }
+
+  .mu-preview__tab {
+    @include tab;
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 10px;
+  }
+
+  .mu-preview__tab--active {
+    @include tab-active;
+  }
+
+  .mu-preview__toolbar {
+    display: flex;
+    gap: 8px;
+
+    .mu-btn {
+      cursor: default;
+    }
+  }
+
+  .mu-preview__input {
+    display: flex;
+    align-items: center;
+    color: tok(text-2);
+  }
+
+  .mu-preview__table {
+    overflow: hidden;
+    border-radius: tok(radius-md);
+    background: tok(surface);
+    font-size: fs(12);
+  }
+
+  .mu-preview__head,
+  .mu-preview__row {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr) 80px;
+    gap: 8px;
+    align-items: center;
+    padding: 0 10px;
+
+    span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .mu-preview__head {
+    grid-template-columns: minmax(0, 1fr) 80px;
+    height: 36px;
+    padding-left: 36px;
+    border-bottom: 1px solid tok(divider);
+    color: tok(text-heading);
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .mu-preview__row {
+    height: tok(row-height);
+    border-bottom: 1px solid tok(divider);
+    color: tok(text-body);
+  }
+
+  .mu-preview__row--selected {
+    background: tok(primary-soft);
+  }
+
+  .mu-preview__check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    background: tok(primary-check);
+    color: #ffffff;
+  }
+
+  .mu-preview__check--off {
+    border: 1px solid tok(border-check);
+    background: tok(surface);
+  }
+
+  .mu-preview__note {
+    padding: 12px 16px 16px;
+  }
+
+  // ---- Tables ----
   .mu-table {
     width: 100%;
     border-collapse: collapse;
-    border-radius: tok(radius-md);
     background: tok(surface);
 
     th {
-      height: tok(table-head-height);
+      height: 44px;
       padding: 0 tok(cell-padding);
       border-bottom: 1px solid tok(divider);
       color: tok(text-heading);
       font-size: fs(13);
-      font-weight: 600;
+      font-weight: 700;
       text-align: left;
     }
 
@@ -617,44 +1473,32 @@
       overflow-wrap: anywhere;
     }
 
+    tbody tr:hover td {
+      background: tok(surface-subtle);
+    }
+
+    .mu-input {
+      width: 100%;
+    }
+
     caption {
       padding: 0 0 6px;
       text-align: left;
     }
   }
 
-  .mu-preview__table tbody tr:hover td {
-    background: tok(primary-soft);
-  }
-
   .mu-table__actions {
     white-space: nowrap;
     text-align: right;
+
+    > * + * {
+      margin-left: 4px;
+    }
   }
 
-  // ---- Lists ----
-  .mu-plain-list {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-
-    > li {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 6px 8px;
-      min-height: 32px;
-      padding: 2px 6px;
-      border-radius: tok(radius-sm);
-
-      &:focus-visible {
-        outline: none;
-        @include focus-ring;
-      }
-    }
+  .mu-table__empty {
+    color: tok(text-2);
+    text-align: center;
   }
 
   .mu-item__label {
@@ -665,147 +1509,404 @@
     white-space: nowrap;
   }
 
-  // ---- Menu editor ----
+  // ---- Menu editor: the composition of "Personalize" of the cloud ----
+  .mu-menu-card__intro,
+  .mu-menu-card__note,
+  .mu-menu-card__error {
+    margin: 0 16px 12px;
+  }
+
+  .mu-search {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+    font-weight: 400;
+
+    > svg {
+      position: absolute;
+      left: 12px;
+      color: tok(text-label);
+      pointer-events: none;
+    }
+
+    .mu-input {
+      width: 240px;
+      padding-left: 34px;
+    }
+  }
+
   .mu-menu-editor {
     display: grid;
-    grid-template-columns: minmax(0, 3fr) minmax(260px, 2fr);
-    gap: 24px;
-    align-items: start;
+    grid-template-columns: 240px minmax(0, 1fr);
+    min-height: 420px;
+    border-top: 1px solid tok(divider);
   }
 
-  .mu-menu-editor__tree {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    min-width: 0;
-  }
-
-  .mu-menu-editor__preview {
-    position: sticky;
-    top: 70px;
+  .mu-menu-groups {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    min-width: 0;
-    padding: 12px;
-    border: 1px solid tok(border);
-    border-radius: tok(radius-md);
+    padding: 8px 0 16px;
+    border-bottom-left-radius: tok(radius-md);
     background: tok(menu-bg);
   }
 
-  .mu-menu-editor__preview-head {
+  .mu-menu-groups__caption {
+    margin: 0;
+    padding: 8px 16px 0;
+    color: tok(text);
+    font-size: fs(14);
+  }
+
+  .mu-menu-groups__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mu-menu-groups__list--other {
+    margin-top: 4px;
+    padding-top: 8px;
+    border-top: 1px solid tok(border);
+  }
+
+  .mu-menu-groups > .mu-btn--block {
+    width: auto;
+    margin: 0 12px;
+  }
+
+  .mu-group-item {
+    position: relative;
+  }
+
+  .mu-group-item__button {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
     gap: 8px;
+    width: 100%;
+    height: 40px;
+    padding: 0 12px 0 8px;
+    border: 0;
+    border-left: 4px solid transparent;
+    background: transparent;
+    color: tok(text-2);
+    font-size: fs(13);
+    text-align: left;
+    cursor: pointer;
 
-    .mu-section__heading {
-      margin: 0;
+    &:hover {
+      color: tok(text);
     }
-  }
-
-  .mu-menu-editor__preview-body {
-    max-height: 60vh;
-    overflow: auto;
-
-    &[aria-busy='true'] {
-      opacity: 0.6;
-    }
-  }
-
-  .mu-groups {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .mu-group {
-    padding: 8px;
-    border: 1px solid tok(border);
-    border-radius: tok(radius-md);
-    background: tok(surface);
-    box-shadow: tok(shadow-block);
-  }
-
-  .mu-group__header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px 8px;
-    min-height: 36px;
-    padding: 2px 4px;
-    border-radius: tok(radius-sm);
-    font-weight: 600;
 
     &:focus-visible {
       outline: none;
-      @include focus-ring;
+      @include focus-ring(true);
     }
   }
 
-  .mu-group__label {
-    flex: 1 1 120px;
+  .mu-group-item--active .mu-group-item__button {
+    border-left-color: tok(primary-strong);
+    background: tok(surface);
+    box-shadow: 0 2px 10px rgba(16, 30, 54, 0.15);
+    color: tok(text);
+    font-weight: 500;
+  }
+
+  .mu-group-item__drag {
+    margin-left: -4px;
+    opacity: 0;
+  }
+
+  .mu-group-item__button:hover .mu-group-item__drag,
+  .mu-group-item__button:focus-visible .mu-group-item__drag {
+    opacity: 1;
+  }
+
+  .mu-group-item__icon {
+    flex: none;
+    color: tok(text-heading);
+  }
+
+  .mu-group-item__label {
+    flex: 1 1 auto;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .mu-group__empty {
-    padding: 4px 8px;
+  .mu-group-item__count {
+    flex: none;
+    color: tok(text-label);
+    font-size: fs(12);
+    font-weight: 400;
+  }
+
+  .mu-group-item__count--empty {
+    color: tok(warning);
+  }
+
+  // Invisible list over a group item: a tile dropped on the group lands in it (only while dragging).
+  .mu-group-item__drop {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    list-style: none;
+    pointer-events: none;
+
+    > * {
+      visibility: hidden;
+    }
+  }
+
+  .mu-menu-card--dragging .mu-group-item__drop {
+    pointer-events: auto;
+  }
+
+  .mu-group-item:has(.mu-group-item__drop > *) .mu-group-item__button {
+    background: tok(primary-soft);
+    box-shadow: inset 0 0 0 1px tok(primary-strong);
+  }
+
+  .mu-menu-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+    padding: 16px 24px 24px;
+  }
+
+  .mu-menu-panel__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+
+    > svg {
+      color: tok(text-heading);
+    }
+
+    .mu-row-actions {
+      margin-left: auto;
+    }
+  }
+
+  .mu-menu-panel__title {
+    margin: 0;
+    color: tok(text);
+    font-size: fs(15);
+    font-weight: 500;
+  }
+
+  .mu-group,
+  .mu-group-other {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
 
   .mu-drag {
     display: inline-flex;
+    flex: none;
     color: tok(text-muted);
     cursor: grab;
   }
 
-  .mu-items {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-height: 8px;
-    margin: 4px 0 0;
+  .mu-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 8px 12px;
+    min-height: 36px;
+    margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  .mu-item {
+  .mu-tiles--list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mu-tile {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 4px 8px;
-    min-height: 34px;
-    padding: 2px 4px 2px 8px;
+    min-width: 0;
+    min-height: 36px;
+    padding: 2px 6px 2px 8px;
     border-radius: tok(radius-sm);
-
-    &:hover {
-      background: tok(surface-subtle);
-    }
+    background: tok(surface-subtle);
+    color: tok(text);
 
     &:focus-visible {
       outline: none;
       @include focus-ring;
     }
+
+    &.sortable-ghost {
+      opacity: 0.5;
+    }
   }
 
-  .mu-item--hidden .mu-item__label {
+  .mu-tile__label {
+    flex: 1 1 80px;
+    min-width: 0;
+    overflow: hidden;
+    font-size: fs(13);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mu-item--hidden .mu-tile__label {
     color: tok(text-muted);
     text-decoration: line-through;
   }
 
-  .mu-item--unknown .mu-item__label {
+  .mu-item--unknown .mu-tile__label {
     color: tok(warning);
   }
 
   .mu-row-actions {
     display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 0;
+    margin-left: auto;
+  }
+
+  // The actions of a tile appear with the pointer or the keyboard on it (always on touch screens).
+  .mu-tile .mu-row-actions {
+    opacity: 0;
+  }
+
+  .mu-tile:hover .mu-row-actions,
+  .mu-tile:focus-within .mu-row-actions,
+  .mu-tile .mu-row-actions:has([data-state='open']) {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    .mu-tile .mu-row-actions {
+      opacity: 1;
+    }
+  }
+
+  .mu-tile-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+  }
+
+  // The "Add modules to …" panel of "Personalize": 1 px #dee2e6, radius 4, a soft shadow.
+  .mu-picker {
+    overflow: hidden;
+    border: 1px solid #dee2e6;
+    border-radius: tok(radius-sm);
+    background: tok(surface);
+    box-shadow: 0 0 10px #eeeeee;
+  }
+
+  .mu-picker__head {
+    display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 2px;
-    margin-left: auto;
+    gap: 8px 12px;
+    padding: 12px 16px;
+
+    > span {
+      flex: 1 1 auto;
+      font-size: fs(13);
+    }
+  }
+
+  .mu-picker__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+    max-height: 320px;
+    margin: 0;
+    padding: 4px 16px 16px;
+    overflow: auto;
+    list-style: none;
+  }
+
+  .mu-picker__item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 36px;
+    padding: 0 8px;
+    border-radius: tok(radius-sm);
+    background: tok(surface-subtle);
+
+    input[type='checkbox'] {
+      margin: 0;
+    }
+
+    > span:not(.mu-badge, .mu-module-icon) {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .mu-picker__foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid tok(divider);
+  }
+
+  // ---- Favorites of the personal preferences: the favourites tiles of "Personalize" ----
+  .mu-favorites {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mu-favorite {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: 160px;
+    height: 36px;
+    padding: 8px;
+    border-radius: tok(radius-sm);
+    background: tok(surface-subtle);
+    color: tok(text);
+
+    &:focus-visible {
+      outline: none;
+      @include focus-ring;
+    }
+
+    &.sortable-ghost {
+      opacity: 0.5;
+    }
+  }
+
+  .mu-favorite__star {
+    flex: none;
+    color: #ff8e4b;
+    fill: #ff8e4b;
+  }
+
+  .mu-favorite__label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    font-size: fs(13);
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   // ---- Import report ----
@@ -816,7 +1917,7 @@
     padding: 12px 16px;
     border: 1px solid tok(border);
     border-radius: tok(radius-md);
-    background: tok(surface);
+    background: tok(surface-subtle);
 
     h4 {
       margin: 8px 0 4px;
@@ -835,10 +1936,172 @@
     overflow-wrap: anywhere;
   }
 
-  // ---- Dialogs (rendered into #mu-overlay-root) ----
+  // ---- Popovers and menus (overlay root) ----
+  .mu-popover {
+    z-index: 1200;
+    min-width: 200px;
+    padding: 4px 0;
+    border: 1px solid tok(border-menu);
+    border-radius: tok(radius-sm);
+    background: tok(surface);
+    box-shadow: tok(shadow-dropdown-lg);
+    color: tok(text);
+    font-size: fs(13);
+  }
+
+  .mu-scope-panel {
+    width: min(340px, calc(100vw - 24px));
+  }
+
+  .mu-scope-panel__search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+
+    > svg {
+      position: absolute;
+      left: 24px;
+      color: tok(text-label);
+    }
+
+    .mu-input {
+      width: 100%;
+      padding-left: 34px;
+    }
+  }
+
+  .mu-scope-panel__list {
+    max-height: min(360px, 60vh);
+    margin: 0;
+    padding: 0;
+    overflow: auto;
+    list-style: none;
+  }
+
+  .mu-scope-panel__item,
+  .mu-scope-panel__personal {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 36px;
+    padding: 8px 16px;
+    border: 0;
+    background: transparent;
+    color: tok(text);
+    font-size: fs(13);
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      outline: none;
+      background: tok(menu-hover);
+      color: tok(text);
+      text-decoration: none;
+    }
+
+    &[aria-selected='true'] {
+      background: tok(primary-soft);
+    }
+
+    strong {
+      display: block;
+      font-weight: 600;
+    }
+
+    small {
+      display: block;
+      color: tok(text-2);
+      font-size: fs(12);
+    }
+
+    > svg {
+      flex: none;
+      color: tok(text-heading);
+    }
+  }
+
+  .mu-scope-panel__role {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mu-scope-panel__check {
+    margin-left: auto;
+    color: tok(primary-strong);
+  }
+
+  .mu-scope-panel__caption {
+    padding: 10px 16px 4px;
+    color: tok(text-label);
+    font-size: fs(11);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .mu-scope-panel__empty {
+    padding: 8px 16px;
+    color: tok(text-2);
+  }
+
+  .mu-scope-panel__personal {
+    border-top: 1px solid tok(divider);
+  }
+
+  .mu-menu {
+    min-width: 200px;
+  }
+
+  .mu-menu__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 35.5px;
+    padding: 8px 16px;
+    color: tok(text);
+    cursor: pointer;
+    outline: none;
+
+    &[data-highlighted] {
+      background: tok(menu-hover);
+    }
+
+    &[data-disabled] {
+      color: tok(text-muted);
+      cursor: default;
+    }
+
+    > svg {
+      flex: none;
+      color: tok(text-heading);
+    }
+  }
+
+  .mu-menu__separator {
+    height: 1px;
+    margin: 4px 0;
+    background: tok(divider);
+  }
+
+  .mu-menu__label {
+    padding: 6px 16px 2px;
+    color: tok(text-label);
+    font-size: fs(11);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  // ---- Dialogs (rendered into #mu-overlay-root): the windows of the cloud, radius 12 ----
   .mu-dialog-overlay {
     position: fixed;
     inset: 0;
+    z-index: 1150;
     background: rgba(0, 0, 0, 0.5);
   }
 
@@ -846,6 +2109,7 @@
     position: fixed;
     top: 50%;
     left: 50%;
+    z-index: 1151;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -856,6 +2120,9 @@
     border-radius: tok(radius-lg);
     background: tok(surface);
     box-shadow: tok(shadow-modal);
+    color: tok(text);
+    font-family: tok(font-family);
+    font-size: fs(13);
     transform: translate(-50%, -50%);
 
     form {
@@ -873,15 +2140,50 @@
     width: min(720px, calc(100vw - 24px));
   }
 
+  .mu-dialog--confirm {
+    width: min(500px, calc(100vw - 24px));
+  }
+
+  .mu-dialog--preview {
+    width: min(900px, calc(100vw - 24px));
+  }
+
+  .mu-dialog__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+
+    .mu-dialog__title {
+      flex: 1 1 auto;
+    }
+
+    .mu-select {
+      flex: none;
+    }
+  }
+
   .mu-dialog__title {
     margin: 0;
-    font-size: fs(16);
+    font-size: fs(16.25);
     font-weight: 600;
   }
 
   .mu-dialog__text {
     margin: 0;
     color: tok(text-2);
+  }
+
+  .mu-dialog__scroll {
+    max-height: 60vh;
+    padding: 12px;
+    overflow: auto;
+    border-radius: tok(radius-md);
+    background: tok(menu-bg);
+
+    &[aria-busy='true'] {
+      opacity: 0.6;
+    }
   }
 
   .mu-dialog__columns {
@@ -906,6 +2208,107 @@
     flex-wrap: wrap;
     justify-content: flex-end;
     gap: 8px;
+    margin-top: 4px;
+  }
+
+  .mu-dialog__spacer {
+    flex: 1 1 auto;
+  }
+
+  // ---- Personal preferences ----
+  .mu-prefs {
+    --mu-editor-top: 98px;
+    --mu-editor-sticky: 110px;
+  }
+
+  .mu-prefs__intro {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    padding: 16px 16px 4px;
+    background: tok(bg);
+  }
+
+  .mu-prefs__lead {
+    flex: 1 1 320px;
+    margin: 0;
+    color: tok(text-2);
+    font-size: fs(13);
+  }
+
+  .mu-prefs__body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 12px;
+  }
+
+  .mu-prefs__compact {
+    margin-top: 8px;
+  }
+
+  // ---- Narrow screens ----
+  @media (max-width: 1100px) {
+    .mu-section--aside {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    // The page itself shows the preview; the sample goes after the form so that the fields stay on the first screen.
+    .mu-section__aside {
+      position: static;
+    }
+
+    .mu-preview__frame {
+      max-width: 480px;
+    }
+  }
+
+  @media (max-width: 900px) {
+    // The sections in one scrolling row (as the overflowing tabs of a record) instead of several rows of tabs.
+    .mu-tabs {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    .mu-tabs__tab {
+      flex: none;
+      white-space: nowrap;
+    }
+
+    .mu-menu-editor {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .mu-menu-groups {
+      border-bottom-left-radius: 0;
+    }
+
+    .mu-tabs__tab--service {
+      margin-left: 0;
+    }
+  }
+
+  @media (max-width: 700px) {
+    .mu-row {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .mu-row__label {
+      padding-top: 0;
+      font-weight: 600;
+      text-align: left;
+    }
+
+    .mu-select--field {
+      width: 100%;
+    }
+
+    .mu-search,
+    .mu-search .mu-input {
+      width: 100%;
+    }
   }
 
   @media (max-width: 600px) {
@@ -918,9 +2321,31 @@
       white-space: normal;
     }
 
-    .mu-editor__toolbar,
-    .mu-editor__scope {
+    .mu-editor__body {
+      padding: 0 8px 8px;
+    }
+
+    .mu-editor__footer {
+      min-height: 52px;
       padding: 8px;
+    }
+
+    .mu-editor__actions {
+      flex-wrap: nowrap;
+
+      .mu-btn {
+        min-height: 34px;
+        white-space: nowrap;
+      }
+
+      // A secondary action of the footer keeps its icon (named by aria-label and title) on a phone.
+      .mu-btn--quiet span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+      }
     }
 
     .mu-labels__row {
@@ -930,15 +2355,14 @@
     .mu-labels__row .mu-field__error {
       grid-column: 1;
     }
-  }
 
-  @media (max-width: 900px) {
-    .mu-menu-editor {
-      grid-template-columns: minmax(0, 1fr);
-    }
-
-    .mu-menu-editor__preview {
-      position: static;
+    .mu-favorite {
+      width: 100%;
     }
   }
+}
+
+// The page in the frame of the settings: below the fixed bar (100 px) and the header of the page (44 px).
+#mu-overlay-root {
+  --mu-font-cloud: #{$font-cloud};
 }

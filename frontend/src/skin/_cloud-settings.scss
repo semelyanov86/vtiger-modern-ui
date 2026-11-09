@@ -21,8 +21,8 @@ $family: ':has(#page > .main-container > #modnavigator.settingsNav)';
 // The start page of the settings (module=Vtiger&parent=Settings&view=Index).
 $home: ':has(#page > .main-container > .settingsPageDiv > .settingsIndexPage)';
 $look: ':root:not(.mu-off)#{$family}';
-// The own page of ModernUI (its editor is reworked on stage 16; stage 10 measured its components in the working family):
-// it gets the frame of the settings, not their font and the look of their content.
+// The own page of ModernUI (stage 16, docs/design.md §13.12): the frame of the settings in their font like every page of
+// the family; its content (.modernui-page) is drawn by the module in the working family of the theme (settings/editor.scss).
 $own: ':has(#page > .main-container > .settingsPageDiv > .modernui-page)';
 $layout: '#{$gate}#{$family}';
 
@@ -109,7 +109,8 @@ $icon-modules: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 // ---- Look of the family (skin): font, colours, page ----
 
 // Open Sans for the settings when the theme draws the cloud font; Inter or the system font chosen in the settings stay.
-#{$look}:not(#{$own}) {
+// On the own page of ModernUI too: its frame is the frame of every settings page.
+#{$look} {
   --mu-font-cloud: #{$font-settings};
 }
 

@@ -16,6 +16,8 @@ const props = defineProps<{
   maxLuminance?: number | undefined
   showContrast?: boolean | undefined
   disabled?: boolean | undefined
+  /** The field row prints the label: the inputs are named by it (aria-labelledby) and no own label is drawn. */
+  labelledby?: string | undefined
 }>()
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 
@@ -55,10 +57,10 @@ function commit(value: string): void {
 
 <template>
   <div class="mu-field mu-color-field">
-    <label class="mu-field__label" :for="id">{{ label }}</label>
+    <label v-if="labelledby === undefined" class="mu-field__label" :for="id">{{ label }}</label>
     <div class="mu-color-field__row">
       <input class="mu-color-field__swatch" type="color" :value="error === null ? text.toLowerCase() : modelValue" :disabled="disabled" :aria-label="t('editor.color.picker', { name: label })" @input="commit(($event.target as HTMLInputElement).value)" />
-      <input :id="id" class="mu-input mu-color-field__text" type="text" :value="text" maxlength="7" spellcheck="false" autocomplete="off" :disabled="disabled" :aria-invalid="error !== null" :aria-describedby="`${id}-note`" :data-mu-field="id" @input="commit(($event.target as HTMLInputElement).value)" />
+      <input :id="id" class="mu-input mu-color-field__text" type="text" :value="text" maxlength="7" spellcheck="false" autocomplete="off" :disabled="disabled" :aria-invalid="error !== null" :aria-describedby="`${id}-note`" :aria-labelledby="labelledby" :data-mu-field="id" @input="commit(($event.target as HTMLInputElement).value)" />
     </div>
     <p v-if="error !== null" :id="`${id}-note`" class="mu-field__error" role="alert">{{ error }}</p>
     <p v-else-if="strong !== null" :id="`${id}-note`" class="mu-help">

@@ -8,7 +8,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { isClean, stateFile } from './env'
 import { bootstrap, clearPersonal, savePersonal } from './settings-api'
-import { HOME, ISLAND, LOADER, PREFERENCES, PREFERENCES_FORM, SETTINGS, SKIN, TOKENS, isolateNetwork, openListSearch, themeOnPage, waitForShell } from './support'
+import { HOME, ISLAND, LOADER, PREFERENCES, PREFERENCES_FORM, SETTINGS, SETTINGS_FORMS, SKIN, TOKENS, isolateNetwork, openListSearch, themeOnPage, waitForShell } from './support'
 
 test.describe.configure({ mode: 'serial' })
 
@@ -59,7 +59,8 @@ function watchConsole(page: Page): string[] {
 }
 
 async function settingsAction(page: Page, button: string): Promise<void> {
-  await page.goto(SETTINGS)
+  // The immediate switches of the server: the page without the editor (with it they are under "Service", stage 16).
+  await page.goto(SETTINGS_FORMS)
   await Promise.all([page.waitForURL(/result=/), page.locator(`button[name="${button}"]`).click()])
 }
 
@@ -70,7 +71,7 @@ async function savePreferences(page: Page, change: (page: Page) => Promise<void>
 }
 
 test('initial state: theme off for everyone, nothing of ModernUI on CRM pages', async ({ page }) => {
-  await page.goto(SETTINGS)
+  await page.goto(SETTINGS_FORMS)
   // Leave a known state: theme off, no personal preferences of the administrator.
   if ((await page.locator('button[name="modernui-disable-for-all"]').count()) > 0) {
     await settingsAction(page, 'modernui-disable-for-all')
@@ -85,7 +86,8 @@ test('initial state: theme off for everyone, nothing of ModernUI on CRM pages', 
 
 test('settings page: status, links, schema and the frontend check of this browser', async ({ page }) => {
   const consoleMessages = watchConsole(page)
-  await page.goto(SETTINGS)
+  // With the editor the status and the switches are its "Service" section (stage 16).
+  await page.goto(`${SETTINGS}#mu-maintenance`)
   const status = page.locator('table.modernui-status')
   await expect(status).toBeVisible()
   await expect(status.locator('code').first()).toHaveText(/^[0-9a-f]{12}$/)

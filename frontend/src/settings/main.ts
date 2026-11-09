@@ -18,6 +18,7 @@ import { IslandRuntime } from '../boot/runtime'
 import { ensureOverlayRoot } from '../boot/overlay'
 import DiagnosticsPanel, { type DiagnosticsResult } from './DiagnosticsPanel.vue'
 import EditorLoader from './EditorLoader.vue'
+import { setPageFont } from './pageFont'
 
 async function check(): Promise<DiagnosticsResult> {
   try {
@@ -40,15 +41,16 @@ async function start(): Promise<void> {
   const bootstrap: Bootstrap | null = first.ok ? first.data : null
   const i18n = createThemeI18n(locale, editorMessages)
   const runtime = new IslandRuntime()
+  ensureOverlayRoot()
+  setPageFont(bootstrap?.theme.active === true ? bootstrap.appearance.tokens['font-family'] : undefined)
   if (editor !== null) {
-    ensureOverlayRoot()
     editor.classList.add('mu-root')
     runtime.register({
       id: 'settings-editor',
       place: () => ({ kind: 'existing', container: editor }),
       create: () => {
         // The server forms of the pilot are replaced by the editor (still there with "&editor=off" or without JavaScript).
-        for (const fallback of document.querySelectorAll<HTMLElement>('[data-mu-fallback="pilot"]')) {
+        for (const fallback of document.querySelectorAll<HTMLElement>('[data-mu-fallback="pilot"], [data-mu-fallback="link"]')) {
           fallback.hidden = true
         }
         return createApp(EditorLoader, { bootstrap }).use(i18n)

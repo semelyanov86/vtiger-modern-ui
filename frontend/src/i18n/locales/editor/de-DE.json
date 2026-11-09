@@ -1,6 +1,5 @@
 {
   "editor": {
-    "title": "Einstellungen der neuen Oberfläche",
     "loading": "Einstellungen werden geladen…",
     "loadFailed": "Die Einstellungen konnten nicht geladen werden: {reason}",
     "retry": "Erneut versuchen",
@@ -10,40 +9,53 @@
       "menu": "Menü",
       "access": "Benutzer und Rollen",
       "compatibility": "Kompatibilität",
-      "transfer": "Import und Export",
-      "changed": "Ungespeicherte Änderungen"
+      "transfer": "Übertragung",
+      "changed": "Ungespeicherte Änderungen",
+      "enable": "Aktivierung",
+      "maintenance": "Wartung"
     },
     "scope": {
       "label": "Einstellungen für",
-      "global": "Alle (allgemeine Einstellungen)",
-      "role": "Rolle „{name}“",
-      "hasProfile": "hat ein Profil",
-      "roleHelp": "Ein Rollenprofil ersetzt die allgemeinen Einstellungen für die Benutzer der Rolle. Nicht angehakte Werte stammen aus den allgemeinen Einstellungen.",
+      "global": "Alle Benutzer",
+      "role": "Rolle «{name}»",
+      "hasProfile": "eigenes Profil",
       "inherit": "Auch für untergeordnete Rollen ohne eigenes Profil",
-      "own": "Eigener Wert für diese Rolle: {name}",
-      "discard": "Die Änderungen dieses Entwurfs sind nicht gespeichert. Verwerfen?"
+      "button": "Einstellungen für: {scope}. Auswählen, für wen sie gelten",
+      "search": "Rolle suchen",
+      "globalHelp": "Gemeinsame Einstellungen der neuen Oberfläche",
+      "rolesCaption": "Profil einer Rolle",
+      "noRoles": "Keine Rolle gefunden.",
+      "personal": "Nur für mich",
+      "personalHelp": "Meine persönlichen Einstellungen: Sprache, Dichte, Favoriten",
+      "globalText": "Werte für alle Benutzer. Eine Rolle mit eigenem Profil kann sie ersetzen; Benutzer ändern in ihren Einstellungen nur das Erlaubte.",
+      "roleText": "Hier gesetzte Werte ersetzen die gemeinsamen für die Rolle «{role}» ({n} Benutzer); alles andere wird geerbt. | Hier gesetzte Werte ersetzen die gemeinsamen für die Rolle «{role}» ({n} Benutzer); alles andere wird geerbt.",
+      "newProfile": "Die Rolle hat noch kein Profil: es entsteht beim Speichern.",
+      "commonOnly": "Dieser Bereich gehört zu den gemeinsamen Einstellungen für alle Benutzer.",
+      "commonOnlyRole": "Dieser Bereich gehört zu den gemeinsamen Einstellungen; geöffnet ist gerade «{scope}».",
+      "openCommon": "Gemeinsame Einstellungen öffnen"
     },
     "language": {
-      "label": "Sprache der neuen Oberfläche",
+      "label": "Sprache",
       "auto": "Wie im CRM",
       "saved": "Die Sprache ist für Sie gespeichert. Der Entwurf bleibt erhalten.",
-      "failed": "Die Sprache konnte nicht gespeichert werden: {reason}"
+      "failed": "Die Sprache konnte nicht gespeichert werden: {reason}",
+      "help": "Sprache der neuen Oberfläche nur für Sie: wird sofort gespeichert, ungespeicherte Änderungen dieser Seite bleiben erhalten."
     },
     "toolbar": {
       "label": "Speichern",
-      "unsaved": "Ungespeicherte Änderungen: {scope}.",
-      "clean": "Alle Änderungen sind gespeichert: {scope}.",
+      "unsaved": "{scope}: {n} ungespeicherte Änderung. | {scope}: {n} ungespeicherte Änderungen.",
+      "clean": "{scope}: alle Änderungen sind gespeichert.",
       "save": "Speichern",
       "saving": "Wird gespeichert…",
-      "cancel": "Änderungen verwerfen",
-      "resetSection": "Bereich zurücksetzen",
+      "cancel": "Abbrechen",
       "resetSectionHelp": "Zurück zu den Standardwerten des Moduls. Modus und Pilotbetrieb bleiben. Zum Übernehmen speichern.",
       "resetSectionRole": "Für diese Rolle zurück zu den allgemeinen Einstellungen. Zum Übernehmen speichern.",
-      "sectionReset": "Der Bereich hat wieder die geerbten Werte. Zum Übernehmen speichern.",
+      "sectionReset": "{scope}: «{section}» hat wieder die geerbten Werte. Zum Anwenden speichern.",
       "cancelled": "Die gespeicherten Werte sind wiederhergestellt.",
-      "savedNotice": "Gespeichert. Die Änderungen gelten ab der nächsten Seite, in anderen Tabs nach dem Neuladen.",
+      "savedNotice": "{scope}: gespeichert. Die Änderungen gelten ab der nächsten Seite, in anderen Tabs nach dem Neuladen.",
       "invalid": "{n} Wert ist ungültig. Nichts wurde gespeichert. | {n} Werte sind ungültig. Nichts wurde gespeichert.",
-      "failed": "Die Einstellungen konnten nicht gespeichert werden: {reason}"
+      "failed": "Die Einstellungen konnten nicht gespeichert werden: {reason}",
+      "resetSectionFor": "{scope}: «{section}» zurücksetzen"
     },
     "conflict": {
       "title": "Inzwischen hat jemand diese Einstellungen gespeichert",
@@ -52,10 +64,12 @@
       "theirs": "Dort geändert",
       "mine": "In Ihrem Entwurf geändert",
       "nothing": "Nichts",
-      "keep": "Weiter bearbeiten",
       "load": "Aktuelle Einstellungen laden",
       "overwrite": "Mit meinem Entwurf überschreiben",
-      "loaded": "Die aktuellen Einstellungen sind geladen, Ihr Entwurf wurde verworfen."
+      "loaded": "Die aktuellen Einstellungen sind geladen, Ihr Entwurf wurde verworfen.",
+      "rebaseHelp": "Nichts geht verloren: Wenden Sie Ihre Änderungen auf die aktuelle Version an, prüfen und speichern Sie — oder laden Sie die aktuellen Einstellungen ohne Entwurf.",
+      "rebase": "Meine Änderungen auf die aktuelle Version anwenden",
+      "rebased": "Ihre Änderungen sind auf die aktuelle Version angewendet. Prüfen und speichern Sie."
     },
     "values": {
       "unset": "nicht gesetzt",
@@ -63,7 +77,8 @@
       "no": "nein",
       "empty": "leer",
       "menu": "{groups} Gruppen, {items} Einträge",
-      "count": "{n} Eintrag | {n} Einträge"
+      "count": "{n} Eintrag | {n} Einträge",
+      "groups": "{n} Gruppe | {n} Gruppen"
     },
     "color": {
       "format": "Geben Sie eine Farbe als #rrggbb ein, zum Beispiel #3978fe.",
@@ -94,11 +109,12 @@
     },
     "dialog": {
       "cancel": "Abbrechen",
-      "apply": "Übernehmen"
+      "apply": "Übernehmen",
+      "close": "Schließen"
     },
     "appearance": {
-      "intro": "Farben, Dichte und Textgröße sind auf dieser Seite sofort zu sehen. Andere sehen sie nach dem Speichern.",
-      "introRole": "Haken Sie die Werte an, die diese Rolle statt der allgemeinen Einstellungen erhält.",
+      "intro": "Diese Seite zeigt die Änderungen sofort; andere sehen sie nach dem Speichern.",
+      "introRole": "Geänderte Werte werden zu eigenen Werten der Rolle, die übrigen bleiben geerbt.",
       "density": {
         "compact": "Kompakt",
         "standard": "Normal",
@@ -124,16 +140,28 @@
       "sampleCancel": "Abbrechen",
       "sampleInput": "Textfeld",
       "sampleName": "Firma",
-      "sampleCity": "Ort"
+      "sampleCity": "Ort",
+      "colorsTitle": "Farben",
+      "textTitle": "Text und Dichte",
+      "fontShort": {
+        "cloud": "wie in der Cloud",
+        "inter": "Inter",
+        "system": "Schrift des Systems"
+      },
+      "logoCompanyShort": "Logo des CRM",
+      "logoCustomShort": "eigenes Logo",
+      "titleCompanyShort": "ohne Titel",
+      "titleCustomShort": "eigener Titel",
+      "sampleTabA": "Übersicht",
+      "sampleTabB": "Einzelheiten"
     },
     "menu": {
-      "intro": "Das Menü der neuen Oberfläche zeigt nur Module, die der Benutzer öffnen darf. Ausblenden nimmt einen Eintrag aus dem Menü; Berechtigungen und direkte Links bleiben unverändert.",
       "roleOwn": "Diese Rolle hat ein eigenes Menü.",
       "useCommon": "Allgemeines Menü verwenden",
       "roleCommon": "Diese Rolle verwendet das allgemeine Menü.",
       "useOwn": "Menü für diese Rolle einrichten",
       "configured": "Das Menü ist hier eingerichtet.",
-      "crmMenu": "Das Menü folgt den Apps des CRM. Jede Änderung unten richtet ein eigenes Menü ein.",
+      "crmMenu": "Das Menü folgt den Apps des CRM. Jede Änderung unten macht es zu einem eigenen.",
       "useCrm": "Zurück zum Menü des CRM",
       "crmMenuConfirm": "Die Gruppen unten durch die Apps des CRM ersetzen?",
       "moved": "„{item}“ wurde nach „{group}“ verschoben.",
@@ -142,7 +170,7 @@
       "removeGroupConfirm": "Die Gruppe „{group}“ entfernen? Ihre Module erscheinen in den Gruppen ihrer Apps oder unter „Weitere Module“.",
       "hidden": "„{item}“ ist im Menü ausgeblendet.",
       "undo": "Rückgängig",
-      "keys": "Tastatur: Alt+↑ oder Alt+↓ verschiebt den fokussierten Eintrag, Enter bearbeitet ihn, Entf blendet ihn aus.",
+      "keys": "Kachel ziehen oder Alt+Pfeil drücken zum Verschieben; auf eine Gruppe links ziehen, um sie dorthin zu verschieben. Enter bearbeitet, Entf blendet aus.",
       "drag": "Zum Verschieben ziehen",
       "groupAria": "Gruppe „{group}“, {count} Einträge. Alt+↑ oder Alt+↓ verschiebt die Gruppe.",
       "itemsCount": "{n} Eintrag | {n} Einträge",
@@ -158,7 +186,6 @@
       "routeBadge": "Ansicht",
       "notInCrm": "nicht in diesem CRM",
       "hiddenBadge": "ausgeblendet",
-      "toGroup": "„{name}“ in eine andere Gruppe verschieben",
       "toGroupShort": "In Gruppe…",
       "editItem": "„{item}“ bearbeiten",
       "show": "„{item}“ im Menü zeigen",
@@ -166,8 +193,8 @@
       "hide": "„{item}“ im Menü ausblenden",
       "hideShort": "Ausblenden",
       "removeItem": "„{item}“ aus den Menüeinstellungen entfernen",
-      "emptyGroup": "Keine Einträge. Ziehen Sie Einträge hierher oder fügen Sie Module aus der Liste unten hinzu.",
-      "addRoute": "Link zu einer Ansicht des CRM hinzufügen",
+      "emptyGroup": "Die Gruppe hat keine Einträge und erscheint nicht im Menü. Ziehen Sie Module hierher oder fügen Sie sie hinzu.",
+      "addRoute": "Link zu einer CRM-Ansicht",
       "addGroup": "Gruppe hinzufügen",
       "newGroup": "Neue Gruppe",
       "notPlacedTitle": "Nicht platziert",
@@ -180,9 +207,9 @@
       "hiddenHelp": "Ausgeblendete Module bleiben über Berechtigungen und direkte Links erreichbar.",
       "hiddenByCrm": "im Menüeditor des CRM ausgeblendet",
       "noHidden": "Nichts ist ausgeblendet.",
-      "favoritesTitle": "Favoriten und kompakte Ansicht",
-      "favoritesHelp": "Ihre Favoriten wählen Benutzer in ihren Einstellungen.",
-      "previewTitle": "Vorschau",
+      "favoritesTitle": "Favoriten",
+      "favoritesHelp": "Favoriten wählen die Benutzer in ihren eigenen Einstellungen.",
+      "previewTitle": "Vorschau des Menüs",
       "previewLanguage": "Sprache",
       "previewRole": "Mit Ihren Berechtigungen gezeigt. Benutzer der Rolle sehen keine Einträge ohne Berechtigung.",
       "previewHelp": "Mit Ihren Berechtigungen gezeigt; jeder Benutzer sieht nur, was er öffnen darf.",
@@ -193,7 +220,25 @@
         "viewHelp": "Name einer Ansicht des Moduls, zum Beispiel List.",
         "filter": "Filternummer (optional)",
         "filterHelp": "Filternummern gelten je CRM: Prüfen Sie sie nach dem Übertragen der Einstellungen."
-      }
+      },
+      "title": "Menü der neuen Oberfläche",
+      "position": "«{item}»: Position {position} von {count}.",
+      "groupsTitle": "Gruppen",
+      "search": "Modul suchen",
+      "searchTitle": "Gefunden für «{query}»",
+      "reveal": "Anzeigen",
+      "nothingFound": "Keine Module gefunden.",
+      "previewOpen": "Vorschau",
+      "more": "Mehr für «{item}»",
+      "moreShort": "Mehr",
+      "addModules": "Module hinzufügen",
+      "addModulesTo": "Module zu «{group}» hinzufügen",
+      "addPicked": "Hinzufügen ({n})",
+      "routeHelp": "Ein Link zu einer Ansicht des CRM, z. B. einem Listenfilter",
+      "favoritesLabel": "Favoriten",
+      "compactLabel": "Kompakte Ansicht",
+      "crmMenuShort": "wie im CRM",
+      "intro": "Das Menü der neuen Oberfläche zeigt nur Module, die der Benutzer öffnen darf. Ausblenden nimmt einen Eintrag aus dem Menü; Berechtigungen und direkte Links bleiben unverändert."
     },
     "access": {
       "commonOnly": "Benutzer und Rollen gehören zu den allgemeinen Einstellungen. Wählen Sie „Alle“, um sie zu bearbeiten.",
@@ -238,7 +283,11 @@
       "personalHelp": "{n} Benutzer hat persönliche Einstellungen. | {n} Benutzer haben persönliche Einstellungen.",
       "resetPersonal": "Zurücksetzen",
       "resetPersonalConfirm": "Die persönlichen Einstellungen von {user} zurücksetzen?",
-      "personalReset": "Die persönlichen Einstellungen von {user} sind zurückgesetzt."
+      "personalReset": "Die persönlichen Einstellungen von {user} sind zurückgesetzt.",
+      "overridesTitle": "Was Benutzer selbst einstellen",
+      "overridesHelp": "Diese Einstellungen darf jeder Benutzer nur für sich ändern; der Rest folgt den gemeinsamen Einstellungen und dem Rollenprofil.",
+      "removeProfileShort": "Profil löschen",
+      "resetPersonalTitle": "Persönliche Einstellungen zurücksetzen"
     },
     "compatibility": {
       "intro": "Hier aufgeführte Seiten öffnen sich immer in der Standardansicht, zum Beispiel die Seite einer Erweiterung, die mit der neuen Oberfläche nicht gut funktioniert.",
@@ -251,9 +300,6 @@
       "invalid": "Verwenden Sie Namen aus Buchstaben, Ziffern und _ oder * für jeden Wert; das Modul ist Pflicht.",
       "add": "Seite hinzufügen",
       "example": "Beispiel: Modul Reports, Ansicht *, Bereich leer — alle Berichtsseiten.",
-      "recoveryTitle": "Wenn etwas nicht funktioniert",
-      "safeMode": "Der abgesicherte Modus zeigt das CRM bis zur Abmeldung in der Standardansicht:",
-      "classic": "Diese Einstellungsseite funktioniert auch ohne Editor:",
       "classicLink": "Seite ohne Editor",
       "adaptersTitle": "Adapter für Erweiterungen",
       "adaptersIntro": "Ein Adapter passt die neue Oberfläche an die Seiten einer öffentlichen Erweiterung an. Er wirkt nur, solange die Erweiterung installiert und aktiviert ist und ihre Version geprüft wurde; die Dateien der Erweiterung werden nie geändert. Schalten Sie einen Adapter aus, wenn die Seiten der Erweiterung nach einem Update schlechter aussehen — die allgemeine Gestaltung bleibt.",
@@ -275,7 +321,8 @@
         "version": "Version der Erweiterung nicht geprüft",
         "incomplete": "Dateien oder Tabellen der Erweiterung fehlen",
         "error": "Prüfung fehlgeschlagen"
-      }
+      },
+      "screensLabel": "Bildschirme"
     },
     "transfer": {
       "exportTitle": "Exportieren",
@@ -313,7 +360,52 @@
       "apply": "Import übernehmen",
       "applyConfirm": "Die gewählten Teile der Datei übernehmen? Die Einstellungen dieser Teile werden ersetzt.",
       "applied": "Der Import ist übernommen.",
-      "stale": "Die Einstellungen haben sich nach der Prüfung geändert. Wählen Sie die Datei erneut, um den aktuellen Bericht zu sehen."
+      "stale": "Die Einstellungen haben sich nach der Prüfung geändert. Wählen Sie die Datei erneut, um den aktuellen Bericht zu sehen.",
+      "applyTitle": "Import anwenden"
+    },
+    "header": {
+      "pilot": "Pilot · Benutzer: {users}, Rollen: {roles}",
+      "all": "Für alle aktiv",
+      "off": "Für alle aus",
+      "forMeOn": "bei Ihnen aktiv",
+      "forMeOff": "bei Ihnen aus",
+      "myPreferences": "Meine Einstellungen"
+    },
+    "restore": {
+      "offer": "In diesem Tab ist ein ungespeicherter Entwurf geblieben — {scope} ({time}, {n} Änderung). | In diesem Tab ist ein ungespeicherter Entwurf geblieben — {scope} ({time}, {n} Änderungen).",
+      "restore": "Entwurf wiederherstellen",
+      "drop": "Verwerfen",
+      "restored": "{scope}: Der Entwurf ist wiederhergestellt. Er ist noch nicht gespeichert.",
+      "rebased": "Seit dem Entwurf wurden die Einstellungen gespeichert: Ihre Änderungen sind auf die aktuelle Version angewendet. Prüfen und speichern Sie.",
+      "roleGone": "Die Rolle des Entwurfs existiert nicht mehr; der Entwurf wurde verworfen.",
+      "overlap": "Auf beiden Seiten geändert, Ihr Wert bleibt: {fields}.",
+      "ok": "Verstanden"
+    },
+    "leave": {
+      "title": "Ungespeicherte Änderungen",
+      "text": "{from}: Die Änderungen sind nicht gespeichert. Vor dem Wechsel speichern? Als Nächstes: {to}.",
+      "changes": "{n} Änderung. | {n} Änderungen.",
+      "stay": "Bleiben",
+      "discard": "Nicht speichern",
+      "save": "Speichern und öffnen"
+    },
+    "origin": {
+      "inherited": "Geerbt aus den gemeinsamen Einstellungen: {value}",
+      "own": "eigener Wert der Rolle",
+      "useCommon": "Gemeinsamen Wert verwenden ({value})",
+      "changed": "Geändert.",
+      "useDefault": "Zurück zum Standard ({value})"
+    },
+    "maintenance": {
+      "intro": "Zustand des Moduls, sofortige Schalter und Wiederherstellung. Sie wirken sofort, ohne den Entwurf der anderen Bereiche.",
+      "classic": "Lädt der Editor nicht, finden Sie dieselben Schalter auf der"
+    },
+    "enable": {
+      "modeTitle": "Wer mit der neuen Oberfläche arbeitet",
+      "addMe": "Mich hinzufügen",
+      "pilotOff": "Die Listen bleiben erhalten, solange die neue Oberfläche aus ist, und gelten bei «Pilot».",
+      "optOut": "Standardansicht",
+      "selfEnable": "Ausprobieren im Pilot"
     }
   },
   "fields": {
@@ -350,16 +442,16 @@
     "inactive": "Die neue Oberfläche ist für Sie ausgeschaltet; Ihre Einstellungen gelten, sobald sie eingeschaltet ist.",
     "nothing": "Der Administrator erlaubt keine persönlichen Änderungen.",
     "language": "Sprache der neuen Oberfläche",
-    "languageHelp": "Ändert nur die Texte von ModernUI — sofort und ohne Verlust Ihrer Eingaben. Namen von Modulen und Feldern bleiben in der Sprache Ihres CRM-Profils; Sprache und Formate des CRM bleiben unverändert.",
+    "languageHelp": "Ändert nur die Texte der neuen Oberfläche — sofort und ohne Verlust der Eingaben. Namen von Modulen und Feldern bleiben in der Sprache Ihres CRM-Profils; Sprache und Formate des CRM ändern sich nicht.",
     "asAdmin": "Wie vom Administrator festgelegt ({value})",
     "ownColor": "Mein eigener Wert: {name}",
-    "favoritesHelp": "Bis zu 30 Module oben im Menü; gewählt: {count}. Alt+↑ oder Alt+↓ verschiebt das fokussierte.",
+    "favoritesHelp": "Bis zu 30 Module oben im Menü; gewählt: {count}. Kachel ziehen oder Alt+Pfeil drücken.",
     "removeFavorite": "„{name}“ aus den Favoriten entfernen",
     "noFavorites": "Noch keine Favoriten.",
     "addFavorite": "Zu den Favoriten hinzufügen",
     "chooseModule": "Modul wählen",
     "standardView": "Standardansicht verwenden",
-    "standardViewHelp": "Das CRM sieht aus wie vor ModernUI; Sie können jederzeit hierher zurückkehren.",
+    "standardViewHelp": "Das CRM sieht aus wie vor der neuen Oberfläche; Sie können jederzeit hierher zurückkehren.",
     "selfEnable": "Neue Oberfläche ausprobieren",
     "unsaved": "Sie haben ungespeicherte Änderungen.",
     "clean": "Ihre Einstellungen sind gespeichert.",
@@ -369,6 +461,15 @@
     "reload": "Aktuelle Einstellungen laden",
     "reset": "Meine Einstellungen zurücksetzen",
     "resetConfirm": "Alle Ihre Einstellungen der neuen Oberfläche zurücksetzen?",
-    "resetDone": "Ihre Einstellungen sind zurückgesetzt."
+    "resetDone": "Ihre Einstellungen sind zurückgesetzt.",
+    "onlyYou": "Diese Einstellungen ändern die neue Oberfläche nur für Sie. Daten, Rechte, Sprache und Formate des CRM bleiben unverändert.",
+    "originOwn": "Ihr eigener Wert. Der Administrator hat festgelegt: {value}.",
+    "originAdmin": "Wie vom Administrator festgelegt: {value}.",
+    "languageTitle": "Sprache",
+    "menuTitle": "Menü und Favoriten",
+    "viewTitle": "Ansicht",
+    "favoriteAdded": "«{name}» zu den Favoriten hinzugefügt.",
+    "favoriteMoved": "«{name}»: Position {position} von {count}.",
+    "favoriteAria": "«{name}», {position} von {count}. Alt+Pfeile verschieben, Entf entfernt."
   }
 }

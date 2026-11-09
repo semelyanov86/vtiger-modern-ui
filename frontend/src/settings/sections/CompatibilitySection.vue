@@ -1,8 +1,8 @@
 <script setup lang="ts">
 /**
  * Compatibility (docs/settings.md §3): screens that always open in the standard view (module, view, parent; "*" for
- * any), the adapters of public extensions with their status on this CRM and a switch (adapters.disabled, common settings
- * only), the safe mode and the page without the editor. A role adds its own screens to the common ones.
+ * any) and the adapters of public extensions with their status on this CRM and a switch (adapters.disabled, common
+ * settings only). A role adds its own screens to the common ones.
  */
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -81,64 +81,71 @@ function valid(screen: Screen): boolean {
 
 <template>
   <div class="mu-section" data-mu-section="compatibility">
-    <p class="mu-help">{{ t('editor.compatibility.intro') }}</p>
-    <div v-if="inheritedScreens.length > 0" class="mu-note">
-      <span>{{ t('editor.compatibility.inherited') }}</span>
-      <code v-for="(screen, index) in inheritedScreens" :key="index">{{ screen.module }} / {{ screen.view || '—' }} / {{ screen.parent || '—' }}</code>
-    </div>
-    <ScopedField v-slot="{ value, disabled, update }" :editor="editor" field="theme.excludedScreens" :problems="problems" :legend="t('fields.theme_excludedScreens')">
-      <div class="mu-table-scroll">
-        <table class="mu-table" data-mu-table="screens">
-          <caption class="mu-field__label">{{ t('fields.theme_excludedScreens') }}</caption>
-          <thead><tr><th scope="col">{{ t('editor.compatibility.module') }}</th><th scope="col">{{ t('editor.compatibility.view') }}</th><th scope="col">{{ t('editor.compatibility.parent') }}</th><th scope="col"><span class="mu-visually-hidden">{{ t('editor.access.actions') }}</span></th></tr></thead>
-          <tbody>
-            <tr v-for="(screen, index) in screens(value)" :key="index">
-              <td v-for="part in (['module', 'view', 'parent'] as const)" :key="part">
-                <input class="mu-input" type="text" maxlength="50" :value="screen[part]" :disabled="disabled" :aria-label="t(`editor.compatibility.${part}`)" :aria-invalid="!valid(screen)" :data-mu-screen="`${index}-${part}`" @change="change(screens(value), index, part, ($event.target as HTMLInputElement).value, update)" />
-              </td>
-              <td class="mu-table__actions">
-                <button type="button" class="mu-icon-btn" :disabled="disabled" :aria-label="t('editor.compatibility.remove', { screen: screen.module })" @click="update(screens(value).filter((_, position) => position !== index))"><Trash2 :size="14" /></button>
-              </td>
-            </tr>
-            <tr v-if="screens(value).length === 0"><td colspan="4" class="mu-help">{{ t('editor.compatibility.none') }}</td></tr>
-          </tbody>
-        </table>
+    <section class="mu-card">
+      <header class="mu-card__header"><h3 class="mu-card__title">{{ t('fields.theme_excludedScreens') }}</h3></header>
+      <div class="mu-card__body">
+        <p class="mu-help">{{ t('editor.compatibility.intro') }}</p>
+        <div v-if="inheritedScreens.length > 0" class="mu-note">
+          <span>{{ t('editor.compatibility.inherited') }}</span>
+          <code v-for="(screen, index) in inheritedScreens" :key="index">{{ screen.module }} / {{ screen.view || '—' }} / {{ screen.parent || '—' }}</code>
+        </div>
+        <ScopedField v-slot="{ value, update }" :editor="editor" field="theme.excludedScreens" :problems="problems" :label="t('editor.compatibility.screensLabel')" :stacked="true">
+          <div class="mu-table-scroll">
+            <table class="mu-table" data-mu-table="screens">
+              <caption class="mu-visually-hidden">{{ t('fields.theme_excludedScreens') }}</caption>
+              <thead><tr><th scope="col">{{ t('editor.compatibility.module') }}</th><th scope="col">{{ t('editor.compatibility.view') }}</th><th scope="col">{{ t('editor.compatibility.parent') }}</th><th scope="col"><span class="mu-visually-hidden">{{ t('editor.access.actions') }}</span></th></tr></thead>
+              <tbody>
+                <tr v-for="(screen, index) in screens(value)" :key="index">
+                  <td v-for="part in (['module', 'view', 'parent'] as const)" :key="part">
+                    <input class="mu-input" type="text" maxlength="50" :value="screen[part]" :aria-label="t(`editor.compatibility.${part}`)" :aria-invalid="!valid(screen)" :data-mu-screen="`${index}-${part}`" @change="change(screens(value), index, part, ($event.target as HTMLInputElement).value, update)" />
+                  </td>
+                  <td class="mu-table__actions">
+                    <button type="button" class="mu-icon-btn" :aria-label="t('editor.compatibility.remove', { screen: screen.module })" :title="t('editor.compatibility.remove', { screen: screen.module })" @click="update(screens(value).filter((_, position) => position !== index))"><Trash2 :size="14" /></button>
+                  </td>
+                </tr>
+                <tr v-if="screens(value).length === 0"><td colspan="4" class="mu-table__empty">{{ t('editor.compatibility.none') }}</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p v-if="screens(value).some((screen) => !valid(screen))" class="mu-field__error" role="alert">{{ t('editor.compatibility.invalid') }}</p>
+          <div class="mu-inline-actions">
+            <button type="button" class="mu-btn" :disabled="screens(value).length >= 100" data-mu-action="add-screen" @click="update([...screens(value), { module: 'Reports', view: '*', parent: '' }])">
+              <Plus :size="14" aria-hidden="true" /><span>{{ t('editor.compatibility.add') }}</span>
+            </button>
+            <span class="mu-help">{{ t('editor.compatibility.example') }}</span>
+          </div>
+        </ScopedField>
       </div>
-      <p v-if="screens(value).some((screen) => !valid(screen))" class="mu-field__error" role="alert">{{ t('editor.compatibility.invalid') }}</p>
-      <button type="button" class="mu-btn" :disabled="disabled || screens(value).length >= 100" data-mu-action="add-screen" @click="update([...screens(value), { module: 'Reports', view: '*', parent: '' }])">
-        <Plus :size="14" aria-hidden="true" /><span>{{ t('editor.compatibility.add') }}</span>
-      </button>
-      <p class="mu-help">{{ t('editor.compatibility.example') }}</p>
-    </ScopedField>
+    </section>
 
-    <h3 class="mu-section__heading">{{ t('editor.compatibility.adaptersTitle') }}</h3>
-    <p class="mu-help">{{ t('editor.compatibility.adaptersIntro') }}</p>
-    <p v-if="editor.isRole.value" class="mu-help">{{ t('editor.compatibility.adapterOnlyGlobal') }}</p>
-    <ScopedField v-else v-slot="{ value, disabled, update }" :editor="editor" field="adapters.disabled" :problems="problems" :legend="t('fields.adapters_disabled')">
-      <div class="mu-table-scroll">
-        <table class="mu-table" data-mu-table="adapters">
-          <caption class="mu-visually-hidden">{{ t('editor.compatibility.adaptersTitle') }}</caption>
-          <thead><tr><th scope="col">{{ t('editor.compatibility.adapterColumn') }}</th><th scope="col">{{ t('editor.compatibility.adapterVersions') }}</th><th scope="col">{{ t('editor.compatibility.adapterVersion') }}</th><th scope="col">{{ t('editor.compatibility.adapterStatus') }}</th></tr></thead>
-          <tbody>
-            <tr v-for="adapter in adapters" :key="adapter.id" :data-mu-adapter="adapter.id" :data-mu-status="status(adapter, value)">
-              <td>
-                <label class="mu-check">
-                  <input type="checkbox" :checked="status(adapter, value) === 'active'" :disabled="disabled || !switchable(adapter)" :aria-label="t('editor.compatibility.adapterOn', { name: adapter.title })" @change="setAdapter(value, adapter.id, ($event.target as HTMLInputElement).checked, update)" />
-                  <span><strong>{{ adapter.title }}</strong> ({{ adapter.vendor }}, {{ adapter.module }})</span>
-                </label>
-              </td>
-              <td>{{ versions(adapter) }}</td>
-              <td>{{ adapter.version || '—' }}</td>
-              <td>{{ t(`editor.compatibility.status.${status(adapter, value)}`) }}</td>
-            </tr>
-            <tr v-if="adapters.length === 0"><td colspan="4" class="mu-help">{{ t('editor.compatibility.adaptersNone') }}</td></tr>
-          </tbody>
-        </table>
+    <section class="mu-card">
+      <header class="mu-card__header"><h3 class="mu-card__title">{{ t('editor.compatibility.adaptersTitle') }}</h3></header>
+      <div class="mu-card__body">
+        <p class="mu-help">{{ t('editor.compatibility.adaptersIntro') }}</p>
+        <p v-if="editor.isRole.value" class="mu-note">{{ t('editor.compatibility.adapterOnlyGlobal') }}</p>
+        <ScopedField v-else v-slot="{ value, update }" :editor="editor" field="adapters.disabled" :problems="problems" :label="t('fields.adapters_disabled')" :stacked="true">
+          <div class="mu-table-scroll">
+            <table class="mu-table" data-mu-table="adapters">
+              <caption class="mu-visually-hidden">{{ t('editor.compatibility.adaptersTitle') }}</caption>
+              <thead><tr><th scope="col">{{ t('editor.compatibility.adapterColumn') }}</th><th scope="col">{{ t('editor.compatibility.adapterVersions') }}</th><th scope="col">{{ t('editor.compatibility.adapterVersion') }}</th><th scope="col">{{ t('editor.compatibility.adapterStatus') }}</th></tr></thead>
+              <tbody>
+                <tr v-for="adapter in adapters" :key="adapter.id" :data-mu-adapter="adapter.id" :data-mu-status="status(adapter, value)">
+                  <td>
+                    <label class="mu-check">
+                      <input type="checkbox" :checked="status(adapter, value) === 'active'" :disabled="!switchable(adapter)" :aria-label="t('editor.compatibility.adapterOn', { name: adapter.title })" @change="setAdapter(value, adapter.id, ($event.target as HTMLInputElement).checked, update)" />
+                      <span><strong>{{ adapter.title }}</strong> <span class="mu-text-muted">({{ adapter.vendor }}, {{ adapter.module }})</span></span>
+                    </label>
+                  </td>
+                  <td>{{ versions(adapter) }}</td>
+                  <td>{{ adapter.version || '—' }}</td>
+                  <td><span class="mu-badge" :class="{ 'mu-badge--info': status(adapter, value) === 'active', 'mu-badge--warning': !['active', 'disabled', 'notInstalled'].includes(status(adapter, value)) }">{{ t(`editor.compatibility.status.${status(adapter, value)}`) }}</span></td>
+                </tr>
+                <tr v-if="adapters.length === 0"><td colspan="4" class="mu-table__empty">{{ t('editor.compatibility.adaptersNone') }}</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </ScopedField>
       </div>
-    </ScopedField>
-
-    <h3 class="mu-section__heading">{{ t('editor.compatibility.recoveryTitle') }}</h3>
-    <p class="mu-help">{{ t('editor.compatibility.safeMode') }} <a href="index.php?modernui=off">index.php?modernui=off</a></p>
-    <p class="mu-help">{{ t('editor.compatibility.classic') }} <a href="index.php?module=ModernUI&amp;parent=Settings&amp;view=Index&amp;editor=off">{{ t('editor.compatibility.classicLink') }}</a></p>
+    </section>
   </div>
 </template>

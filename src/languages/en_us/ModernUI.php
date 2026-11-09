@@ -5,7 +5,7 @@
  */
 $languageStrings = array(
 	'ModernUI' => 'ModernUI',
-	'LBL_PREFERENCES_TITLE' => 'ModernUI preferences',
+	'LBL_PREFERENCES_TITLE' => 'My interface preferences',
 	'LBL_NOT_READY' => 'The settings of the new interface are not available right now. Ask your administrator to open Settings → ModernUI.',
 	'LBL_STATUS' => 'New interface',
 	'LBL_STATUS_ACTIVE' => 'The new interface is on for you.',

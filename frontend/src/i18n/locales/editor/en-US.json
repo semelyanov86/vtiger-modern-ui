@@ -1,6 +1,5 @@
 {
   "editor": {
-    "title": "Settings of the new interface",
     "loading": "Loading the settings…",
     "loadFailed": "The settings could not be loaded: {reason}",
     "retry": "Try again",
@@ -10,40 +9,53 @@
       "menu": "Menu",
       "access": "Users and roles",
       "compatibility": "Compatibility",
-      "transfer": "Import and export",
-      "changed": "Unsaved changes"
+      "transfer": "Transfer",
+      "changed": "Unsaved changes",
+      "enable": "Switching on",
+      "maintenance": "Service"
     },
     "scope": {
       "label": "Settings for",
-      "global": "Everyone (common settings)",
+      "global": "All users",
       "role": "Role «{name}»",
-      "hasProfile": "has a profile",
-      "roleHelp": "A role profile overrides the common settings for the users of the role. Unticked values come from the common settings.",
+      "hasProfile": "own profile",
       "inherit": "Also for subordinate roles without a profile of their own",
-      "own": "Own value for this role: {name}",
-      "discard": "The changes of this draft are not saved. Discard them?"
+      "button": "Settings for: {scope}. Choose whom they apply to",
+      "search": "Find a role",
+      "globalHelp": "Common settings of the new interface",
+      "rolesCaption": "Profile of a role",
+      "noRoles": "No role found.",
+      "personal": "Only for me",
+      "personalHelp": "My own preferences: language, density, favorites",
+      "globalText": "Values for all users. A role with its own profile may replace them; users change only what is allowed in their preferences.",
+      "roleText": "Values set here replace the common settings for the role «{role}» ({n} user); everything else is inherited. | Values set here replace the common settings for the role «{role}» ({n} users); everything else is inherited.",
+      "newProfile": "The role has no profile yet: it is created when you save.",
+      "commonOnly": "This section belongs to the common settings for all users.",
+      "commonOnlyRole": "This section belongs to the common settings; now «{scope}» is open.",
+      "openCommon": "Open the common settings"
     },
     "language": {
-      "label": "Language of the new interface",
+      "label": "Language",
       "auto": "As in the CRM",
       "saved": "The language is saved for you. The draft is kept.",
-      "failed": "The language could not be saved: {reason}"
+      "failed": "The language could not be saved: {reason}",
+      "help": "Language of the new interface for you only; it is saved at once and keeps the unsaved changes of this page."
     },
     "toolbar": {
       "label": "Saving",
-      "unsaved": "Unsaved changes: {scope}.",
-      "clean": "All changes are saved: {scope}.",
+      "unsaved": "{scope}: {n} unsaved change. | {scope}: {n} unsaved changes.",
+      "clean": "{scope}: all changes are saved.",
       "save": "Save",
       "saving": "Saving…",
-      "cancel": "Cancel changes",
-      "resetSection": "Reset this section",
+      "cancel": "Cancel",
       "resetSectionHelp": "Back to the defaults of the module. The mode and the pilot stay. Save to apply.",
       "resetSectionRole": "Back to the common settings for this role. Save to apply.",
-      "sectionReset": "The section is back to the inherited values. Save to apply.",
+      "sectionReset": "{scope}: «{section}» is back to the inherited values. Save to apply.",
       "cancelled": "The saved values are back.",
-      "savedNotice": "Saved. The changes apply from the next page and in other tabs after a reload.",
+      "savedNotice": "{scope}: saved. The changes apply from the next page and in other tabs after a reload.",
       "invalid": "{n} value is not valid. Nothing was saved. | {n} values are not valid. Nothing was saved.",
-      "failed": "The settings could not be saved: {reason}"
+      "failed": "The settings could not be saved: {reason}",
+      "resetSectionFor": "{scope}: reset «{section}»"
     },
     "conflict": {
       "title": "Someone saved these settings meanwhile",
@@ -52,10 +64,12 @@
       "theirs": "Changed there",
       "mine": "Changed in your draft",
       "nothing": "Nothing",
-      "keep": "Keep editing",
       "load": "Load the current settings",
       "overwrite": "Overwrite with my draft",
-      "loaded": "The current settings are loaded; your draft was discarded."
+      "loaded": "The current settings are loaded; your draft was discarded.",
+      "rebaseHelp": "Nothing is lost: apply your changes to the current version, check them and save — or load the current settings without your draft.",
+      "rebase": "Apply my changes to the current version",
+      "rebased": "Your changes are applied to the current version. Check them and save."
     },
     "values": {
       "unset": "not set",
@@ -63,7 +77,8 @@
       "no": "no",
       "empty": "empty",
       "menu": "{groups} groups, {items} items",
-      "count": "{n} entry | {n} entries"
+      "count": "{n} entry | {n} entries",
+      "groups": "{n} group | {n} groups"
     },
     "color": {
       "format": "Enter a colour as #rrggbb, for example #3978fe.",
@@ -94,11 +109,12 @@
     },
     "dialog": {
       "cancel": "Cancel",
-      "apply": "Apply"
+      "apply": "Apply",
+      "close": "Close"
     },
     "appearance": {
-      "intro": "Colours, density and text size preview on this page at once. Others see them after you save.",
-      "introRole": "Tick the values this role gets instead of the common settings.",
+      "intro": "This page already shows the changes; others see them after you save.",
+      "introRole": "Values you change become the role’s own; the others stay inherited.",
       "density": {
         "compact": "Compact",
         "standard": "Standard",
@@ -124,16 +140,28 @@
       "sampleCancel": "Cancel",
       "sampleInput": "Text field",
       "sampleName": "Organization",
-      "sampleCity": "City"
+      "sampleCity": "City",
+      "colorsTitle": "Colours",
+      "textTitle": "Text and density",
+      "fontShort": {
+        "cloud": "as in the cloud",
+        "inter": "Inter",
+        "system": "font of the system"
+      },
+      "logoCompanyShort": "logo of the CRM",
+      "logoCustomShort": "own logo",
+      "titleCompanyShort": "no title",
+      "titleCustomShort": "own title",
+      "sampleTabA": "Summary",
+      "sampleTabB": "Details"
     },
     "menu": {
-      "intro": "The menu of the new interface shows only modules the user may open. Hiding takes an item out of the menu; permissions and direct links stay unchanged.",
       "roleOwn": "This role has a menu of its own.",
       "useCommon": "Use the common menu",
       "roleCommon": "This role uses the common menu.",
       "useOwn": "Set up a menu for this role",
       "configured": "The menu is set up here.",
-      "crmMenu": "The menu follows the apps of the CRM. Any change below sets up a menu of its own.",
+      "crmMenu": "The menu follows the apps of the CRM. Any change below makes it your own.",
       "useCrm": "Back to the menu of the CRM",
       "crmMenuConfirm": "Replace the groups below by the apps of the CRM?",
       "moved": "«{item}» moved to «{group}».",
@@ -142,7 +170,7 @@
       "removeGroupConfirm": "Remove the group «{group}»? Its modules appear in the groups of their apps or in «Other modules».",
       "hidden": "«{item}» is hidden from the menu.",
       "undo": "Undo",
-      "keys": "Keyboard: Alt+↑ or Alt+↓ moves the focused item, Enter edits it, Delete hides it.",
+      "keys": "Drag a tile or use Alt+arrows to move it; drop it on a group on the left to move it there. Enter edits, Delete hides.",
       "drag": "Drag to move",
       "groupAria": "Group «{group}», {count} items. Alt+↑ or Alt+↓ moves the group.",
       "itemsCount": "{n} item | {n} items",
@@ -158,7 +186,6 @@
       "routeBadge": "view",
       "notInCrm": "not in this CRM",
       "hiddenBadge": "hidden",
-      "toGroup": "Move «{name}» to another group",
       "toGroupShort": "To group…",
       "editItem": "Edit «{item}»",
       "show": "Show «{item}» in the menu",
@@ -166,8 +193,8 @@
       "hide": "Hide «{item}» from the menu",
       "hideShort": "Hide",
       "removeItem": "Remove «{item}» from the menu settings",
-      "emptyGroup": "No items. Drag items here or place modules from the list below.",
-      "addRoute": "Add a link to a view of the CRM",
+      "emptyGroup": "The group has no items and is not shown in the menu. Drag modules here or add them.",
+      "addRoute": "Link to a CRM view",
       "addGroup": "Add a group",
       "newGroup": "New group",
       "notPlacedTitle": "Not placed",
@@ -180,9 +207,9 @@
       "hiddenHelp": "Hidden modules stay available by permissions and direct links.",
       "hiddenByCrm": "hidden in the menu editor of the CRM",
       "noHidden": "Nothing is hidden.",
-      "favoritesTitle": "Favorites and compact view",
-      "favoritesHelp": "Users choose their favorites in their preferences.",
-      "previewTitle": "Preview",
+      "favoritesTitle": "Favorites",
+      "favoritesHelp": "Users choose their favorites in their own preferences.",
+      "previewTitle": "Preview of the menu",
       "previewLanguage": "Language",
       "previewRole": "Shown with your permissions. Users of the role do not see items without permissions.",
       "previewHelp": "Shown with your permissions; each user sees only what they may open.",
@@ -193,7 +220,25 @@
         "viewHelp": "Name of a view of the module, for example List.",
         "filter": "Filter number (optional)",
         "filterHelp": "Filters are numbered per CRM: after moving the settings to another CRM, check it."
-      }
+      },
+      "title": "Menu of the new interface",
+      "position": "«{item}»: position {position} of {count}.",
+      "groupsTitle": "Groups",
+      "search": "Find a module",
+      "searchTitle": "Found for «{query}»",
+      "reveal": "Show",
+      "nothingFound": "No modules found.",
+      "previewOpen": "Preview",
+      "more": "More for «{item}»",
+      "moreShort": "More",
+      "addModules": "Add modules",
+      "addModulesTo": "Add modules to «{group}»",
+      "addPicked": "Add ({n})",
+      "routeHelp": "A link to a view of the CRM, for example a filter of a list",
+      "favoritesLabel": "Favorites",
+      "compactLabel": "Compact view",
+      "crmMenuShort": "as in the CRM",
+      "intro": "The menu of the new interface shows only modules the user may open. Hiding takes an item out of the menu; permissions and direct links stay unchanged."
     },
     "access": {
       "commonOnly": "Users and roles belong to the common settings. Choose «Everyone» to edit them.",
@@ -238,7 +283,11 @@
       "personalHelp": "{n} user has personal settings. | {n} users have personal settings.",
       "resetPersonal": "Reset",
       "resetPersonalConfirm": "Reset the personal settings of {user}?",
-      "personalReset": "The personal settings of {user} are reset."
+      "personalReset": "The personal settings of {user} are reset.",
+      "overridesTitle": "What users set for themselves",
+      "overridesHelp": "These preferences each user may change for himself or herself; the rest follows the common settings and the profile of the role.",
+      "removeProfileShort": "Delete the profile",
+      "resetPersonalTitle": "Reset personal settings"
     },
     "compatibility": {
       "intro": "Screens listed here always open in the standard view, for example a screen of an extension that does not work well with the new interface.",
@@ -251,9 +300,6 @@
       "invalid": "Use names of letters, digits and _, or * for any value; the module is required.",
       "add": "Add a screen",
       "example": "Example: module Reports, view *, area empty — all report screens.",
-      "recoveryTitle": "If something does not work",
-      "safeMode": "Safe mode shows the CRM in the standard view until you sign out:",
-      "classic": "This settings page also works without the editor:",
       "classicLink": "page without the editor",
       "adaptersTitle": "Adapters of extensions",
       "adaptersIntro": "An adapter fits the new interface to the screens of one public extension. It only works while the extension is installed and enabled and its version has been checked; the files of the extension are never changed. Switch an adapter off if the screens of the extension look worse after an update of the extension — the common styling stays.",
@@ -275,7 +321,8 @@
         "version": "Version of the extension not checked",
         "incomplete": "Files or tables of the extension are missing",
         "error": "Could not be checked"
-      }
+      },
+      "screensLabel": "Screens"
     },
     "transfer": {
       "exportTitle": "Export",
@@ -313,7 +360,52 @@
       "apply": "Apply the import",
       "applyConfirm": "Apply the chosen parts of the file? The settings of these parts are replaced.",
       "applied": "The import is applied.",
-      "stale": "The settings changed after the check. Choose the file again to see the current report."
+      "stale": "The settings changed after the check. Choose the file again to see the current report.",
+      "applyTitle": "Apply the import"
+    },
+    "header": {
+      "pilot": "Pilot · users: {users}, roles: {roles}",
+      "all": "On for everyone",
+      "off": "Off for everyone",
+      "forMeOn": "on for you",
+      "forMeOff": "off for you",
+      "myPreferences": "My preferences"
+    },
+    "restore": {
+      "offer": "This tab kept an unsaved draft — {scope} ({time}, {n} change). | This tab kept an unsaved draft — {scope} ({time}, {n} changes).",
+      "restore": "Restore the draft",
+      "drop": "Discard",
+      "restored": "{scope}: the draft is restored. It is not saved yet.",
+      "rebased": "The settings were saved since the draft was made: your changes are applied to the current version. Check them and save.",
+      "roleGone": "The role of the kept draft no longer exists; the draft was discarded.",
+      "overlap": "Changed on both sides, your value is kept: {fields}.",
+      "ok": "OK"
+    },
+    "leave": {
+      "title": "Unsaved changes",
+      "text": "{from}: the changes are not saved. Save them before switching? Next: {to}.",
+      "changes": "{n} change. | {n} changes.",
+      "stay": "Stay",
+      "discard": "Do not save",
+      "save": "Save and open"
+    },
+    "origin": {
+      "inherited": "Inherited from the common settings: {value}",
+      "own": "own value of the role",
+      "useCommon": "Use the common value ({value})",
+      "changed": "Changed.",
+      "useDefault": "Back to the default ({value})"
+    },
+    "maintenance": {
+      "intro": "State of the module, immediate switches and recovery. They act at once, without the draft of the other sections.",
+      "classic": "If the editor does not load, the same switches are on the"
+    },
+    "enable": {
+      "modeTitle": "Who works in the new interface",
+      "addMe": "Add me",
+      "pilotOff": "The lists are kept while the new interface is off and apply when you choose «Pilot».",
+      "optOut": "Standard view",
+      "selfEnable": "Trying during a pilot"
     }
   },
   "fields": {
@@ -350,16 +442,16 @@
     "inactive": "The new interface is off for you; your preferences apply once it is on.",
     "nothing": "The administrator allows no personal changes.",
     "language": "Language of the new interface",
-    "languageHelp": "Changes the texts of ModernUI only, at once and without losing what you entered. Names of modules and fields stay in the language of your CRM profile; your CRM language and formats are not changed.",
+    "languageHelp": "Changes the texts of the new interface only, at once and without losing what you entered. Names of modules and fields stay in the language of your CRM profile; your CRM language and formats are not changed.",
     "asAdmin": "As the administrator set it ({value})",
     "ownColor": "My own value: {name}",
-    "favoritesHelp": "Up to 30 modules at the top of the menu; chosen: {count}. Alt+↑ or Alt+↓ moves the focused one.",
+    "favoritesHelp": "Up to 30 modules at the top of the menu; chosen: {count}. Drag a tile or use Alt+arrows.",
     "removeFavorite": "Remove «{name}» from favorites",
     "noFavorites": "No favorites yet.",
     "addFavorite": "Add to favorites",
     "chooseModule": "Choose a module",
     "standardView": "Use the standard view",
-    "standardViewHelp": "The CRM looks as before ModernUI; you can come back here at any time.",
+    "standardViewHelp": "The CRM looks as before the new interface; you can come back here at any time.",
     "selfEnable": "Try the new interface",
     "unsaved": "You have unsaved changes.",
     "clean": "Your preferences are saved.",
@@ -369,6 +461,15 @@
     "reload": "Load the current preferences",
     "reset": "Reset my preferences",
     "resetConfirm": "Reset all your preferences of the new interface?",
-    "resetDone": "Your preferences are reset."
+    "resetDone": "Your preferences are reset.",
+    "onlyYou": "These settings change the new interface for you only. Data, permissions, language and formats of the CRM stay as they are.",
+    "originOwn": "Your own value. The administrator set: {value}.",
+    "originAdmin": "As the administrator set it: {value}.",
+    "languageTitle": "Language",
+    "menuTitle": "Menu and favorites",
+    "viewTitle": "View",
+    "favoriteAdded": "«{name}» added to favorites.",
+    "favoriteMoved": "«{name}»: position {position} of {count}.",
+    "favoriteAria": "«{name}», {position} of {count}. Alt+arrows move it, Delete removes it."
   }
 }

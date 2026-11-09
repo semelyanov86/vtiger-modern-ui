@@ -69,6 +69,7 @@ export default defineConfig({
     { name: 'cloud-records', testMatch: /cloud-records\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'cloud-forms', testMatch: /cloud-forms\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'cloud-settings', testMatch: /cloud-settings\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
+    { name: 'settings-page', testMatch: /settings-page\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'foundation', testMatch: /foundation\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'lists', testMatch: /lists\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'pairs', testMatch: /pairs\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },

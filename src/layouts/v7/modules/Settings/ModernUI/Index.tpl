@@ -3,43 +3,43 @@
  * Status and switches are plain HTML forms (work without JavaScript); the frontend check is a Vue island.
  *}
 {strip}
-<div class="modernui-page detailViewContainer" lang="{$MU_LOCALE|escape}">
-	<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-		<div class="contents">
-			<div class="clearfix">
-				<h4 class="pull-left">{mu_t key='LBL_TITLE'}</h4>
-			</div>
-			<hr>
-			{if $MU_MESSAGE}
-				<div class="alert alert-{$MU_MESSAGE.kind}" role="status">{mu_t key=$MU_MESSAGE.key}</div>
-			{/if}
-			{if $MU_STATUS.notice eq 'MU_REINSTALLED_THEME_OFF'}
-				<div class="alert alert-info" role="status">{mu_t key='LBL_NOTICE_REINSTALLED'}</div>
-			{/if}
-			{if !$MU_STATUS.moduleActive}
-				<div class="alert alert-warning" role="alert">{mu_t key='LBL_MODULE_DISABLED'}</div>
-			{/if}
-			{if !$MU_STATUS.vtigerSupported}
-				<div class="alert alert-warning" role="alert">{mu_t key='LBL_VTIGER_UNSUPPORTED' version=$MU_STATUS.vtigerVersion}</div>
-			{/if}
-			{if $MU_STATUS.schemaState eq 'newer'}
-				<div class="alert alert-danger" role="alert">{mu_t key='LBL_SCHEMA_NEWER'}</div>
-			{elseif $MU_STATUS.schemaState neq 'current'}
-				<div class="alert alert-danger" role="alert">{mu_t key='LBL_SCHEMA_NEEDS_RECOVERY'}</div>
-			{/if}
-
-			{if $MU_EDITOR}
-				<div class="modernui-editor" data-mu-root="settings-editor" data-mu-build="{$MU_BUILD|escape}">
-					<p class="text-muted">{mu_t key='LBL_EDITOR_LOADING'}</p>
-				</div>
-				<p class="modernui-classic-link help-block">
-					<a href="index.php?module=ModernUI&amp;parent=Settings&amp;view=Index&amp;editor=off">{mu_t key='LBL_CLASSIC_PAGE'}</a>.&nbsp;{mu_t key='LBL_CLASSIC_PAGE_HELP'}
-				</p>
-				<hr>
-				<h4>{mu_t key='LBL_SECTION_SERVER'}</h4>
-			{elseif $MU_EDITOR_OFF}
-				<p><a href="index.php?module=ModernUI&amp;parent=Settings&amp;view=Index">{mu_t key='LBL_EDITOR_PAGE'}</a></p>
-			{/if}
+<div class="modernui-page" lang="{$MU_LOCALE|escape}">
+	<header class="modernui-page__header">
+		<h4 class="modernui-page__title">{mu_t key='LBL_TITLE'}</h4>
+		<div class="modernui-page__tools mu-root" data-mu-root="settings-header-tools"></div>
+	</header>
+	<div class="modernui-page__messages">
+		{if $MU_MESSAGE}
+			<div class="alert alert-{$MU_MESSAGE.kind}" role="status">{mu_t key=$MU_MESSAGE.key}</div>
+		{/if}
+		{if $MU_STATUS.notice eq 'MU_REINSTALLED_THEME_OFF'}
+			<div class="alert alert-info" role="status">{mu_t key='LBL_NOTICE_REINSTALLED'}</div>
+		{/if}
+		{if !$MU_STATUS.moduleActive}
+			<div class="alert alert-warning" role="alert">{mu_t key='LBL_MODULE_DISABLED'}</div>
+		{/if}
+		{if !$MU_STATUS.vtigerSupported}
+			<div class="alert alert-warning" role="alert">{mu_t key='LBL_VTIGER_UNSUPPORTED' version=$MU_STATUS.vtigerVersion}</div>
+		{/if}
+		{if $MU_STATUS.schemaState eq 'newer'}
+			<div class="alert alert-danger" role="alert">{mu_t key='LBL_SCHEMA_NEWER'}</div>
+		{elseif $MU_STATUS.schemaState neq 'current'}
+			<div class="alert alert-danger" role="alert">{mu_t key='LBL_SCHEMA_NEEDS_RECOVERY'}</div>
+		{/if}
+	</div>
+	{if $MU_EDITOR}
+		<div class="modernui-editor" data-mu-root="settings-editor" data-mu-build="{$MU_BUILD|escape}">
+			<p class="text-muted modernui-classic-link">{mu_t key='LBL_EDITOR_LOADING'}</p>
+		</div>
+		<p class="modernui-classic-link help-block" data-mu-fallback="link">
+			<a href="index.php?module=ModernUI&amp;parent=Settings&amp;view=Index&amp;editor=off">{mu_t key='LBL_CLASSIC_PAGE'}</a>.&nbsp;{mu_t key='LBL_CLASSIC_PAGE_HELP'}
+		</p>
+	{elseif $MU_EDITOR_OFF}
+		<p class="modernui-classic-link"><a href="index.php?module=ModernUI&amp;parent=Settings&amp;view=Index">{mu_t key='LBL_EDITOR_PAGE'}</a></p>
+	{/if}
+	{* The service part: status, immediate switches, pilot forms, recovery, the check of this browser. Plain forms that
+	   work without JavaScript; the editor shows this node in its "Service" section. *}
+	<div class="modernui-server" data-mu-server="service">
 			<h5><strong>{mu_t key='LBL_SECTION_STATUS'}</strong></h5>
 			<table class="table table-bordered modernui-status">
 				<tbody>
@@ -220,16 +220,15 @@
 			<div class="modernui-diagnostics" data-mu-root="settings-diagnostics" data-mu-build="{$MU_BUILD|escape}">
 				<p class="text-muted">{if $MU_ASSETS.script}{mu_t key='LBL_FRONTEND_WAITING'}{else}{mu_t key='LBL_BUILD_MISSING'}{/if}</p>
 			</div>
-			{foreach item=CSS from=$MU_ASSETS.css}
-				<link rel="stylesheet" href="{$CSS|escape}">
-			{/foreach}
-			{foreach item=PRELOAD from=$MU_ASSETS.preload}
-				<link rel="modulepreload" href="{$PRELOAD|escape}">
-			{/foreach}
-			{if $MU_ASSETS.script}
-				<script type="module" src="{$MU_ASSETS.script|escape}"></script>
-			{/if}
-		</div>
-	</div>
+			</div>
+	{foreach item=CSS from=$MU_ASSETS.css}
+		<link rel="stylesheet" href="{$CSS|escape}">
+	{/foreach}
+	{foreach item=PRELOAD from=$MU_ASSETS.preload}
+		<link rel="modulepreload" href="{$PRELOAD|escape}">
+	{/foreach}
+	{if $MU_ASSETS.script}
+		<script type="module" src="{$MU_ASSETS.script|escape}"></script>
+	{/if}
 </div>
 {/strip}

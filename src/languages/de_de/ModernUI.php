@@ -5,7 +5,7 @@
  */
 $languageStrings = array(
 	'ModernUI' => 'ModernUI',
-	'LBL_PREFERENCES_TITLE' => 'ModernUI-Einstellungen',
+	'LBL_PREFERENCES_TITLE' => 'Meine Oberflächen-Einstellungen',
 	'LBL_NOT_READY' => 'Die Einstellungen der neuen Oberfläche sind gerade nicht verfügbar. Bitten Sie Ihren Administrator, „Einstellungen → ModernUI“ zu öffnen.',
 	'LBL_STATUS' => 'Neue Oberfläche',
 	'LBL_STATUS_ACTIVE' => 'Die neue Oberfläche ist für Sie eingeschaltet.',

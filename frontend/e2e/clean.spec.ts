@@ -230,7 +230,7 @@ test('Module Manager: disable takes the theme away from everyone, enable brings 
   await setModuleActive(admin.page, 'ModernUI', false)
   expect(await themeActive(admin.page)).toBe(false)
   expect(await themeActive(limited.page)).toBe(false)
-  await admin.page.goto(SETTINGS)
+  await admin.page.goto(`${SETTINGS}#mu-maintenance`)
   await expect(admin.page.locator('table.modernui-status')).toBeVisible()
   await setModuleActive(admin.page, 'ModernUI', true)
   expect(await themeActive(admin.page)).toBe(true)

@@ -87,9 +87,9 @@ test.beforeEach(async ({ context, page }) => {
   })
 })
 
-test('editor: five sections; the language of the theme switches with an unsaved draft and keeps it', async ({ page }) => {
+test('editor: seven sections; the language of the theme switches with an unsaved draft and keeps it', async ({ page }) => {
   await openEditor(page)
-  for (const tab of ['appearance', 'menu', 'access', 'compatibility', 'transfer']) {
+  for (const tab of ['enable', 'appearance', 'menu', 'access', 'compatibility', 'transfer', 'maintenance']) {
     await expect(page.locator(`[data-mu-tab="${tab}"]`)).toBeVisible()
   }
   await page.locator('[data-mu-field="mu-primary"]').fill('#0a7d4f')
@@ -250,12 +250,16 @@ test('menu: keyboard order, hiding with undo, labels in RU/EN/DE, preview, save;
   await dialog.locator('[data-mu-action="dialog-save"]').click()
   await expect(dialog).toBeHidden()
 
+  // The preview (stage 16: in its own window, not on the main screen) is the menu the server builds from the draft.
+  await page.locator('[data-mu-action="menu-preview"]').click()
   const preview = page.locator('[data-mu-preview="menu"]')
   await page.locator('[data-mu-field="preview-locale"]').selectOption('de-DE')
   await expect(preview).toContainText(german)
   await page.locator('[data-mu-field="preview-locale"]').selectOption('ru-RU')
   await expect(preview).toContainText(russian)
   await expect(preview.locator(`[data-mu-item="${moved}"]`)).toHaveCount(0)
+  await page.keyboard.press('Escape')
+  await expect(page.locator('[data-mu-dialog="menu-preview"]')).toBeHidden()
   await clickSave(page)
 
   // The menu of the theme follows on the next page, in the language of the theme.
@@ -365,7 +369,7 @@ test('logo: PNG accepted and shown in the header only; SVG, PHP and oversized fi
 
   await openEditor(page)
   await page.locator('[data-mu-logo="company"]').check()
-  await page.locator('.mu-choice[data-mu-key="branding.title"] input[type="radio"]').first().check()
+  await page.locator('[data-mu-key="branding.title"] input[name="mu-title"]').first().check()
   await clickSave(page)
   await page.goto(HOME)
   await waitForShell(page)
@@ -398,6 +402,7 @@ test('export and import: versioned JSON without ids or logo; preview with change
   await expect(report.locator('[data-mu-report-part="global"]')).toContainText('#8a2be2')
   await expect(report.locator('[data-mu-report-invalid]')).toBeVisible()
   await page.locator('[data-mu-action="import-apply"]').click()
+  await page.locator('[data-mu-dialog="confirm"] [data-mu-action="confirm-ok"]').click()
   await expect(page.locator('[data-mu-import-message].mu-text-success')).toBeVisible()
   const values = (await globalScope(page)).values
   expect(values['appearance.primaryColor']).toBe('#8a2be2')
@@ -434,10 +439,10 @@ test('preferences: language without losing the draft, favorites with keys, compa
   await expect(page.locator('form.modernui-preferences-form')).toBeHidden()
   await page.locator('[data-mu-field="density"]').selectOption('compact')
   await page.locator('[data-mu-field="locale"]').selectOption('de-DE')
-  await expect(editor.locator('.mu-editor__title')).toHaveText('Meine Einstellungen der neuen Oberfläche')
+  await expect(editor.locator('[data-mu-prefs-scope]')).toContainText('nur für Sie')
   await expect(page.locator('[data-mu-field="density"]')).toHaveValue('compact')
   await page.locator('[data-mu-field="locale"]').selectOption('ru-RU')
-  await expect(editor.locator('.mu-editor__title')).toHaveText('Мои предпочтения нового интерфейса')
+  await expect(editor.locator('[data-mu-prefs-scope]')).toContainText('только для вас')
   await expect(editor.locator('.mu-editor__state')).toContainText('несохранённые')
 
   for (const module of ['Contacts', 'Accounts']) {
@@ -482,6 +487,7 @@ test('preferences: language without losing the draft, favorites with keys, compa
   await other.context().close()
 
   await page.locator('[data-mu-action="reset"]').click()
+  await page.locator('[data-mu-dialog="confirm"] [data-mu-action="confirm-ok"]').click()
   await expect(page.locator('[data-mu-prefs] [data-mu-status].mu-text-success')).toBeVisible()
   expect((await bootstrap(page))['personal']).toMatchObject({ values: {}, revision: 0 })
 })
@@ -490,7 +496,7 @@ test('narrow screen in German: the sections of the editor fit without overflow; 
   await page.goto(SETTINGS_FORMS)
   expect((await savePersonal(page, { locale: 'de-DE' })).ok).toBe(true)
   await page.setViewportSize({ width: 412, height: 900 })
-  for (const section of ['appearance', 'menu', 'access', 'compatibility', 'transfer']) {
+  for (const section of ['enable', 'appearance', 'menu', 'access', 'compatibility', 'transfer', 'maintenance']) {
     await openEditor(page, section)
     const overflow = await page.locator('.mu-editor').evaluate((element) => element.scrollWidth - element.clientWidth)
     expect(overflow, section).toBeLessThanOrEqual(1)

@@ -117,7 +117,7 @@ test.afterAll(() => {
 
 test('the theme is on for the administrator and the watcher has built once', async ({ page }) => {
   await waitForOutput(/built in/, 0, 120_000)
-  await page.goto(SETTINGS)
+  await page.goto(`${SETTINGS}&editor=off`)
   if ((await page.locator('button[name="modernui-enable-for-me"]').count()) > 0) {
     await Promise.all([page.waitForURL(/result=/), page.locator('button[name="modernui-enable-for-me"]').click()])
   }

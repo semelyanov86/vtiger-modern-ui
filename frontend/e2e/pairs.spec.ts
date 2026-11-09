@@ -29,6 +29,18 @@ const dir = process.env['MU_VISUAL_DIR'] ?? ''
 
 test.use({ viewport: spec.viewport, deviceScaleFactor: 1 })
 
+/** Pages that accept the "leave the page?" question of an unsaved draft of the module's own pages (registered once). */
+const acceptingDialogs = new WeakSet<Page>()
+
+function acceptDialogs(page: Page): void {
+  if (!acceptingDialogs.has(page)) {
+    acceptingDialogs.add(page)
+    page.on('dialog', (dialog) => {
+      void dialog.accept()
+    })
+  }
+}
+
 async function step(page: Page, name: string): Promise<void> {
   if (name === 'all-records') {
     // Native filter IDs differ between installations. Clear the previous test's search through its own All link.
@@ -41,6 +53,24 @@ async function step(page: Page, name: string): Promise<void> {
     url.searchParams.set('modernui', 'on')
     await page.goto(url.href)
     await waitForShell(page)
+  } else if (name.startsWith('mu-tab:')) {
+    // Stage 16: a section of the page of ModernUI (the draft of the editor is never saved by these steps).
+    acceptDialogs(page)
+    await page.locator(`[data-mu-tab="${name.slice(7)}"]`).click()
+    await expect(page.locator(`[data-mu-tab="${name.slice(7)}"][data-state="active"]`)).toBeVisible()
+  } else if (name === 'mu-open-picker') {
+    await page.locator('[data-mu-action="add-modules"]').click()
+    await expect(page.locator('[data-mu-panel="add-modules"]')).toBeVisible()
+  } else if (name === 'mu-open-confirm') {
+    await page.locator('[data-mu-action="remove-group"]').click()
+    await expect(page.locator('[data-mu-dialog="confirm"]')).toBeVisible()
+  } else if (name === 'mu-prefs-favorite') {
+    acceptDialogs(page)
+    if ((await page.locator('[data-mu-list="favorites"] > li').count()) === 0) {
+      const option = await page.locator('[data-mu-field="favorite"] option').nth(1).getAttribute('value')
+      await page.locator('[data-mu-field="favorite"]').selectOption(option ?? '')
+      await page.locator('[data-mu-action="add-favorite"]').click()
+    }
   } else if (name === 'open-list-filters') {
     await openListFilters(page)
   } else if (name === 'select-first') {

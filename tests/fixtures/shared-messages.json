@@ -22,7 +22,7 @@
     "comment": "Keys whose text is legitimately identical in English and German (names, codes). Everything else must differ.",
     "vue": [
       "languages.ru-RU", "languages.en-US", "languages.de-DE", "diagnostics.build",
-      "menu.apps.MARKETING", "menu.apps.SUPPORT", "editor.transfer.change"
+      "menu.apps.MARKETING", "menu.apps.SUPPORT", "editor.transfer.change", "editor.appearance.fontShort.inter"
     ],
     "php": [
       "ModernUI.ModernUI", "ModernUI.LBL_LOCALE_ru-RU", "ModernUI.LBL_LOCALE_en-US", "ModernUI.LBL_LOCALE_de-DE",
