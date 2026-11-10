@@ -63,7 +63,7 @@ describe('runtime checks of the Bootstrap answer', () => {
     expect(data.locale.effective).toBe('ru-RU')
     expect(data.menu.system.map((item) => item.kind)).toEqual(['link', 'action', 'link', 'link'])
     expect(data.menu.groups[0]?.items.map((item) => item.icon.kind)).toEqual(['vicon', 'letters', 'lucide', 'image'])
-    expect(data.branding).toEqual({ logoUrl: null, title: null })
+    expect(data.branding).toEqual({ logoUrl: null, title: null, notice: null })
     const custom = sample()
     custom['branding'] = { logoUrl: `public.php?type=logo&key=modernui_${'a'.repeat(40)}.png`, title: 'Fußgängerübergänge' }
     expect(parseBootstrap(custom).branding.title).toBe('Fußgängerübergänge')

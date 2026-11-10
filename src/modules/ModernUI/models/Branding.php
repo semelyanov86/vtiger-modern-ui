@@ -2,7 +2,7 @@
 /*
  * Logo and title of the new interface (docs/settings.md §4, branding.*). By default the theme keeps the branding of
  * the CRM (Settings → Company details): the v7 header shows the company logo and nothing is replaced. A logo of
- * the theme is shown only in the header of the new interface; the company logo of the CRM, its documents and
+ * the theme is shown in its header and the opt-in public authentication pages; the company logo of the CRM, its documents and
  * PDF templates are never touched.
  *
  * Upload: PNG, JPEG or GIF of at most 512 KB, checked with getimagesize() and decoded by GD, then re-encoded as PNG
@@ -45,7 +45,7 @@ class ModernUI_Branding_Model {
 	 * Branding for the islands: null values mean "as in the CRM" (the v7 header stays as it is).
 	 * @param array $values effective settings
 	 * @param string $locale theme locale
-	 * @return array {logoUrl: string|null, title: string|null}
+	 * @return array {logoUrl: string|null, title: string|null, notice: string|null}
 	 */
 	public static function forClient(array $values, $locale) {
 		$logo = isset($values['branding.logo']) ? $values['branding.logo'] : 'company';
@@ -53,6 +53,8 @@ class ModernUI_Branding_Model {
 		return array(
 			'logoUrl' => $logo === 'company' ? null : self::logoUrl($logo),
 			'title' => is_array($title) ? ModernUI_Menu_Model::label($title, $locale, null) : null,
+			'notice' => !empty($values['branding.noticeEnabled']) && isset($values['branding.notice']) && is_array($values['branding.notice'])
+				? ModernUI_Menu_Model::label($values['branding.notice'], $locale, null) : null,
 		);
 	}
 

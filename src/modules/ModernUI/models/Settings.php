@@ -64,6 +64,8 @@ class ModernUI_Settings_Model {
 				'appearance.font' => array('type' => 'enum', 'values' => array('cloud', 'inter', 'system'), 'default' => 'cloud', 'scopes' => array('global', 'role')),
 				'branding.logo' => array('type' => 'logo', 'default' => 'company', 'scopes' => array('global')),
 				'branding.title' => array('type' => 'title', 'default' => 'company', 'scopes' => array('global')),
+				'branding.noticeEnabled' => array('type' => 'bool', 'default' => false, 'scopes' => array('global')),
+				'branding.notice' => array('type' => 'labels', 'default' => array('ru-RU' => 'Коммерческая тайна', 'en-US' => 'Trade secret', 'de-DE' => 'Geschäftsgeheimnis'), 'scopes' => array('global')),
 				'navigation.groups' => array('type' => 'menu', 'default' => null, 'scopes' => array('global', 'role')),
 				'navigation.hidden' => array('type' => 'modules', 'max' => 500, 'default' => array(), 'scopes' => array('global', 'role')),
 				'navigation.favoritesEnabled' => array('type' => 'bool', 'default' => true, 'scopes' => array('global', 'role')),
@@ -242,6 +244,8 @@ class ModernUI_Settings_Model {
 				if ($value === 'company') {
 					return $value;
 				}
+				// Intentional fallthrough: both custom titles and notices contain translated plain text.
+			case 'labels':
 				$labels = self::normalizeLabels($value, $path);
 				return $labels ? $labels : null;
 			case 'menu':
@@ -629,7 +633,7 @@ class ModernUI_Settings_Model {
 				// Objects are walked, except the value of a key that holds an object (branding.title: labels by locale).
 				// "locale" and "locale.default" live in different scopes, so the object {"default": …} of a global or
 				// role document is walked. Scalars and lists are values.
-				$objectKey = isset($spec[$path]) && $spec[$path]['type'] === 'title';
+				$objectKey = isset($spec[$path]) && in_array($spec[$path]['type'], array('title', 'labels'), true);
 				if ($objectKey || !is_array($value) || !$value || array_keys($value) === range(0, count($value) - 1)) {
 					$flat[$path] = $value;
 				} else {

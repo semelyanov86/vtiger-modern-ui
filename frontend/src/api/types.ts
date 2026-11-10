@@ -97,6 +97,7 @@ export interface Menu {
 export interface Branding {
   readonly logoUrl: string | null
   readonly title: string | null
+  readonly notice?: string | null
 }
 
 /** Level a screen rule of an adapter gives a screen (docs/compatibility.md §8): only the stylesheet, or no theme. */

@@ -27,7 +27,7 @@ export const SECTION_KEYS: Readonly<Record<DraftSection, readonly string[]>> = {
   ],
   appearance: [
     'appearance.primaryColor', 'appearance.background', 'appearance.surface', 'appearance.density', 'appearance.fontScale',
-    'appearance.font', 'branding.logo', 'branding.title', 'locale.default',
+    'appearance.font', 'branding.logo', 'branding.title', 'branding.noticeEnabled', 'branding.notice', 'locale.default',
   ],
   menu: ['navigation.groups', 'navigation.hidden', 'navigation.favoritesEnabled', 'navigation.compact'],
   access: ['policy.userOverrides'],

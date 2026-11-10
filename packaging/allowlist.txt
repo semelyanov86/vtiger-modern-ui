@@ -12,11 +12,13 @@ modules/Settings/ModernUI/views/*.php
 modules/Settings/ModernUI/models/*.php
 layouts/v7/modules/ModernUI/*.tpl
 layouts/v7/modules/ModernUI/resources/loader.js
+layouts/v7/modules/ModernUI/resources/auth.js
 layouts/v7/modules/ModernUI/resources/dist/manifest.json
 layouts/v7/modules/ModernUI/resources/dist/THIRD_PARTY_LICENSES.txt
 layouts/v7/modules/ModernUI/resources/dist/assets/*.js
 layouts/v7/modules/ModernUI/resources/dist/assets/*.css
 layouts/v7/modules/ModernUI/resources/dist/assets/*.woff2
+layouts/v7/modules/ModernUI/resources/dist/assets/*.svg
 layouts/v7/modules/Settings/ModernUI/*.tpl
 languages/en_us/ModernUI.php
 languages/ru_ru/ModernUI.php

@@ -11,6 +11,7 @@
 require_once 'modules/ModernUI/models/Page.php';
 require_once 'modules/ModernUI/models/Lifecycle.php';
 require_once 'modules/ModernUI/models/Pilot.php';
+require_once 'modules/ModernUI/models/AuthInstaller.php';
 
 class Settings_ModernUI_Index_View extends Settings_Vtiger_Index_View {
 
@@ -55,12 +56,14 @@ class Settings_ModernUI_Index_View extends Settings_Vtiger_Index_View {
 			'linksOk' => $this->linksRegistered(),
 		);
 		$viewer->assign('MU_STATUS', $status);
+		$viewer->assign('MU_AUTH_STATUS', (new ModernUI_AuthInstaller_Model())->status());
 		$viewer->assign('MU_LOCALE', $this->locale['locale']);
 		$viewer->assign('MU_CSRF', function_exists('csrf_get_tokens') ? csrf_get_tokens() : '');
 		$viewer->assign('MU_SAFE_MODE', ModernUI_Activation_Model::isSafeMode(array()));
 		$viewer->assign('MU_MESSAGE', ModernUI_Page_Model::message($request, array(
 			'enabled_for_me', 'disabled_for_me', 'disabled_for_all', 'pilot_added', 'pilot_removed', 'recovered', 'unchanged',
 			'error_recovery', 'error_schema', 'error_conflict', 'error_bad_request',
+			'auth_installed', 'auth_restored', 'error_auth_conflict', 'error_auth_write',
 		)));
 
 		$ready = $schemaState === ModernUI_Schema_Model::STATE_CURRENT;

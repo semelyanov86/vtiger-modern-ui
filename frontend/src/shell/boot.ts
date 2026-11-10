@@ -128,10 +128,10 @@ function registerIslands(data: Bootstrap, i18n: ReturnType<typeof createThemeI18
     })
   }
   const branding = data.branding
-  if (branding.logoUrl !== null || branding.title !== null) {
+  if (branding.logoUrl !== null || branding.title !== null || branding.notice !== undefined) {
     const brand = {
       id: 'brand',
-      // Inside the company logo link of the v7 header, after its image (the red marks extensions put there stay).
+      // Inside the company logo link, in a container owned by ModernUI.
       place: () => {
         const anchor = document.querySelector('nav.app-fixed-navbar .logo-container a.company-logo')
         if (anchor === null) {

@@ -181,6 +181,15 @@ const previewLogo = computed(() => logoUrl.value ?? companyLogo.value)
             </div>
             <LabelsEditor v-if="wantCustomTitle" id="mu-title" :model-value="title" :required="true" @update:model-value="setTitle" />
           </ScopedField>
+          <ScopedField v-slot="{ value, update, labelId }" :editor="editor" field="branding.noticeEnabled" :problems="problems" :label="t('fields.branding_noticeEnabled')" :help="t('editor.appearance.noticeHelp')">
+            <label class="mu-check">
+              <input type="checkbox" :checked="value === true" :aria-labelledby="labelId" data-mu-field="notice-enabled" @change="update(($event.target as HTMLInputElement).checked)" />
+              <span>{{ t('editor.appearance.noticeShow') }}</span>
+            </label>
+          </ScopedField>
+          <ScopedField v-if="editor.effective('branding.noticeEnabled') === true" v-slot="{ value, update }" :editor="editor" field="branding.notice" :problems="problems" :label="t('fields.branding_notice')">
+            <LabelsEditor id="mu-notice" :model-value="isLabels(value) ? value : null" :required="true" @update:model-value="update" />
+          </ScopedField>
         </div>
       </section>
     </div>

@@ -91,6 +91,8 @@ id, чтобы его можно было убрать. Раздел скрыт 
 | `appearance.font` | `cloud` (Poppins облака, кириллица — Arial/Arimo, `design.md` §13.4) / `inter` / `system` | `cloud` (до 0.8.0 — `inter`) | да | да | — |
 | `branding.logo` | `company` (логотип из «Сведения о компании») или `custom` + имя файла `modernui_<sha1>.{png,jpg,gif}` в `test/logo/` | `company` | да | — | — |
 | `branding.title` | `company` или карта подписей `{ru-RU,en-US,de-DE,*}` ≤ 60 символов | `company` | да | — | — |
+| `branding.noticeEnabled` | bool, надпись в шапке и на страницах входа | `false` | да | — | — |
+| `branding.notice` | карта подписей `{ru-RU,en-US,de-DE,*}` ≤ 60 символов, без HTML | «Коммерческая тайна» / Trade secret / Geschäftsgeheimnis | да | — | — |
 | `navigation.groups` | дерево меню (§6) | `null` → группы приложений v7 | да | да | — |
 | `navigation.hidden` | список имён модулей | `[]` | да | да | — |
 | `navigation.favoritesEnabled` | bool | `true` | да | да | — |

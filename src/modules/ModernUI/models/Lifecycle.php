@@ -170,6 +170,11 @@ class ModernUI_Lifecycle_Model {
 	 * @param bool $purge
 	 */
 	public static function uninstall($purge) {
+		// Explicitly installed login templates must be restored before the module's files disappear.
+		require_once 'modules/ModernUI/models/AuthInstaller.php';
+		if (is_file(ModernUI_Assets_Model::crmRoot() . '/' . ModernUI_AuthInstaller_Model::BACKUP)) {
+			(new ModernUI_AuthInstaller_Model())->apply(false);
+		}
 		self::removeLinks();
 		self::removeSettingsItem();
 		if ($purge) {

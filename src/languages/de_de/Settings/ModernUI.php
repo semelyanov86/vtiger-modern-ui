@@ -82,5 +82,17 @@ $languageStrings = array(
 	'LBL_CLASSIC_PAGE_HELP' => 'Lädt der Editor nicht, bietet die Seite ohne ihn weiterhin die Schalter, den Pilotbetrieb und die Wiederherstellung.',
 	'LBL_EDITOR_PAGE' => 'Einstellungseditor öffnen',
 	'LBL_SECTION_SERVER' => 'Status und Wiederherstellung',
+	'LBL_AUTH_PAGES' => 'Anmeldung und Passwortwiederherstellung',
+	'LBL_AUTH_PAGES_HELP' => 'Die Anmeldeseiten im Cloud-Stil für alle Benutzer aktivieren. Die bisherigen Seiten werden gesichert und können wiederhergestellt werden. Firmenlogo und Hinweis werden unter „Darstellung“ festgelegt.',
+	'LBL_AUTH_STATUS_original' => 'Ursprüngliche Seiten',
+	'LBL_AUTH_STATUS_installed' => 'ModernUI-Seiten installiert',
+	'LBL_AUTH_STATUS_partial' => 'Die Installation ist unvollständig. Erneut anwenden oder die ursprünglichen Seiten wiederherstellen.',
+	'LBL_AUTH_STATUS_conflict' => 'Dateien wurden außerhalb von ModernUI geändert oder die Sicherung fehlt. Es werden keine Dateien überschrieben.',
+	'LBL_AUTH_install' => 'Anmeldeseiten anwenden',
+	'LBL_AUTH_restore' => 'Ursprüngliche Seiten wiederherstellen',
+	'LBL_RESULT_AUTH_INSTALLED' => 'Die ModernUI-Anmeldeseiten wurden installiert.',
+	'LBL_RESULT_AUTH_RESTORED' => 'Die ursprünglichen Anmeldeseiten wurden wiederhergestellt.',
+	'LBL_RESULT_ERROR_AUTH_CONFLICT' => 'Die Dateien oder die Sicherung wurden geändert. Stellen Sie diese vor einem erneuten Versuch wieder her.',
+	'LBL_RESULT_ERROR_AUTH_WRITE' => 'Die Seiten konnten nicht geändert werden. Prüfen Sie die Dateiberechtigungen und versuchen Sie es erneut.',
 );
 $jsLanguageStrings = array();

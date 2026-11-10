@@ -79,7 +79,7 @@ def main() -> int:
             for name in names[1:]:
                 check(name.startswith(allowed_prefixes), f'{name}: inside the paths of the module')
                 check(not any(part.startswith('.') for part in name.split('/')), f'{name}: no hidden files')
-                check(Path(name).suffix in {'.php', '.tpl', '.js', '.css', '.json', '.txt', '.woff2'}, f'{name}: allowed file type')
+                check(Path(name).suffix in {'.php', '.tpl', '.js', '.css', '.json', '.txt', '.woff2', '.svg'}, f'{name}: allowed file type')
                 check('node_modules' not in name and not name.endswith(('.map', '.ts', '.vue', '.scss')), f'{name}: no sources or maps')
                 for forbidden in ('.env', 'PRIVATE', 'USAGE', 'dev/', 'tests/', 'frontend/'):
                     check(forbidden not in name, f'{name}: not a development file ({forbidden})')

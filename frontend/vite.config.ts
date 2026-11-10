@@ -77,6 +77,7 @@ export default defineConfig({
         settings: resolve(here, 'src/settings/main.ts'),
         preferences: resolve(here, 'src/preferences/main.ts'),
         skin: resolve(here, 'src/skin/skin.scss'),
+        auth: resolve(here, 'src/auth/auth.scss'),
         ...adapterStyles,
       },
       output: {

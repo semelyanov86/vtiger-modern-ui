@@ -82,5 +82,17 @@ $languageStrings = array(
 	'LBL_CLASSIC_PAGE_HELP' => 'If the editor does not load, the page without it keeps the switches, the pilot and the recovery.',
 	'LBL_EDITOR_PAGE' => 'Open the settings editor',
 	'LBL_SECTION_SERVER' => 'Status and recovery',
+	'LBL_AUTH_PAGES' => 'Sign-in and password recovery pages',
+	'LBL_AUTH_PAGES_HELP' => 'Apply the cloud-style pages for everyone signing in. Your existing pages are backed up and can be restored. The organization logo and the notice are configured under Appearance.',
+	'LBL_AUTH_STATUS_original' => 'Original pages',
+	'LBL_AUTH_STATUS_installed' => 'ModernUI pages installed',
+	'LBL_AUTH_STATUS_partial' => 'Installation is incomplete. Apply again or restore the original pages.',
+	'LBL_AUTH_STATUS_conflict' => 'The files were changed outside ModernUI or the backup is unavailable. No files will be overwritten.',
+	'LBL_AUTH_install' => 'Apply sign-in pages',
+	'LBL_AUTH_restore' => 'Restore original pages',
+	'LBL_RESULT_AUTH_INSTALLED' => 'The ModernUI sign-in pages are now installed.',
+	'LBL_RESULT_AUTH_RESTORED' => 'The original sign-in pages have been restored.',
+	'LBL_RESULT_ERROR_AUTH_CONFLICT' => 'The files or backup have changed. Restore them from your backup before trying again.',
+	'LBL_RESULT_ERROR_AUTH_WRITE' => 'The pages could not be changed. Check file permissions and try again.',
 );
 $jsLanguageStrings = array();

@@ -10,6 +10,7 @@
  *              custom entity module, English fallback; settings of users with different permissions — menu by
  *              permissions, role profiles, personal keys, role change, refused administrator actions (access.spec.ts);
  * - settings — the settings editor and the preferences editor as an administrator (stage 05, both stands);
+ * - auth-pages — opt-in public login/recovery, native authentication, branding, installation/restore, no JS and widths;
  * - navigation — the navigation shell (mega menu, favorites bar, module rail) and the list screens (stage 06, both stands);
  * - records  — record views, forms, line items, saving, errors and rights compared with v7 (stage 07, both stands; writes
  *              synthetic records MU07 and deletes them);
@@ -70,6 +71,7 @@ export default defineConfig({
     { name: 'cloud-forms', testMatch: /cloud-forms\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'cloud-settings', testMatch: /cloud-settings\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'settings-page', testMatch: /settings-page\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
+    { name: 'auth-pages', testMatch: /auth-pages\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'foundation', testMatch: /foundation\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'lists', testMatch: /lists\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'pairs', testMatch: /pairs\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },

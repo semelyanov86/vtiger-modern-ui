@@ -153,7 +153,9 @@
       "titleCompanyShort": "без названия",
       "titleCustomShort": "своё название",
       "sampleTabA": "Сводка",
-      "sampleTabB": "Подробности"
+      "sampleTabB": "Подробности",
+      "noticeHelp": "У логотипа в CRM, на странице входа и восстановления пароля. Надпись видна всем пользователям, в том числе до входа.",
+      "noticeShow": "Показывать надпись у логотипа"
     },
     "menu": {
       "roleOwn": "У этой роли своё меню.",
@@ -434,7 +436,9 @@
     "navigation_favorites": "Избранное",
     "user_standardView": "Стандартный вид",
     "user_selfEnabled": "Пробует новый интерфейс",
-    "adapters_disabled": "Выключенные адаптеры"
+    "adapters_disabled": "Выключенные адаптеры",
+    "branding_noticeEnabled": "Показывать надпись",
+    "branding_notice": "Текст надписи"
   },
   "prefs": {
     "title": "Мои предпочтения нового интерфейса",

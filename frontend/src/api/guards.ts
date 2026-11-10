@@ -245,6 +245,7 @@ function branding(value: unknown): Branding {
   return {
     logoUrl: logoUrl === null ? null : string(logoUrl, 'branding.logoUrl', LOGO_URL),
     title: title === null ? null : string(title, 'branding.title', /^[^<>]{1,200}$/u),
+    notice: data['notice'] === undefined || data['notice'] === null ? null : string(data['notice'], 'branding.notice', /^[^<>]{1,60}$/u),
   }
 }
 

@@ -347,9 +347,9 @@ test('logo: PNG accepted and shown in the header only; SVG, PHP and oversized fi
   await input.setInputFiles({ name: 'logo.png', mimeType: 'image/png', buffer: await pngFile(240, 60, [10, 125, 79]) })
   await expect(page.locator('.mu-logo__preview')).toBeVisible()
   await page.locator('[data-mu-title="custom"]').check()
-  await page.locator('[data-mu-label="en-US"]').fill('Fußgänger CRM')
-  await page.locator('[data-mu-label="ru-RU"]').fill('Окна CRM')
-  await page.locator('[data-mu-label="de-DE"]').fill('Fußgänger CRM')
+  await page.locator('[data-mu-key="branding.title"] [data-mu-label="en-US"]').fill('Fußgänger CRM')
+  await page.locator('[data-mu-key="branding.title"] [data-mu-label="ru-RU"]').fill('Окна CRM')
+  await page.locator('[data-mu-key="branding.title"] [data-mu-label="de-DE"]').fill('Fußgänger CRM')
   await clickSave(page)
 
   await page.goto(HOME)

@@ -6,8 +6,10 @@ for the theme and the menu, and personal preferences. The interface texts of the
 available in English, German and Russian.
 
 The module installs as a regular Vtiger extension ZIP through *Settings → Module Manager →
-Import*. It does not patch the Vtiger core, does not replace global libraries (jQuery, Bootstrap,
-Select2) and keeps the standard v7 interface available as a fallback.
+Import*. Installation leaves the Vtiger core untouched and does not replace global libraries
+(jQuery, Bootstrap, Select2). An optional administrator button installs the login and password
+recovery design by wrapping two native templates, with backups and a restore button. The standard
+v7 interface remains available as a fallback. See [authentication pages](docs/auth-pages.md).
 
 > **Status:** early development, no release yet. The installable foundation is in place: the extension
 > module with its lifecycle, versioned settings storage and migrations, the classic loader and the Vue 3
@@ -23,6 +25,11 @@ Select2) and keeps the standard v7 interface available as a fallback.
   Vue components mount only into containers owned by ModernUI; DOM managed by jQuery is left intact.
 - *Settings → ModernUI*: colours, density, font size, logo, menu editor (order, groups, labels,
   icons, hidden items, favourites), pilot users and roles, preview, reset, JSON import/export.
+- *Appearance*: organization/theme logo and a configurable public notice; *Maintenance → Apply login
+  pages*: cloud-style login, recovery and password change. Authentication remains native Vtiger.
+  Run `task test:auth-pages` with `MU_E2E_TARGET=dev|c81|c85`; optional `MU_AUTH_MAIL_URL` enables
+  the full reset flow against the isolated clean stand's mail trap. Screenshots use `MU_AUTH_SHOTS_DIR`
+  (a private directory on the dev instance).
 - The menu is always limited by the current user's Vtiger permissions; hiding an item never grants
   or removes access.
 - The theme is off after installation; administrators enable it for themselves first. A standard

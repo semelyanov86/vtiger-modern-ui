@@ -10,7 +10,7 @@ export const FIELD_KEYS = [
   'theme.mode', 'theme.pilot.users', 'theme.pilot.roles', 'theme.pilot.includeSubordinates', 'theme.allowSelfEnable',
   'theme.allowOptOut', 'theme.excludedScreens', 'policy.userOverrides', 'locale.default', 'locale',
   'appearance.primaryColor', 'appearance.background', 'appearance.surface', 'appearance.density', 'appearance.fontScale',
-  'appearance.font', 'branding.logo', 'branding.title', 'navigation.groups', 'navigation.hidden',
+  'appearance.font', 'branding.logo', 'branding.title', 'branding.noticeEnabled', 'branding.notice', 'navigation.groups', 'navigation.hidden',
   'navigation.favoritesEnabled', 'navigation.compact', 'navigation.favorites', 'user.standardView', 'user.selfEnabled',
 ] as const
 

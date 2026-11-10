@@ -1,0 +1,95 @@
+// Standalone authentication: no shell, Vue or global Bootstrap replacement.
+@use '../styles/fonts';
+
+html:has(.mu-auth), body:has(.mu-auth) {
+  margin: 0;
+  min-width: 0;
+  min-height: 100%;
+  padding: 0;
+  background: #fff;
+}
+
+body:has(.mu-auth) {
+  #page { margin: 0; padding: 0; }
+  .app-footer, .footer, .app-nav { display: none; }
+}
+
+.mu-auth {
+  box-sizing: border-box;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 32px 24px 40px;
+  color: #212529;
+  background: radial-gradient(ellipse 360px 380px at 50% 200px, #fffc, #fff0), url('./pattern.svg') 0 0 / 600px 600px repeat #fff;
+  font: 400 16px/1.5 Poppins, 'ModernUI Cyrillic', Arial, sans-serif;
+  text-align: center;
+
+  *, *::before, *::after { box-sizing: border-box; }
+  .mu-auth__header { position: relative; margin: 0 auto; max-width: 510px; }
+  .mu-auth__logo { display: block; width: auto; max-width: 240px; height: 40px; object-fit: contain; margin: 0 auto; }
+  .mu-auth__notice { position: absolute; inset: 48px 0 auto; margin: 0; color: #e53935; font-size: 13px; font-weight: 600; text-transform: uppercase; }
+  .mu-auth__content { width: 300px; max-width: 100%; margin: 68px auto 0; }
+  .mu-auth__content--wide { width: 510px; margin-top: 86px; }
+  .mu-auth__title { margin: 0 0 24px; color: #212529; font: 500 24px/1.2 Poppins, 'ModernUI Cyrillic', Arial, sans-serif; }
+  .mu-auth__form { display: flex; flex-direction: column; gap: 16px; margin: 0; }
+  .mu-auth__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+  .mu-auth__input {
+    display: block;
+    width: 100%;
+    height: 38px;
+    margin: 0;
+    padding: 6px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: none;
+    color: #495057;
+    font: inherit;
+    line-height: 24px;
+    text-align: left;
+    &::placeholder { color: #7b7f85; opacity: 1; }
+    &:focus { border-color: #80bdff; outline: 0; box-shadow: 0 0 0 3px #007bff26; }
+  }
+
+  .mu-auth__button {
+    display: block;
+    width: 100%;
+    min-height: 38px;
+    margin: 0;
+    padding: 6px 12px;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    background: #007bff;
+    color: #fff;
+    font: inherit;
+    line-height: 24px;
+    cursor: pointer;
+    > span { margin-left: 4px; }
+    &:hover { border-color: #0062cc; background: #0069d9; }
+    &:focus-visible { outline: 3px solid #80bdff; outline-offset: 3px; }
+  }
+
+  .mu-auth__button--green {
+    margin-top: 8px;
+    border-color: #13cc73;
+    background: #13cc73;
+    &:hover { border-color: #04a969; background: #04b471; }
+  }
+
+  a { color: #007bff; text-decoration: none; &:hover { text-decoration: underline; } &:focus-visible { outline: 2px solid #007bff; outline-offset: 4px; } }
+  .mu-auth__links, .mu-auth__help { margin: 24px 0 0; }
+  .mu-auth__help { color: #7b7f85; white-space: pre-line; }
+  .mu-auth__message { margin: 0 0 20px; padding: 10px 12px; border-radius: 4px; background: #fff1f0; color: #b42318; font-size: 14px; }
+  .mu-auth__message--success { color: #176b45; background: #edfaf3; }
+  .mu-auth__languages { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin-top: 32px; font-size: 12px; }
+  .mu-auth__languages a { color: #6c757d; }
+  .mu-auth__languages a[aria-current] { color: #343a40; text-decoration: underline; }
+
+  @media (max-width: 480px) {
+    padding-right: 20px;
+    padding-left: 20px;
+    .mu-auth__notice { font-size: 12px; }
+    .mu-auth__content--wide { margin-top: 78px; }
+  }
+}

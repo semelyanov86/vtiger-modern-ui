@@ -153,7 +153,9 @@
       "titleCompanyShort": "no title",
       "titleCustomShort": "own title",
       "sampleTabA": "Summary",
-      "sampleTabB": "Details"
+      "sampleTabB": "Details",
+      "noticeHelp": "Beside the logo in the CRM and on sign-in and password recovery pages. The notice is visible to everyone, including before sign-in.",
+      "noticeShow": "Show the notice beside the logo"
     },
     "menu": {
       "roleOwn": "This role has a menu of its own.",
@@ -434,7 +436,9 @@
     "navigation_favorites": "Favorites",
     "user_standardView": "Standard view",
     "user_selfEnabled": "Trying the new interface",
-    "adapters_disabled": "Switched-off adapters"
+    "adapters_disabled": "Switched-off adapters",
+    "branding_noticeEnabled": "Show notice",
+    "branding_notice": "Notice text"
   },
   "prefs": {
     "title": "My preferences of the new interface",

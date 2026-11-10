@@ -40,6 +40,25 @@
 	{* The service part: status, immediate switches, pilot forms, recovery, the check of this browser. Plain forms that
 	   work without JavaScript; the editor shows this node in its "Service" section. *}
 	<div class="modernui-server" data-mu-server="service">
+			<section class="modernui-auth-install" data-mu-auth-install="{$MU_AUTH_STATUS|escape}">
+				<h5><strong>{mu_t key='LBL_AUTH_PAGES'}</strong></h5>
+				<p>{mu_t key='LBL_AUTH_PAGES_HELP'}</p>
+				<p role="status">{mu_t key="LBL_AUTH_STATUS_`$MU_AUTH_STATUS`"}</p>
+				<div class="modernui-actions">
+					{foreach item=AUTH_MODE from=['install', 'restore']}
+						<form method="post" action="index.php" class="modernui-inline-form">
+							<input type="hidden" name="module" value="ModernUI">
+							<input type="hidden" name="parent" value="Settings">
+							<input type="hidden" name="action" value="AuthPages">
+							<input type="hidden" name="mode" value="{$AUTH_MODE|escape}">
+							<input type="hidden" name="__vtrftk" value="{$MU_CSRF|escape}">
+							{if $MU_EDITOR_OFF}<input type="hidden" name="editor" value="off">{/if}
+							<button type="submit" class="btn {if $AUTH_MODE eq 'install'}btn-primary{else}btn-default{/if}" name="modernui-auth-{$AUTH_MODE}"
+								{if $MU_AUTH_STATUS eq 'conflict' || ($AUTH_MODE eq 'install' && $MU_AUTH_STATUS eq 'installed') || ($AUTH_MODE eq 'restore' && $MU_AUTH_STATUS eq 'original') || !$MU_STATUS.moduleActive}disabled{/if}>{mu_t key="LBL_AUTH_`$AUTH_MODE`"}</button>
+						</form>
+					{/foreach}
+				</div>
+			</section>
 			<h5><strong>{mu_t key='LBL_SECTION_STATUS'}</strong></h5>
 			<table class="table table-bordered modernui-status">
 				<tbody>

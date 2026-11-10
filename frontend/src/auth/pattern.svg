@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+  <!-- Original line illustrations for ModernUI; no cloud artwork is embedded. -->
+  <defs>
+    <g id="mail"><rect x="3" y="9" width="48" height="32"/><path d="m3 9 24 21L51 9M3 41l17-17m31 17L34 24"/></g>
+    <g id="search"><circle cx="23" cy="23" r="19"/><circle cx="23" cy="23" r="14"/><path d="m36 37 18 18-4 4-18-18"/></g>
+    <g id="chart"><path d="M4 49h50M8 44V30h9v14m8 0V19h9v25m8 0V7h9v37M5 18 23 9l9 4L49 0"/></g>
+    <g id="phone"><path d="M13 4c-21 19 13 57 31 47l5-8-14-9-6 6c-8-3-13-11-14-18l7-5-5-14z"/></g>
+    <g id="laptop"><path d="M7 5h42v31H7zM11 9h34v22H11zM7 36 1 49h54l-6-13M8 40h40M6 44h44M23 48l2-5h8l2 5"/></g>
+    <g id="clock"><circle cx="28" cy="28" r="24"/><circle cx="28" cy="28" r="20"/><path d="M28 7v5m0 32v5M7 28h5m32 0h5M28 14v14h14"/><circle cx="28" cy="28" r="2"/></g>
+    <g id="person"><circle cx="28" cy="15" r="11"/><path d="M7 52c0-27 42-27 42 0z"/></g>
+    <g id="globe"><circle cx="28" cy="28" r="24"/><ellipse cx="28" cy="28" rx="12" ry="24"/><path d="M4 28h48M10 12q18 13 36 0M10 44q18-13 36 0M28 4v48"/></g>
+    <g id="headset"><path d="M6 32V23a22 22 0 0 1 44 0v9M10 30V23a18 18 0 0 1 36 0v7M5 29h8v18H5c-6-4-6-14 0-18Zm44 0h-8v18h8c6-4 6-14 0-18ZM46 47c0 8-9 9-14 9"/><rect x="25" y="53" width="10" height="5" rx="2"/></g>
+    <g id="bulb"><path d="M19 39c0-8-10-12-10-23a18 18 0 0 1 36 0c0 11-10 15-10 23zM19 43h16m-15 4h14m-11 4h8M22 36l-3-17 8 7 8-7-3 17M0 13h5m44 0h5M3 0l5 5m38 0 5-5"/></g>
+    <g id="mouse"><rect x="11" y="3" width="34" height="52" rx="17"/><path d="M28 3v22M11 25h34"/><rect x="25" y="9" width="6" height="10" rx="3"/></g>
+    <g id="news"><rect x="3" y="7" width="49" height="39"/><path d="M9 14h15v13H9zM29 14h17m-17 6h17m-17 7h17M9 33h37M9 39h37"/></g>
+  </defs>
+  <g fill="none" stroke="#d5d6d8" stroke-width=".8" stroke-linejoin="round" stroke-linecap="round">
+    <use href="#mouse" transform="translate(-10 -25) rotate(22 28 28) scale(1.2)"/>
+    <use href="#mail" transform="translate(78 12) rotate(15 28 28) scale(1.2)"/>
+    <use href="#search" transform="translate(181 22) rotate(-12 28 28) scale(1.2)"/>
+    <use href="#chart" transform="translate(285 0) rotate(-25 28 28) scale(1.3)"/>
+    <use href="#headset" transform="translate(402 -20) rotate(15 28 28) scale(1.2)"/>
+    <use href="#phone" transform="translate(515 6) rotate(22 28 28) scale(1.15)"/>
+    <use href="#bulb" transform="translate(12 97) rotate(-15 28 28) scale(1.1)"/>
+    <use href="#laptop" transform="translate(104 104) rotate(-12 28 28) scale(1.2)"/>
+    <use href="#person" transform="translate(213 113) rotate(18 28 28) scale(1.1)"/>
+    <use href="#phone" transform="translate(314 94) rotate(15 28 28) scale(1.2)"/>
+    <use href="#chart" transform="translate(427 102) rotate(15 28 28) scale(1.1)"/>
+    <use href="#news" transform="translate(513 112) rotate(-18 28 28) scale(1.3)"/>
+    <use href="#mouse" transform="translate(-10 211) rotate(24 28 28) scale(1.2)"/>
+    <use href="#search" transform="translate(88 209) rotate(12 28 28) scale(1.1)"/>
+    <use href="#mail" transform="translate(194 218) rotate(-15 28 28) scale(1.1)"/>
+    <use href="#clock" transform="translate(294 212) rotate(-12 28 28) scale(1.15)"/>
+    <use href="#laptop" transform="translate(404 222) rotate(18 28 28) scale(1.2)"/>
+    <use href="#globe" transform="translate(521 209) rotate(15 28 28) scale(1.2)"/>
+    <use href="#person" transform="translate(8 318) rotate(-20 28 28) scale(1.2)"/>
+    <use href="#phone" transform="translate(116 325) rotate(27 28 28) scale(1.2)"/>
+    <use href="#bulb" transform="translate(220 314) rotate(15 28 28) scale(1.15)"/>
+    <use href="#globe" transform="translate(319 329) rotate(-12 28 28) scale(1.2)"/>
+    <use href="#mouse" transform="translate(421 315) rotate(22 28 28) scale(1.2)"/>
+    <use href="#headset" transform="translate(529 327) rotate(-13 28 28) scale(1.1)"/>
+    <use href="#mail" transform="translate(-11 430) rotate(-15 28 28) scale(1.25)"/>
+    <use href="#news" transform="translate(91 430) rotate(-25 28 28) scale(1.3)"/>
+    <use href="#chart" transform="translate(200 431) rotate(17 28 28) scale(1.2)"/>
+    <use href="#laptop" transform="translate(309 436) rotate(-16 28 28) scale(1.2)"/>
+    <use href="#person" transform="translate(421 430) rotate(16 28 28) scale(1.2)"/>
+    <use href="#clock" transform="translate(529 432) rotate(15 28 28) scale(1.1)"/>
+    <use href="#laptop" transform="translate(10 530) rotate(-20 28 28) scale(1.2)"/>
+    <use href="#globe" transform="translate(116 541) rotate(20 28 28) scale(1.1)"/>
+    <use href="#headset" transform="translate(217 528) rotate(25 28 28) scale(1.2)"/>
+    <use href="#news" transform="translate(325 535) rotate(15 28 28) scale(1.1)"/>
+    <use href="#search" transform="translate(427 539) rotate(-20 28 28) scale(1.1)"/>
+    <use href="#mail" transform="translate(532 534) rotate(19 28 28) scale(1.2)"/>
+  </g>
+</svg>
