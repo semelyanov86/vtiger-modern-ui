@@ -149,6 +149,60 @@ async function step(page: Page, name: string): Promise<void> {
     // Characters outside the keyboard layout (Cyrillic) are inserted without key events; a key up runs the search.
     await search.press('End')
     await expect(name === 'settings-search' ? page.locator('.settingsgroup a.menuItemLabel[data-instafilta-hide="false"]').first() : page.locator('.mu-settings-empty')).toBeVisible()
+  } else if (name.startsWith('fc-view:')) {
+    // Stage 17: a view of the calendar by its own FullCalendar button (month, agendaWeek, agendaDay, vtAgendaList).
+    await page.locator(`.calendarview .fc-${name.slice(8)}-button`).click()
+    await expect(page.locator(`.calendarview .fc-${name.slice(8)}-button.fc-state-active`)).toBeVisible()
+    await page.waitForLoadState('networkidle').catch(() => undefined)
+  } else if (name === 'open-import') {
+    // Import is the second half of the split Add button of the cloud list (stage 12).
+    await page.locator('#appnav .mu-list-more').click()
+    await page.locator('#appnav [id$="_basicAction_LBL_IMPORT"]').click()
+    await expect(page.locator('#overlayPageContent .fc-overlay-modal')).toBeVisible()
+  } else if (name === 'open-first-report') {
+    // The first tabular (or summary) report of the list of this instance; chart reports have their own view.
+    const href = await page.locator('#listview-table tr.listViewEntries[data-recordurl*="view=Detail"]').first().getAttribute('data-recordurl')
+    expect(href, 'a tabular report on this instance').toBeTruthy()
+    const url = new URL(href ?? '', page.url())
+    url.searchParams.set('modernui', 'on')
+    await page.goto(url.href)
+    await waitForShell(page)
+  } else if (name === 'calendar-add-event') {
+    await page.locator('#calendarview_basicaction_addevent').click()
+    await expect(page.locator('.mu-quick-form')).toBeVisible()
+  } else if (name === 'export') {
+    // The native export dialog of the list (the same call as its menu item); nothing is downloaded.
+    await page.evaluate(() => { (window as unknown as { Vtiger_List_Js: { triggerExportAction(url: string): void } }).Vtiger_List_Js.triggerExportAction(`index.php?module=${new URL(location.href).searchParams.get('module') ?? ''}&view=Export`) })
+    await expect(page.locator('#overlayPageContent .fc-overlay-modal, .modal.in').first()).toBeVisible()
+  } else if (name === 'select-two') {
+    for (const box of (await page.locator('#listview-table .listViewEntriesCheckBox').all()).slice(0, 2)) await box.check()
+  } else if (name === 'mass-edit') {
+    await page.locator('#listview-actions [id$="_listView_massAction_LBL_EDIT"]').click()
+    await expect(page.locator('#overlayPageContent .fc-overlay-modal, .modal.in').first()).toBeVisible()
+  } else if (name === 'task-management') {
+    await page.locator('.global-nav .taskManagement').first().click()
+    await expect(page.locator('#overlayPage #taskManagementContainer')).toBeVisible()
+  } else if (name === 'import-csv') {
+    await page.locator('#overlayPageContent #csvImport .menu-item').click()
+    await expect(page.locator('#overlayPageContent #importContainer')).toBeVisible()
+  } else if (name === 'report-conditions') {
+    // The button toggles the conditions; a report with conditions opens with them shown.
+    if (!(await page.locator('#filterContainer').isVisible())) await page.locator('button[name="modify_condition"]').click()
+    await expect(page.locator('#filterContainer')).toBeVisible()
+  } else if (name === 'dashboard-widgets') {
+    // A tab of the dashboard with widgets (a fresh CRM opens an empty personal tab): switch tabs, nothing is added.
+    const tabs = page.locator('.dashBoardContainer .nav-tabs li.dashboardTab > a')
+    for (let index = 0; index < await tabs.count(); index++) {
+      if (await page.locator('.tab-pane.active .dashboardWidget').count() > 0) break
+      await tabs.nth(index).click()
+      await page.waitForTimeout(2500)
+    }
+    await expect(page.locator('.tab-pane.active .dashboardWidget').first()).toBeVisible()
+  } else if (name === 'dashboard-add-widget') {
+    await page.locator('.tab-pane.active .dashboardHeading .addButton.dropdown-toggle').click()
+    await expect(page.locator('.tab-pane.active .dashboardHeading .dropdown-menu')).toBeVisible()
+  } else if (name === 'open-mass-select') {
+    await page.locator('#listview-table .listViewEntriesCheckBox').first().check()
   } else if (name === 'picklist-add') {
     await page.locator('#addItem').click()
     await expect(page.locator('.modal.in .modal-footer')).toBeVisible()

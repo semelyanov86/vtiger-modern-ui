@@ -1,0 +1,948 @@
+{
+  "_doc": "Stage 17 (V11): calendar, reports (list, result, conditions, wizard), import, home dashboard, recycle bin, email templates, quick create of an event and the mail manager against the cloud v9 equivalents, 1440 x 1000. Data, labels, languages and the set of widgets/columns differ: sizes and computed styles of the same components are compared; coordinates only where both screens have the same frame. The calendar of ModernUI keeps the page toolbar of stage 11 (views of the calendar and the actions of the module) above the calendar toolbar, the cloud has one band: y of the calendar body is not compared. The cloud dashboard (sales insights) and the v7 dashboard (widget grid) are different functions; only the toolbar, the selector and the widget card are compared. The report wizard of the cloud is a dialog, the core one a page: the window surface and steps are compared, not its position. 'cloud' holds the selectors of the cloud capture; Reference measurements and all images stay private.",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "banner": 0,
+  "tolerance": {
+    "size": 2,
+    "position": 4
+  },
+  "states": [
+    {
+      "id": "V11-calendar-week",
+      "reference": "V11-calendar-week",
+      "screenshot": "V11-calendar-week.png",
+      "module": "Calendar",
+      "url": "index.php?module=Calendar&view=Calendar",
+      "cloudUrl": "view/calendar?module=Calendar",
+      "steps": [
+        "fc-view:agendaWeek"
+      ],
+      "cloudSteps": [
+        "cloud-view:Week"
+      ],
+      "elements": {
+        "panel": {
+          "ref": [
+            "panel"
+          ],
+          "cloud": "div.col-2.vds-calendarsidebar",
+          "theme": ".main-container > #sidebar-essentials",
+          "check": [
+            "x",
+            "w"
+          ],
+          "styles": []
+        },
+        "panelSurface": {
+          "ref": [
+            "panelSurface"
+          ],
+          "cloud": ".scrollbar.vds-calendarsidebar.bg-white",
+          "theme": ".main-container > #sidebar-essentials",
+          "check": [],
+          "styles": [
+            "bg"
+          ]
+        },
+        "panelTitle": {
+          "ref": [
+            "panelTitle"
+          ],
+          "cloud": ".vds-calendarsidebar .px-3.pt-3.pb-1 .font-15",
+          "theme": "#sidebar-essentials .calendar-sidebar-tabs .sidebar-header h5",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "font",
+            "size",
+            "weight",
+            "color"
+          ]
+        },
+        "feedCheck": {
+          "ref": [
+            "feedCheck"
+          ],
+          "cloud": ".vds-calendarsidebar .vt-checkbox-container .checkmark",
+          "theme": "#sidebar-essentials .feedslist > li.calendar-feed-indicator:not(.mass-edit-option) input",
+          "check": [
+            "w",
+            "h"
+          ],
+          "styles": [
+            "radius"
+          ]
+        },
+        "feedLabel": {
+          "ref": [
+            "feedLabel"
+          ],
+          "cloud": ".vds-calendarsidebar .hoverRow span.text-dark-1",
+          "theme": "#sidebar-essentials .feedslist > li.calendar-feed-indicator:not(.mass-edit-option) > span:first-child",
+          "check": [],
+          "styles": [
+            "font",
+            "size",
+            "color"
+          ]
+        },
+        "toolbar": {
+          "ref": [
+            "toolbar"
+          ],
+          "cloud": "#mainCalendar .vds-bodyfixedheader",
+          "theme": ".calendarview > .fc-toolbar",
+          "check": [
+            "x",
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "today": {
+          "ref": [
+            "today"
+          ],
+          "cloud": "#changeTheDay",
+          "theme": ".calendarview .fc-today-button",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "radius",
+            "font",
+            "size"
+          ]
+        },
+        "range": {
+          "ref": [
+            "range"
+          ],
+          "cloud": "#calendarViewHeader",
+          "theme": ".calendarview > .fc-toolbar > .fc-center > h2",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "font",
+            "size"
+          ]
+        },
+        "headCell": {
+          "ref": [
+            "headCell"
+          ],
+          "cloud": "#fullCalendarContainer .fc-head th.fc-day-header:not(.fc-today)",
+          "theme": ".calendarview .fc-head th.fc-day-header:not(.fc-today)",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "font",
+            "size",
+            "color",
+            "tt"
+          ]
+        },
+        "headToday": {
+          "ref": [
+            "headToday"
+          ],
+          "cloud": "#fullCalendarContainer .fc-head th.fc-today *",
+          "theme": ".calendarview .fc-head th.fc-day-header.fc-today > *",
+          "check": [],
+          "styles": [
+            "color",
+            "weight"
+          ]
+        },
+        "axis": {
+          "ref": [
+            "axis"
+          ],
+          "cloud": "#fullCalendarContainer .fc-slats td.fc-axis span",
+          "theme": ".calendarview .fc-slats td.fc-axis span",
+          "check": [],
+          "styles": [
+            "font",
+            "size",
+            "color"
+          ]
+        },
+        "slat": {
+          "ref": [
+            "slat"
+          ],
+          "cloud": "#fullCalendarContainer .fc-slats td.fc-widget-content:not(.fc-axis)",
+          "theme": ".calendarview .fc-slats td.fc-widget-content:not(.fc-axis)",
+          "check": [],
+          "styles": [
+            "bTop"
+          ]
+        },
+        "body": {
+          "ref": [
+            "body"
+          ],
+          "cloud": "#fullCalendarContainer",
+          "theme": ".calendarview .fc-view-container",
+          "check": [],
+          "styles": [
+            "bg"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V11-calendar-month",
+      "reference": "V11-calendar-month",
+      "screenshot": "V11-calendar-month.png",
+      "module": "Calendar",
+      "url": "index.php?module=Calendar&view=Calendar",
+      "cloudUrl": "view/calendar?module=Calendar",
+      "steps": [
+        "fc-view:month"
+      ],
+      "cloudSteps": [
+        "cloud-view:Month"
+      ],
+      "elements": {
+        "toolbar": {
+          "ref": [
+            "toolbar"
+          ],
+          "cloud": "#mainCalendar .vds-bodyfixedheader",
+          "theme": ".calendarview > .fc-toolbar",
+          "check": [
+            "x",
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "headCell": {
+          "ref": [
+            "headCell"
+          ],
+          "cloud": "#fullCalendarContainer .fc-head th.fc-day-header",
+          "theme": ".calendarview .fc-head th.fc-day-header",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "font",
+            "size",
+            "color",
+            "tt"
+          ]
+        },
+        "dayNumber": {
+          "ref": [
+            "dayNumber"
+          ],
+          "cloud": "#fullCalendarContainer .fc-day-top:not(.fc-other-month):not(.fc-today) .fc-day-number",
+          "theme": ".calendarview .fc-day-top:not(.fc-other-month):not(.fc-today) .fc-day-number",
+          "check": [],
+          "styles": [
+            "font",
+            "size"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V11-reports",
+      "reference": "V11-reports",
+      "screenshot": "V11-reports.png",
+      "module": "Reports",
+      "url": "index.php?module=Reports&view=List",
+      "cloudUrl": "view/list?module=Reports&app=ESSENTIALS",
+      "steps": [],
+      "cloudSteps": [],
+      "elements": {
+        "toolbar": {
+          "ref": [
+            "toolbar"
+          ],
+          "cloud": ".vds-bodyfixedheader",
+          "theme": "#page > nav.app-fixed-navbar .module-action-bar",
+          "check": [
+            "y",
+            "h"
+          ],
+          "styles": []
+        },
+        "filter": {
+          "ref": [
+            "filter"
+          ],
+          "cloud": ".listFilterContainer .form-group",
+          "theme": ".mu-list-filter",
+          "check": [
+            "x",
+            "y",
+            "h"
+          ],
+          "styles": [
+            "radius",
+            "font",
+            "size"
+          ]
+        },
+        "add": {
+          "ref": [
+            "add"
+          ],
+          "cloud": "#Reports_listView_addRecord",
+          "theme": "#Reports_listView_basicAction_Add",
+          "check": [
+            "y",
+            "h"
+          ],
+          "styles": [
+            "radius",
+            "bg",
+            "color",
+            "font"
+          ]
+        },
+        "table": {
+          "ref": [
+            "table"
+          ],
+          "cloud": "#listview-table",
+          "theme": "#table-content",
+          "check": [
+            "x"
+          ],
+          "styles": []
+        },
+        "head": {
+          "ref": [
+            "head"
+          ],
+          "cloud": "#listview-table thead th:nth-child(3)",
+          "theme": ".floatThead-table .listViewContentHeader th:nth-child(4)",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "font",
+            "size",
+            "weight",
+            "tt"
+          ]
+        },
+        "row": {
+          "ref": [
+            "row"
+          ],
+          "cloud": "#listview-table tbody tr td:nth-child(3)",
+          "theme": "#listview-table tr.listViewEntries td:nth-child(4)",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "font",
+            "size"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V11-report",
+      "reference": "V11-report",
+      "screenshot": "V11-report.png",
+      "module": "Reports",
+      "url": "index.php?module=Reports&view=List",
+      "cloudUrl": "view/detail?module=Reports&id=1",
+      "steps": [
+        "open-first-report"
+      ],
+      "cloudSteps": [],
+      "elements": {
+        "bar": {
+          "ref": [
+            "bar"
+          ],
+          "cloud": ".reportsDetail > .vds-bodyfixedheader",
+          "theme": ".reportsDetailHeader .reportHeader",
+          "check": [
+            "y",
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "title": {
+          "ref": [
+            "title"
+          ],
+          "cloud": ".reportsDetail .font-18",
+          "theme": ".reportHeader h3",
+          "check": [],
+          "styles": [
+            "font",
+            "size",
+            "weight",
+            "color"
+          ]
+        },
+        "conditions": {
+          "ref": [
+            "conditions"
+          ],
+          "cloud": ".reports-action-menu button.bg-grey-hue-9",
+          "theme": "button[name='modify_condition']",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "radius",
+            "font",
+            "size"
+          ]
+        },
+        "page": {
+          "ref": [
+            "page"
+          ],
+          "cloud": ".reportsDetailBody",
+          "theme": ".reports-content-area",
+          "check": [],
+          "styles": [
+            "bg"
+          ]
+        },
+        "result": {
+          "ref": [
+            "result"
+          ],
+          "cloud": ".reportsDetailBody .d-flex.bg-white.border.rounded-bottom",
+          "theme": "#reportContentsDiv .bottomscroll-div",
+          "check": [],
+          "styles": [
+            "bg",
+            "bTop"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V11-report-conditions",
+      "reference": "V11-report-conditions",
+      "screenshot": "V11-report-conditions.png",
+      "module": "Reports",
+      "url": "index.php?module=Reports&view=List",
+      "cloudUrl": "view/detail?module=Reports&id=1",
+      "steps": [
+        "open-first-report",
+        "report-conditions"
+      ],
+      "cloudSteps": [
+        "cloud-show-conditions"
+      ],
+      "elements": {
+        "filters": {
+          "ref": [
+            "filters"
+          ],
+          "cloud": ".reportsDetailBody > .mb-4.bg-white.border.rounded.p-3",
+          "theme": "#filterContainer",
+          "check": [],
+          "styles": [
+            "bg",
+            "radius",
+            "bTop"
+          ]
+        },
+        "addCondition": {
+          "ref": [
+            "addCondition"
+          ],
+          "cloud": ".reportsDetailBody .btn-secondary.height-30px",
+          "theme": "#filterContainer .addCondition button",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "font",
+            "size"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V11-report-wizard",
+      "reference": "V11-report-wizard",
+      "screenshot": "V11-report-wizard.png",
+      "module": "Reports",
+      "url": "index.php?module=Reports&view=Edit",
+      "cloudUrl": "view/list?module=Reports&app=ESSENTIALS",
+      "steps": [],
+      "cloudSteps": [
+        "cloud-add-report"
+      ],
+      "elements": {
+        "window": {
+          "ref": [
+            "window"
+          ],
+          "cloud": ".modal.show .modal-content",
+          "theme": ".editContainer",
+          "check": [],
+          "styles": [
+            "bg",
+            "radius",
+            "shadow"
+          ]
+        },
+        "stepActive": {
+          "ref": [
+            "stepActive"
+          ],
+          "cloud": ".modal.show .vtBreadCrumbs li a.active, .modal.show .module-breadcrumbs li a.active",
+          "theme": ".editContainer .breadcrumb li.step.active",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "stepActiveText": {
+          "ref": [
+            "stepActiveText"
+          ],
+          "cloud": ".modal.show .vtBreadCrumbs li a.active, .modal.show .module-breadcrumbs li a.active",
+          "theme": ".editContainer .breadcrumb li.step.active > a",
+          "check": [],
+          "styles": [
+            "color",
+            "font",
+            "size"
+          ]
+        },
+        "stepIdle": {
+          "ref": [
+            "stepIdle"
+          ],
+          "cloud": ".modal.show .vtBreadCrumbs li:nth-child(2), .modal.show .module-breadcrumbs li:nth-child(2)",
+          "theme": ".editContainer .breadcrumb li.step:not(.active)",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "next": {
+          "ref": [
+            "next"
+          ],
+          "cloud": ".modal.show .modal-footer .btn-primary, .modal.show footer .btn-primary",
+          "theme": ".modal-overlay-footer .nextStep",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "radius",
+            "font",
+            "size"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V11-import",
+      "reference": "V11-import",
+      "screenshot": "V11-import.png",
+      "module": "Contacts",
+      "url": "index.php?module=Contacts&view=List",
+      "cloudUrl": "view/list?module=Import&app=ESSENTIALS",
+      "steps": [
+        "open-import",
+        "import-csv"
+      ],
+      "cloudSteps": [
+        "cloud-new-import"
+      ],
+      "elements": {
+        "window": {
+          "ref": [
+            "window"
+          ],
+          "cloud": ".modal.show .modal-content",
+          "theme": "#overlayPageContent",
+          "check": [
+            "y",
+            "w"
+          ],
+          "styles": [
+            "bg",
+            "radius",
+            "shadow"
+          ]
+        },
+        "header": {
+          "ref": [
+            "header"
+          ],
+          "cloud": ".modal.show .modal-body > .container-fluid.shadow-sm",
+          "theme": "#overlayPageContent .overlayHeader",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "shadow"
+          ]
+        },
+        "title": {
+          "ref": [
+            "title"
+          ],
+          "cloud": ".modal.show h5",
+          "theme": "#overlayPageContent .overlayHeader .modal-header h4",
+          "check": [],
+          "styles": [
+            "font",
+            "size",
+            "weight",
+            "color"
+          ]
+        },
+        "stepActive": {
+          "ref": [
+            "stepActive"
+          ],
+          "cloud": ".modal.show .vtBreadCrumbs li a.active",
+          "theme": "#importContainer .breadcrumb li.step.active",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "stepActiveText": {
+          "ref": [
+            "stepActiveText"
+          ],
+          "cloud": ".modal.show .vtBreadCrumbs li a.active",
+          "theme": "#importContainer .breadcrumb li.step.active > a",
+          "check": [],
+          "styles": [
+            "color",
+            "font",
+            "size"
+          ]
+        },
+        "stepIdle": {
+          "ref": [
+            "stepIdle"
+          ],
+          "cloud": ".modal.show .vtBreadCrumbs li:nth-child(2)",
+          "theme": "#importContainer .breadcrumb li.step:not(.active)",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "next": {
+          "ref": [
+            "next"
+          ],
+          "cloud": ".modal.show #next",
+          "theme": "#importStep2",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg",
+            "radius",
+            "font",
+            "size"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V11-dashboard",
+      "reference": "V11-dashboard",
+      "screenshot": "V11-dashboard.png",
+      "module": "Home",
+      "url": "index.php?module=Home&view=DashBoard",
+      "cloudUrl": "view/list?module=Dashboard&app=ESSENTIALS",
+      "steps": [
+        "dashboard-widgets"
+      ],
+      "cloudSteps": [],
+      "elements": {
+        "toolbar": {
+          "ref": [
+            "toolbar"
+          ],
+          "cloud": ".vds-bodyfixedheader",
+          "theme": ".dashBoardContainer > .tabContainer > .nav-tabs",
+          "check": [
+            "y",
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        },
+        "selector": {
+          "ref": [
+            "selector"
+          ],
+          "cloud": "a.Dashboard_filters",
+          "theme": ".dashBoardContainer .nav-tabs > li.dashboardTab:first-child > a",
+          "check": [
+            "x",
+            "y",
+            "h"
+          ],
+          "styles": [
+            "radius",
+            "font",
+            "size"
+          ]
+        },
+        "card": {
+          "ref": [
+            "card"
+          ],
+          "cloud": ".chartContents .rounded-12.bg-white",
+          "theme": ".tab-pane.active .dashboardWidget",
+          "check": [],
+          "styles": [
+            "bg",
+            "radius"
+          ]
+        },
+        "cardHead": {
+          "ref": [
+            "cardHead"
+          ],
+          "cloud": ".chartContents .rounded-12.bg-white .d-flex.align-items-center.py-2.pb-1.border-bottom.px-3",
+          "theme": ".tab-pane.active .dashboardWidgetHeader",
+          "check": [],
+          "styles": [
+            "bBottom"
+          ]
+        },
+        "cardTitle": {
+          "ref": [
+            "cardTitle"
+          ],
+          "cloud": ".chartContents .dashboardChartLabel span.h5",
+          "theme": ".tab-pane.active .dashboardWidgetHeader .dashboardTitle",
+          "check": [],
+          "styles": [
+            "font",
+            "size",
+            "weight",
+            "color"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V11-recycle",
+      "reference": "V11-recycle",
+      "screenshot": "V11-recycle.png",
+      "module": "RecycleBin",
+      "url": "index.php?module=RecycleBin&view=List",
+      "cloudUrl": "view/list?module=RecycleBin&app=TOOLS",
+      "steps": [],
+      "cloudSteps": [],
+      "elements": {
+        "toolbar": {
+          "ref": [
+            "toolbar"
+          ],
+          "cloud": ".vds-bodyfixedheader",
+          "theme": "#listview-actions > .row",
+          "check": [
+            "y",
+            "h"
+          ],
+          "styles": []
+        },
+        "module": {
+          "ref": [
+            "module"
+          ],
+          "cloud": ".vds-bodyfixedheader #listFilter",
+          "theme": ".mu-list-filter",
+          "check": [
+            "x",
+            "y",
+            "h"
+          ],
+          "styles": [
+            "radius",
+            "font",
+            "size"
+          ]
+        },
+        "empty": {
+          "ref": [
+            "empty"
+          ],
+          "cloud": ".vds-bodyfixedheader .btn-danger",
+          "theme": "#RecycleBin_listView_basicAction_LBL_EMPTY_RECYCLEBIN",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "font",
+            "size"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V11-email-templates",
+      "reference": "V11-email-templates",
+      "screenshot": "V11-email-templates.png",
+      "module": "EmailTemplates",
+      "url": "index.php?module=EmailTemplates&view=List",
+      "cloudUrl": "view/list?module=EmailTemplates&app=TOOLS",
+      "steps": [],
+      "cloudSteps": [],
+      "elements": {
+        "toolbar": {
+          "ref": [
+            "toolbar"
+          ],
+          "cloud": ".vds-bodyfixedheader",
+          "theme": "#page > nav.app-fixed-navbar .module-action-bar",
+          "check": [
+            "y",
+            "h"
+          ],
+          "styles": []
+        },
+        "add": {
+          "ref": [
+            "add"
+          ],
+          "cloud": ".vds-bodyfixedheader .addButton, .vds-bodyfixedheader .btn-primary",
+          "theme": "#EmailTemplates_listView_basicAction_LBL_ADD_RECORD",
+          "check": [
+            "y",
+            "h"
+          ],
+          "styles": [
+            "radius",
+            "bg",
+            "color",
+            "font"
+          ]
+        },
+        "head": {
+          "ref": [
+            "head"
+          ],
+          "cloud": "#listview-table thead th:nth-child(3)",
+          "theme": ".floatThead-table .listViewContentHeader th:nth-child(3), #listview-table .listViewContentHeader th:nth-child(3)",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "font",
+            "size",
+            "weight",
+            "tt"
+          ]
+        },
+        "row": {
+          "ref": [
+            "row"
+          ],
+          "cloud": "#listview-table tbody tr td:nth-child(3)",
+          "theme": "#listview-table tr.listViewEntries td:nth-child(3)",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "font",
+            "size"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V11-event-quick",
+      "reference": "V11-event-quick",
+      "screenshot": "V11-event-quick.png",
+      "module": "Calendar",
+      "url": "index.php?module=Calendar&view=Calendar",
+      "cloudUrl": "view/calendar?module=Calendar",
+      "steps": [
+        "calendar-add-event"
+      ],
+      "cloudSteps": [
+        "cloud-add-event"
+      ],
+      "elements": {
+        "window": {
+          "ref": [
+            "window"
+          ],
+          "cloud": ".modal.show .modal-content",
+          "theme": ".modal-content:has(.mu-quick-form)",
+          "check": [
+            "y",
+            "w"
+          ],
+          "styles": [
+            "radius"
+          ]
+        },
+        "footer": {
+          "ref": [
+            "footer"
+          ],
+          "cloud": ".modal.show .vds-bodyfixedFooter",
+          "theme": ".mu-quick-form .modal-footer",
+          "check": [
+            "h"
+          ],
+          "styles": [
+            "bg"
+          ]
+        }
+      }
+    },
+    {
+      "id": "V11-mail",
+      "reference": "V11-mail",
+      "screenshot": "V11-mail.png",
+      "module": "MailManager",
+      "url": "index.php?module=MailManager&view=List",
+      "cloudUrl": "view/mailboxtype?module=Inbox&app=ESSENTIALS",
+      "steps": [],
+      "cloudSteps": [],
+      "elements": {}
+    }
+  ]
+}

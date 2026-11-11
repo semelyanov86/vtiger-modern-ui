@@ -326,3 +326,21 @@ Playwright вставляет без событий клавиш, поэтому
 страницу без редактора (`&editor=off`). Пары V10: `MU_VISUAL_STATES=dev/visual/modernui.json task visual:pairs`, затем
 `task visual:compare -- --states dev/visual/modernui.json` с приватными `MU_VISUAL_DIR` и `MU_VISUAL_REFERENCE` (облачный эталон
 компонентов снимается в Chrome пользователя через Playwriter по селекторам `cloud` того же файла).
+
+#### Проверка остальных экранов этапа 17
+
+`task test:special-screens` сравнивает календарь (календари, их цвета и флажки, полоса, виды, кнопка панели с тем же запросом
+`toggleLeftPanel`, общий календарь, выбор даты, быстрое создание), главную (вкладки, «Ещё», «Добавить виджет»), отчёты (папки,
+меню «Добавить», запрос смены папки вместе с запросами расширений, действия результата и тот же запрос экспорта CSV — он
+прерывается до скачивания), мастер отчёта (проверка обязательного поля, шаг 2 без сохранения), импорт (поля и шаги, загрузка
+синтетического CSV до шага дубликатов, отмена), корзину, дубликаты, шаблоны писем и менеджер почты с той же CRM в безопасном режиме;
+1024/768/412 px и 200 % — без горизонтальной прокрутки и перекрытых действий; RU/EN/DE; страница без JavaScript. Пишет только
+личный язык темы и предпочтение панели календаря — оба возвращаются. Запросы после щелчка без перехода собираются, пока сеть
+не затихнет (смена папки отчётов вызывает PJAX и следом запрос расширения раскраски строк).
+
+Пары V11: `MU_VISUAL_STATES=dev/visual/special.json task visual:pairs`, затем `task visual:compare -- --states dev/visual/special.json`
+с приватными `MU_VISUAL_DIR` и `MU_VISUAL_REFERENCE`. Новые шаги `pairs.spec.ts`: `fc-view:<вид>`, `open-import`, `import-csv`,
+`open-first-report`, `report-conditions`, `calendar-add-event`, `dashboard-add-widget`, `open-mass-select`, `export`, `select-two`,
+`mass-edit`, `task-management`. Облачный эталон снимается в Chrome пользователя через Playwriter по селекторам `cloud` и шагам
+`cloudSteps` того же файла (фоновая вкладка — `Page.captureScreenshot` с эмуляцией фокуса и повтором). Особые экраны с темой и без:
+`MU_SCREENS=core: task test:screens` (на dev-стенде — с `MU_SCREENS_EXTRA`).

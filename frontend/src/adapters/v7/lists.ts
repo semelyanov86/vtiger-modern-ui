@@ -17,9 +17,14 @@ export function startLists(scope: IslandScope, texts: ListTexts): void {
   const html = document.documentElement
   const content = document.querySelector<HTMLElement>('#listViewContent.listViewPageDiv')
   const nav = document.querySelector('#page > nav.app-fixed-navbar')
-  if (content === null || nav === null || document.querySelector('#view[value="List"]') === null
-    || content.querySelector('#listview-actions .listViewActionsContainer') === null
-    || content.querySelector('#listview-actions #table-content') !== null) {
+  // The same contract as skin/_cloud-lists.scss. Stage 17: action containers of core lists with their own templates
+  // (email templates, recycle bin) and the core lists whose table is inside #listview-actions (reports, recycle bin).
+  const embeddedModule = document.querySelector('.main-container-Reports, .main-container-RecycleBin') !== null
+  const embedded = content?.querySelector('#listview-actions > .row ~ * #table-content') != null
+  if (content === null || nav === null
+    || (document.querySelector('#view[value="List"]') === null && document.querySelector('.main-container-RecycleBin') === null)
+    || content.querySelector('#listview-actions :is(.listViewActionsContainer, .recordDependentListActions, .btn-toolbar)') === null
+    || (content.querySelector('#listview-actions #table-content') !== null && !(embedded && embeddedModule))) {
     return
   }
   const sidebar = document.getElementById('sidebar-essentials')
@@ -155,8 +160,9 @@ export function startLists(scope: IslandScope, texts: ListTexts): void {
     search.hidden = content.querySelector('.searchRow') === null
 
     const tail = content.querySelector<HTMLElement>('#listview-actions')
-    if (tail !== null) {
-      html.style.setProperty('--mu-list-tail', `${String(Math.ceil(tail.getBoundingClientRect().width))}px`)
+    const bar = embedded ? tail?.querySelector<HTMLElement>(':scope > .row') ?? null : tail
+    if (bar !== null) {
+      html.style.setProperty('--mu-list-tail', `${String(Math.ceil(bar.getBoundingClientRect().width))}px`)
     }
     // Full accessible text stays in the DOM and in the native title. Only static values are clipped; edit widgets are
     // not touched. A cell without a native title gains one, undone on teardown.

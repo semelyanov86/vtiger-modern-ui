@@ -194,6 +194,14 @@ test('pages without a signed-in user and entry points outside the v7 interface n
       }
       const body = await response.text()
       checked.push(`${who} ${entry} ${String(response.status())}`)
+      if (body.includes('data-mu-auth=')) {
+        // The sign-in pages of ModernUI, installed by the administrator (docs/auth-pages.md, 0.14.1): their own stylesheet
+        // and fonts, but none of the interface of the CRM — no loader, shell, skin or tokens of a user.
+        expect(body.includes('resources/loader.js'), `${who} ${entry}: no loader of the shell`).toBe(false)
+        expect(/dist\/assets\/(?:skin|shell)-/.test(body), `${who} ${entry}: no skin or shell`).toBe(false)
+        expect(body.includes('module=ModernUI&action=Tokens'), `${who} ${entry}: no tokens stylesheet`).toBe(false)
+        continue
+      }
       expect(body.includes('modules/ModernUI/resources'), `${who} ${entry}: no resources of the theme`).toBe(false)
       expect(body.includes('module=ModernUI&action=Tokens'), `${who} ${entry}: no tokens stylesheet`).toBe(false)
       expect(/--mu-[a-z]/.test(body), `${who} ${entry}: no design tokens`).toBe(false)
@@ -211,10 +219,15 @@ test('pages without a signed-in user and entry points outside the v7 interface n
     expect(body.includes('modules/ModernUI/resources') || body.includes('module=ModernUI&action=Tokens'), 'print view of a report: no theme').toBe(false)
     checked.push('admin report print view')
   }
-  // The sign-in page is drawn by the browser as v7 draws it: no stylesheet, script or class of the theme.
+  // The sign-in page is drawn by the browser as v7 draws it (or as the installed sign-in page of ModernUI): never the shell.
   await anonymous.goto('index.php')
-  await expect(anonymous.locator('link[href*="ModernUI"], script[src*="ModernUI"]')).toHaveCount(0)
-  expect(await anonymous.evaluate(() => document.documentElement.className.includes('mu-'))).toBe(false)
+  if (await anonymous.locator('[data-mu-auth]').count() > 0) {
+    await expect(anonymous.locator('script[src*="resources/loader.js"], link[href*="dist/assets/skin-"], link[href*="action=Tokens"]')).toHaveCount(0)
+    expect(await anonymous.evaluate(() => document.documentElement.classList.contains('mu-shell-ready'))).toBe(false)
+  } else {
+    await expect(anonymous.locator('link[href*="ModernUI"], script[src*="ModernUI"]')).toHaveCount(0)
+    expect(await anonymous.evaluate(() => document.documentElement.className.includes('mu-'))).toBe(false)
+  }
   expect(checked.length, `entry points checked: ${checked.join(', ')}`).toBeGreaterThanOrEqual(6)
   await outside.close()
   await signedIn.context().close()

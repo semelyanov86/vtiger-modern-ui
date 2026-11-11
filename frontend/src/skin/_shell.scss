@@ -463,6 +463,10 @@ $has-tools: '#page > nav.app-fixed-navbar .module-action-content > :not(:first-c
           float: none;
           overflow: hidden;
           white-space: nowrap;
+
+          // v7 clips the module name at 160 px (a long name such as an email templates module lost its end); the cloud
+          // shows the whole name up to the actions — the column above is the limit (stage 17).
+          h4.module-title { max-width: none; }
         }
 
         // The columns of the actions.
@@ -627,6 +631,27 @@ $has-tools: '#page > nav.app-fixed-navbar .module-action-content > :not(:first-c
 
   #{$gate}:has(#page > nav.app-fixed-navbar > [data-mu-root='context-nav']) {
     --mu-shell-tools: #{$tools + 44px};
+  }
+}
+
+// 768–1100 px (stage 17): views of the context navigation and several module actions (the calendar: add event, add task,
+// customize) do not fit one band — the views get a row of their own under the actions, as on phones, instead of covering
+// the first action.
+@media screen and (scripting: enabled) and (min-width: 768px) and (max-width: 1100px) {
+  #{$gate}:has(#page > nav.app-fixed-navbar > [data-mu-root='context-nav']):has(#{$has-tools}) {
+    --mu-shell-tools: #{$tools + 44px};
+
+    #page > nav.app-fixed-navbar .module-action-content > :not(:first-child) { align-self: flex-start; height: $tools; }
+    #page > nav.app-fixed-navbar > [data-mu-root='context-nav'] {
+      top: calc(100% + #{$tools});
+      right: 0;
+      left: 0;
+      max-width: none;
+      height: 44px;
+      padding: 0 $side;
+      overflow-x: auto;
+      background: tok(bg);
+    }
   }
 }
 

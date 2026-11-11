@@ -184,7 +184,8 @@ $icon-user: lucide("%3Cpath d='M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2'/%3E%3C
 // folder in the list, the record in its header, "Editing" in the form). The breadcrumb of the settings stays: it is their
 // navigation until stage 15 (pages with the settings menu, .settingsgroup).
 @media screen and (scripting: enabled) {
-  :root:not(.mu-off):not([data-mu-failed]):not([data-mu-level='skin']) #page:not(:has(.settingsgroup)) > nav.app-fixed-navbar .module-action-content > :first-child > :is(.current-filter-name, .filter-name) {
+  // Stage 17: reports and the recycle bin wrap each part in a <span>; descendants, not only children.
+  :root:not(.mu-off):not([data-mu-failed]):not([data-mu-level='skin']) #page:not(:has(.settingsgroup)) > nav.app-fixed-navbar .module-action-content > :first-child :is(.current-filter-name, .filter-name) {
     display: none;
   }
 }

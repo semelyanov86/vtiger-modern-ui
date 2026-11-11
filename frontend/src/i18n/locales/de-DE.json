@@ -119,6 +119,7 @@
   },
   "lists": {
     "filters": "Liste oder Tag auswählen",
+    "panel": "Listen und Tags",
     "search": "Spalten durchsuchen",
     "more": "Weitere Optionen zum Hinzufügen",
     "close": "Listen und Tags schließen"

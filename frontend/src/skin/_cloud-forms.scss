@@ -39,6 +39,7 @@
   .editViewPageDiv.mu-form-host {
     position: fixed;
     inset: calc(var(--mu-shell-header, 96px) + 52px) 0 0;
+
     z-index: 1;
     margin: 0;
     padding: 0;
@@ -312,6 +313,15 @@
 
 :root:not(.mu-off):has(.editViewPageDiv.mu-form-host) {
   &, body { overflow: hidden; }
+}
+
+// Stage 17: the footer of the page of v7 (links to vtiger.com and its privacy policy) stays visible under the fixed window
+// of a direct form (the page itself does not scroll there).
+@media screen and (scripting: enabled) {
+  :root:not(.mu-off):not([data-mu-failed]):not([data-mu-level='skin']):has(.editViewPageDiv.mu-form-host):has(body > footer.app-footer) {
+    .editViewPageDiv.mu-form-host { bottom: 28px; }
+    body > footer.app-footer { position: fixed; right: 0; bottom: 0; left: 0; z-index: 2; height: 28px; margin: 0; overflow: hidden; }
+  }
 }
 
 @media (max-width: 1100px) {

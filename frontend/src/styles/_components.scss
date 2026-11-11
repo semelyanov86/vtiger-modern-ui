@@ -11,7 +11,7 @@ $check-dash: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewB
 // module header and of the list (id <Module>_listView_basicAction_LBL_ADD_RECORD; the calendar list …_LBL_ADD_EVENT /
 // …_LBL_ADD_TASK) and the two add buttons of the calendar view (CalendarHeader.tpl). v7 gives the class .addButton to
 // every basic action (Import too), so the class cannot tell the main action.
-$add-record-ids: "[id$='_basicAction_LBL_ADD_RECORD'], [id$='_basicAction_LBL_ADD_EVENT'], [id$='_basicAction_LBL_ADD_TASK'], #calendarview_basicaction_addevent, #calendarview_basicaction_addtask";
+$add-record-ids: "#Reports_listView_basicAction_Add, [id$='_basicAction_LBL_ADD_RECORD'], [id$='_basicAction_LBL_ADD_EVENT'], [id$='_basicAction_LBL_ADD_TASK'], #calendarview_basicaction_addevent, #calendarview_basicaction_addtask";
 
 // ---- Buttons: 13/19.5 regular, radius 4, 1 px border in the fill colour, 6/12 padding (33.5 px with the border) ----
 

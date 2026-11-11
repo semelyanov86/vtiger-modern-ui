@@ -5,7 +5,63 @@
 
 // Some extensions embed list markup in a different view, or include the table inside their action wrapper.
 // Those pages retain their native layout; this must match the adapter's contract before JavaScript starts.
-$list: ':root:not(.mu-off):not([data-mu-failed]):not([data-mu-level="skin"])[data-mu-build]:has(#view[value="List"]):has(#listViewContent.listViewPageDiv #listview-actions .listViewActionsContainer):not(:has(#listview-actions #table-content))';
+// Stage 17: the action containers of core lists with their own templates (email templates: .btn-toolbar, recycle bin:
+// .recordDependentListActions), and two core lists whose table is inside #listview-actions (reports, recycle bin; the
+// recycle bin has no #view input). For those only the action row moves to the toolbar, the table stays in the page.
+// Extensions with the same embedded structure keep their layout (stage 12, VReports-like pages).
+$list-actions: ':is(.listViewActionsContainer, .recordDependentListActions, .btn-toolbar)';
+$embedded-modules: ':is(.main-container-Reports, .main-container-RecycleBin)';
+$list: ':root:not(.mu-off):not([data-mu-failed]):not([data-mu-level="skin"])[data-mu-build]:is(:has(#view[value="List"]), :has(.main-container-RecycleBin)):has(#listViewContent.listViewPageDiv #listview-actions #{$list-actions}):is(:not(:has(#listview-actions #table-content)), :has(#{$embedded-modules}))';
+$embedded: '#{$list}:has(#listview-actions > .row ~ * #table-content)';
+
+// The disclosure buttons of the toolbar (stage 12), shared with other screens of lists (stage 17: find duplicates).
+@mixin list-controls {
+  .mu-list-controls {
+    position: absolute;
+    z-index: 1002;
+    top: 100%;
+    left: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 52px;
+    max-width: 32%;
+  }
+
+  .mu-list-filter,
+  .mu-list-search,
+  .mu-list-close,
+  .mu-list-more {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex: none;
+    height: 36px;
+    padding: 0 8px;
+    border: 1px solid transparent;
+    border-radius: tok(radius-sm);
+    background-color: tok(surface);
+    color: tok(text);
+    font-family: tok(font-family);
+    font-size: fs(13);
+    font-weight: 400;
+    line-height: 20px;
+    cursor: pointer;
+
+    &:hover, &[aria-expanded='true'] { background-color: tok(border-input); }
+    &:focus-visible { @include focus-ring; }
+    &[hidden] { display: none; }
+  }
+  .mu-list-filter {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 260px;
+  }
+  .mu-list-filter-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mu-list-search { width: 36px; }
+  .mu-list-close { position: absolute; top: 8px; right: 4px; width: 28px; height: 28px; }
+}
 
 @media screen and (scripting: enabled) {
 #{$list} {
@@ -212,51 +268,7 @@ $list: ':root:not(.mu-off):not([data-mu-failed]):not([data-mu-level="skin"])[dat
   }
   &[data-mu-list-filters] .main-container #sidebar-essentials { display: block !important; }
 
-  .mu-list-controls {
-    position: absolute;
-    z-index: 1002;
-    top: 100%;
-    left: 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    height: 52px;
-    max-width: 32%;
-  }
-
-  .mu-list-filter,
-  .mu-list-search,
-  .mu-list-close,
-  .mu-list-more {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    flex: none;
-    height: 36px;
-    padding: 0 8px;
-    border: 1px solid transparent;
-    border-radius: tok(radius-sm);
-    background-color: tok(surface);
-    color: tok(text);
-    font-family: tok(font-family);
-    font-size: fs(13);
-    font-weight: 400;
-    line-height: 20px;
-    cursor: pointer;
-
-    &:hover, &[aria-expanded='true'] { background-color: tok(border-input); }
-    &:focus-visible { @include focus-ring; }
-    &[hidden] { display: none; }
-  }
-  .mu-list-filter {
-    flex: 0 1 auto;
-    min-width: 0;
-    max-width: 260px;
-  }
-  .mu-list-filter-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .mu-list-search { width: 36px; }
-  .mu-list-close { position: absolute; top: 8px; right: 4px; width: 28px; height: 28px; }
+  @include list-controls;
 
   // Original mass actions and pagination share the toolbar with #appnav, which stays under the fixed header. Their
   // native ancestors (including #listViewContent) and delegated handlers stay unchanged.
@@ -308,7 +320,11 @@ $list: ':root:not(.mu-off):not([data-mu-failed]):not([data-mu-level="skin"])[dat
       }
     }
     .listViewActionsContainer { display: flex; align-items: center; gap: 0; }
-    .listViewActionsContainer > button:disabled { display: none; }
+    .listViewActionsContainer > button:disabled,
+    .recordDependentListActions > button:disabled { display: none; }
+    .recordDependentListActions { display: flex; align-items: center; float: none !important; }
+    > .row > .btn-group:has(> .recordDependentListActions), .btn-toolbar { display: flex; align-items: center; gap: 12px; margin: 0; }
+    .btn-toolbar > .btn-group { margin: 0; }
     .listViewMassActions > button { border-radius: tok(radius-sm); }
     .listViewActions { display: flex; align-items: center; gap: 8px; }
     .listViewActions > .btn-group { order: 2; }
@@ -386,9 +402,9 @@ $list: ':root:not(.mu-off):not([data-mu-failed]):not([data-mu-level="skin"])[dat
   &[data-mu-list-more] #appnavcontent > ul.navbar-nav > [data-mu-list-import] { display: block; }
 
   // Selecting records changes the toolbar to the mass actions, as in the reference. Pagination stays at the right.
-  &:is(:has(#listview-table .listViewEntriesCheckBox:checked), :has(#listViewContent .listViewActionsContainer > button:not(:disabled):not([hidden]))) {
+  &:is(:has(#listview-table .listViewEntriesCheckBox:checked), :has(#listViewContent :is(.listViewActionsContainer, .recordDependentListActions) > button:not(:disabled):not([hidden]))) {
     .mu-list-controls,
-    #page > nav.app-fixed-navbar .module-action-content { visibility: hidden; }
+    #page > nav.app-fixed-navbar .module-action-content > :not(:first-child) { visibility: hidden; }
     #listViewContent #listview-actions {
       left: 24px;
       width: auto;
@@ -444,7 +460,7 @@ $list: ':root:not(.mu-off):not([data-mu-failed]):not([data-mu-level="skin"])[dat
     #appnavcontent > ul.navbar-nav { justify-content: flex-end; gap: 8px; }
     #appnavcontent > ul.navbar-nav .module-buttons { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
     .main-container #sidebar-essentials { left: 12px; max-width: calc(100vw - 24px); }
-    &:is(:has(#listview-table .listViewEntriesCheckBox:checked), :has(#listViewContent .listViewActionsContainer > button:not(:disabled):not([hidden]))) {
+    &:is(:has(#listview-table .listViewEntriesCheckBox:checked), :has(#listViewContent :is(.listViewActionsContainer, .recordDependentListActions) > button:not(:disabled):not([hidden]))) {
       #listViewContent #listview-actions {
         top: var(--mu-shell-header);
         left: 12px;
@@ -455,5 +471,82 @@ $list: ':root:not(.mu-off):not([data-mu-failed]):not([data-mu-level="skin"])[dat
         .listViewActionsContainer { flex-wrap: wrap; gap: 4px; }
       }
     }
+  }
+}
+
+// Stage 17: core lists whose table is inside #listview-actions (reports, recycle bin). Only the native action row moves
+// to the toolbar; the wrapper and the table stay in the flow of the page. No core script measures #listview-actions.
+@media screen and (scripting: enabled) {
+  #{$embedded} {
+    #listViewContent #listview-actions {
+      position: static;
+      z-index: auto;
+      display: block;
+      width: auto;
+      max-width: none;
+      height: auto;
+      &::before { content: none; }
+
+      > .row {
+        position: fixed;
+        z-index: 1094;
+        top: var(--mu-shell-header);
+        right: 24px;
+        width: max-content;
+        max-width: calc(100vw - 48px);
+        height: 52px;
+
+        &::before {
+          position: fixed;
+          z-index: -1;
+          top: var(--mu-shell-header);
+          right: 0;
+          left: 0;
+          display: block;
+          height: var(--mu-shell-tools);
+          background-color: tok(bg);
+          pointer-events: none;
+          content: '';
+        }
+      }
+
+      > .floatThead-wrapper, > #table-content { margin-top: 4px; }
+    }
+
+    &:is(:has(#listview-table .listViewEntriesCheckBox:checked), :has(#listViewContent :is(.listViewActionsContainer, .recordDependentListActions) > button:not(:disabled):not([hidden]))) {
+      #listViewContent #listview-actions {
+        left: auto;
+        width: auto;
+        > .row { left: 24px; width: auto; }
+      }
+    }
+  }
+}
+
+@media screen and (scripting: enabled) and (max-width: 1100px) {
+  #{$embedded} #listViewContent #listview-actions {
+    top: auto;
+    height: auto;
+    > .row { top: calc(var(--mu-shell-header) + 48px); height: 48px; }
+  }
+}
+
+@media screen and (scripting: enabled) and (max-width: 767px) {
+  #{$embedded} #listViewContent #listview-actions {
+    top: auto;
+    right: auto;
+    > .row { top: calc(var(--mu-shell-header) + 96px); right: 12px; max-width: calc(100vw - 24px); gap: 8px; }
+  }
+  // Phones: the title of the module heads the toolbar band (stage 11); with a selection the band belongs to the mass
+  // actions, so the title steps aside there as well (on wider screens it stays in the header row).
+  #{$list}:is(:has(#listview-table .listViewEntriesCheckBox:checked), :has(#listViewContent :is(.listViewActionsContainer, .recordDependentListActions) > button:not(:disabled):not([hidden]))) #page > nav.app-fixed-navbar .module-action-content > :first-child {
+    visibility: hidden;
+  }
+  #{$embedded}:is(:has(#listview-table .listViewEntriesCheckBox:checked), :has(#listViewContent :is(.listViewActionsContainer, .recordDependentListActions) > button:not(:disabled):not([hidden]))) #listViewContent #listview-actions {
+    left: auto;
+    height: auto;
+    padding: 0;
+    > .row { top: var(--mu-shell-header); left: 12px; height: 144px; padding: 8px 0; flex-wrap: wrap; align-content: space-between; }
+    > .row > div:first-child { width: 100%; }
   }
 }

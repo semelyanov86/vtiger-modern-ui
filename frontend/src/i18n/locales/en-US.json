@@ -119,6 +119,7 @@
   },
   "lists": {
     "filters": "Select list or tag",
+    "panel": "Lists and tags",
     "search": "Search columns",
     "more": "More create options",
     "close": "Close lists and tags"

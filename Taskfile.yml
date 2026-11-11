@@ -106,7 +106,7 @@ tasks:
     desc: Browser checks on the dev instance (CRM_URL) - loader, settings, switching on and off, network; run task crm:install first
     deps: [fe:install]
     dir: frontend
-    cmd: MU_E2E_TARGET=dev npx playwright test --config e2e/playwright.config.ts --project modernui --project settings --project navigation --project records --project special --project layout --project foundation --project lists --project cloud-records --project cloud-forms --project cloud-settings --project settings-page --project auth-pages {{.CLI_ARGS}}
+    cmd: MU_E2E_TARGET=dev npx playwright test --config e2e/playwright.config.ts --project modernui --project settings --project navigation --project records --project special --project layout --project foundation --project lists --project cloud-records --project cloud-forms --project cloud-settings --project settings-page --project auth-pages --project special-screens {{.CLI_ARGS}}
 
   test:e2e:clean:
     desc: Browser checks on the clean stand (both instances) after task clean:import-zip - pilot, other users, languages, Module Manager switch, network
@@ -114,7 +114,7 @@ tasks:
     dir: frontend
     cmds:
       - for: [c81, c85]
-        cmd: MU_E2E_TARGET={{.ITEM}} npx playwright test --config e2e/playwright.config.ts --project clean --project modernui --project settings --project navigation --project records --project special --project layout --project foundation --project lists --project cloud-records --project cloud-forms --project cloud-settings --project settings-page --project auth-pages {{.CLI_ARGS}}
+        cmd: MU_E2E_TARGET={{.ITEM}} npx playwright test --config e2e/playwright.config.ts --project clean --project modernui --project settings --project navigation --project records --project special --project layout --project foundation --project lists --project cloud-records --project cloud-forms --project cloud-settings --project settings-page --project auth-pages --project special-screens {{.CLI_ARGS}}
 
   test:layout:
     desc: 'Stage 09 prototype of the cloud layout (Accounts): no permanent module rail, record and edit form over the list, history, failures; MU_E2E_TARGET=dev|c81|c85 (default dev); writes and deletes synthetic organizations MU09'
@@ -163,6 +163,12 @@ tasks:
     deps: [fe:install]
     dir: frontend
     cmd: MU_E2E_TARGET=${MU_E2E_TARGET:-dev} npx playwright test --config e2e/playwright.config.ts --project lists {{.CLI_ARGS}}
+
+  test:special-screens:
+    desc: 'Stage 17 special screens against v7: calendar (colours, views, panel switch), dashboard, reports (folders, result, exports, wizard), import, recycle bin, find duplicates, email templates, mail manager, widths/200 %/RU EN DE, no JavaScript; MU_E2E_TARGET=dev|c81|c85'
+    deps: [fe:install]
+    dir: frontend
+    cmd: MU_E2E_TARGET=${MU_E2E_TARGET:-dev} npx playwright test --config e2e/playwright.config.ts --project special-screens {{.CLI_ARGS}}
 
   visual:pairs:
     desc: 'Screens and measurements of ModernUI for the states of dev/visual/states.json into MU_VISUAL_DIR (dev instance - a private directory), read-only; MU_E2E_TARGET=dev|c81|c85'

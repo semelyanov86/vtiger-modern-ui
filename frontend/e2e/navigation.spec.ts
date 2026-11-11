@@ -586,10 +586,20 @@ test('lists: search → record → back, empty result, loading indicator, row me
   await input.press('Enter')
   await waitForList(page)
   await expect(page.locator('#listview-table tr.listViewEntries').first()).toContainText(new RegExp(word, 'i'))
-  await Promise.all([page.waitForURL(/view=Detail/), named.first().click()])
-  await waitForShell(page)
-  await page.goBack()
-  await waitForShell(page)
+  // Since stage 13 the record opens over the searched list (docs/architecture.md §7.10): the address stays, Back closes the
+  // record and the list with its search is there; without the cloud record (other modules) it is the full page of v7.
+  const url = page.url()
+  await named.first().click()
+  await page.waitForFunction(() => document.documentElement.hasAttribute('data-mu-record') || location.href.includes('view=Detail'))
+  if (page.url().includes('view=Detail')) {
+    await waitForShell(page)
+    await page.goBack()
+    await waitForShell(page)
+  } else {
+    expect(page.url()).toBe(url)
+    await page.goBack()
+    await expect(page.locator('html')).not.toHaveAttribute('data-mu-record')
+  }
   // v7 keeps the search in the history (pushState): back is the searched list.
   expect(page.url()).toContain('search_params=')
   await expect(page.locator('#listview-table tr.listViewEntries').first()).toBeVisible()

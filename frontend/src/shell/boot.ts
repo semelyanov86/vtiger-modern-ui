@@ -18,6 +18,7 @@ import { detectPageLevel, hostReady } from '../adapters/v7/host'
 import { contextEntries, coveredBy, scanMenu, type ExtraLink } from '../adapters/v7/appMenu'
 import { startHeader } from '../adapters/v7/header'
 import { startLists } from '../adapters/v7/lists'
+import { startSpecial } from '../adapters/v7/special'
 import { crmReturnUrl, isSettingsPage, rememberCrmPage, startSettings } from '../adapters/v7/settings'
 import { pageContext } from '../adapters/v7/page'
 import { createThemeI18n } from '../i18n'
@@ -61,8 +62,12 @@ let header: ReturnType<typeof createScope> | null = null
 let lists: ReturnType<typeof createScope> | null = null
 let forms: ReturnType<typeof createScope> | null = null
 let settings: ReturnType<typeof createScope> | null = null
+/** Calendar colours, dashboard toolbar and the list tree of find duplicates (adapters/v7/special.ts, stage 17). */
+let special: ReturnType<typeof createScope> | null = null
 
 function stopHeader(): void {
+  special?.dispose()
+  special = null
   settings?.dispose()
   settings = null
   forms?.dispose()
@@ -324,6 +329,8 @@ export async function boot(): Promise<void> {
       rememberCrmPage()
       settings = createScope('settings')
       startSettings(settings, { empty: i18n.global.t('settings.empty'), emptyHint: i18n.global.t('settings.emptyHint') })
+      special = createScope('special')
+      startSpecial(special, { lists: i18n.global.t('lists.panel'), close: i18n.global.t('lists.close') })
       forms = createScope('forms')
       startForms(forms, {
         sections: i18n.global.t('record.sections'), search: i18n.global.t('record.search'), empty: i18n.global.t('record.empty'),

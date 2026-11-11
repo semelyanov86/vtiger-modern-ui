@@ -547,6 +547,17 @@ test('save: inventory overlay retains native handlers, totals and line values af
   expect(organization).toBeDefined()
   const accountField = page.locator('#overlayPageContent input[name="account_id"]')
   if (await accountField.count()) {
+    // The form is shown before the edit controller of the core registers its delegated handlers (the same order as the
+    // native overlay of v7): wait until a click on the popup icon has a jQuery handler, as a user's click would find it.
+    await page.waitForFunction(() => {
+      const jq = (window as unknown as { jQuery: { _data(element: Element, key: string): Record<string, unknown[]> | undefined } }).jQuery
+      const icon = document.querySelector('#overlayPageContent input[name="account_id"]')?.closest('td')?.querySelector('.relatedPopup')
+      for (let node: Element | null = icon ?? null; node !== null; node = node.parentElement) {
+        const handlers = jq._data(node, 'events')?.['click'] as { selector?: string }[] | undefined
+        if (handlers?.some((handler) => (handler.selector ?? '').includes('relatedPopup'))) return true
+      }
+      return false
+    }, undefined, { timeout: 20_000 })
     await pickInPopup(page, () => accountField.locator('xpath=ancestor::td[1]').locator('.relatedPopup').click(), 'accountname', marker('off'))
   }
   await page.locator('#overlayPageContent [name="subject"]').fill(`${marker('on')} ! Overlay order`)

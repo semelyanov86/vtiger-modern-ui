@@ -380,10 +380,23 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
   }
   page.on('pageerror', onError)
   let status: number | null = null
+  let menuLinks: string[] = []
   try {
     const response = await page.goto(withMode(screen.url, mode), { timeout: 60_000 })
     status = response?.status() ?? null
     await settle(page, mode)
+    // A module can have a nonstandard default view. Check the actual mega-menu links as well as the context bar,
+    // instead of assuming that every view outside a hardcoded list needs its own context entry. Read before a dialog or
+    // menu of the screen is opened (stage 17: also for the prepared screens).
+    const menuTrigger = page.locator('[data-mu-trigger="mega-menu"]')
+    if (mode === 'on' && await menuTrigger.isVisible()) {
+      await menuTrigger.click()
+      const panel = page.locator('[data-mu-panel="mega-menu"]')
+      await expect(panel).toBeVisible()
+      menuLinks = await panel.locator('a[href]').evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''))
+      await panel.press('Escape')
+      await expect(panel).toBeHidden()
+    }
     if (screen.prepare !== undefined) {
       if (!(await screen.prepare(page))) {
         throw new SkipScreen()
@@ -393,18 +406,6 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
     }
   } finally {
     page.off('pageerror', onError)
-  }
-  // A module can have a nonstandard default view. Check the actual mega-menu links as well as the context bar,
-  // instead of assuming that every view outside a hardcoded list needs its own context entry.
-  let menuLinks: string[] = []
-  const menuTrigger = page.locator('[data-mu-trigger="mega-menu"]')
-  if (mode === 'on' && screen.prepare === undefined && await menuTrigger.isVisible()) {
-    await menuTrigger.click()
-    const panel = page.locator('[data-mu-panel="mega-menu"]')
-    await expect(panel).toBeVisible()
-    menuLinks = await panel.locator('a[href]').evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''))
-    await panel.press('Escape')
-    await expect(panel).toBeHidden()
   }
   const measure = async (region: string | null): Promise<Omit<Snapshot, 'status' | 'errors'>> => page.evaluate(({ region, menuLinks }) => {
     const html = document.documentElement
@@ -454,6 +455,11 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
       if (rect.width < 1 || rect.height < 1) {
         return false
       }
+      // The collapsed global search of the cloud header (stage 11) is a transparent field under its search icon: it takes
+      // the click and opens; it is reachable although it draws nothing until then.
+      if (element.matches('.search-link .keyword-input') && document.documentElement.classList.contains('mu-shell-ready')) {
+        return element.checkVisibility({ visibilityProperty: true, checkVisibilityCSS: true })
+      }
       return element.checkVisibility({ opacityProperty: true, visibilityProperty: true, checkOpacity: true, checkVisibilityCSS: true })
     }
     const keyOf = (element: Element): string => {
@@ -471,9 +477,10 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
     const actions: string[] = []
     const covered: string[] = []
     for (const element of Array.from(document.querySelectorAll('a[href], button, input:not([type="hidden"]), select, textarea, [role="button"], [onclick]'))) {
-      // Stage 12 moves disabled mass actions out of the toolbar; they are unavailable in both views.
+      // Stage 12 moves disabled mass actions out of the toolbar; they are unavailable in both views (stage 17: the record
+      // actions of the recycle bin the same way — they appear with a selection, special-screens checks it).
       if (element.closest(skip) !== null || !visible(element) || (region !== null && element.closest(region) === null)
-        || element.matches('.listViewActionsContainer > button:disabled')) {
+        || element.matches(':is(.listViewActionsContainer, .recordDependentListActions) > button:disabled')) {
         continue
       }
       const key = keyOf(element)

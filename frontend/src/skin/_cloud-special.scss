@@ -1,0 +1,883 @@
+// Stage 17 (docs/design.md §13.13, docs/architecture.md §7.14): the remaining families of screens in the cloud composition
+// — calendar, home dashboard, report result and wizards, import, find duplicates, mail manager. The same rules as stages
+// 11–16: the ORIGINAL v7 nodes are laid out with CSS (display/order/position), never cloned or rebuilt; widgets that draw
+// themselves (FullCalendar events, gridster, jqPlot charts, Select2, CKEditor) keep their own geometry and colours; the
+// colours of event types, users and report rows are data and are never replaced by the accent. Everything applies only
+// while the shell can run (scripting, not the standard view, not after a failed start, not on skin-only screens).
+@use '../styles/tokens' as *;
+@use '../styles/components' as *;
+@use 'cloud-lists' as lists;
+
+$gate: ':root:not(.mu-off):not([data-mu-failed]):not([data-mu-level="skin"])[data-mu-build]';
+
+// ---- Calendar (V11): "My calendar" panel 238 px, the calendar toolbar of the cloud, a light grid ----
+// FullCalendar 3 of v7 renders its toolbar once and only toggles classes and the title, so its wrappers can become
+// display: contents: [Today] [‹][calendar][title][›] … [Month|Week|Day|Agenda]. The calendar keeps its own slot heights
+// (event positions are measured from them) and the colours of events; v7 handlers stay on the same buttons.
+$cal: '#{$gate}:has(.main-container > #CalendarViewContent)';
+$calendar: ':is(#mycalendar, #sharedcalendar).calendarview';
+$cal-panel: 238px;
+
+@media screen and (scripting: enabled) {
+  #{$cal} {
+    .main-container:has(> #CalendarViewContent) {
+      background-color: tok(surface);
+
+      > #sidebar-essentials {
+        width: $cal-panel;
+        padding: 8px 8px 16px;
+        border-right: 1px solid #dee2e6;
+        background-color: tok(surface);
+
+        .sidebar-menu, .module-filters, .lists-menu-container { padding: 0; background: transparent; }
+        .calendar-sidebar-tabs { margin: 0; padding: 8px 8px 4px; color: tok(text); font-size: fs(13); }
+        .calendar-sidebar-tabs + .calendar-sidebar-tabs { border-top: 1px solid #dee2e6; }
+        .calendar-sidebar-tabs hr { display: none; }
+        .sidebar-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          min-height: 30px;
+          margin: 0 0 8px;
+          padding: 0;
+          &::before, &::after { content: none; }
+          h5 {
+            float: none;
+            margin: 0;
+            color: tok(text);
+            font-family: tok(font-family);
+            font-size: fs(15);
+            font-weight: 400;
+            line-height: 22.5px;
+            letter-spacing: normal;
+            text-transform: none;
+          }
+          .sidebar-btn {
+            float: none;
+            width: 28px;
+            min-height: 28px;
+            height: 28px;
+            padding: 0;
+            @include icon-button;
+            color: tok(text);
+          }
+        }
+        .sidebar-widget-body { max-height: none !important; }
+        .feedslist { margin: 0; padding: 0; }
+      }
+
+      > #CalendarViewContent { padding-left: $cal-panel; background-color: tok(surface); }
+      > #CalendarViewContent.full-width { padding-left: 0; }
+    }
+
+    // One row per calendar: [check box in the colour of the type/user] label … edit/delete on hover. The original
+    // check box keeps its data and handlers; the colour comes from the row's inline colour (adapter: --mu-feed-color).
+    // No gap: the whitespace text nodes of v7 between the check box and the icons are flex items too (font-size 0).
+    .feedslist > li.calendar-feed-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      min-height: 28px;
+      margin: 0 0 4px;
+      padding: 4px 4px;
+      border: 0;
+      border-radius: tok(radius-sm);
+      background-color: transparent !important;
+      color: tok(text) !important;
+      font-size: 0;
+      line-height: 0;
+      word-wrap: normal;
+
+      &::before, &::after { content: none; }
+      &:hover { background-color: tok(surface-subtle) !important; }
+
+      > span:first-child {
+        order: 2;
+        flex: 1 1 auto;
+        min-width: 0;
+        max-width: none;
+        overflow: hidden;
+        // The label colour of the calendar list of the cloud (measured: rgb(61, 61, 61)).
+        color: #3d3d3d;
+        font-family: tok(font-family);
+        font-size: fs(13);
+        line-height: 19.5px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .activitytype-actions {
+        display: contents;
+        float: none;
+
+        input[type='checkbox'] {
+          order: 1;
+          flex: none;
+          @include checkbox(18px);
+          margin: 0 6px 0 0;
+          border-color: var(--mu-feed-color, #{tok(border-check)});
+          &:checked {
+            border-color: var(--mu-feed-color, #{tok(primary-check)});
+            background-color: var(--mu-feed-color, #{tok(primary-check)});
+          }
+        }
+
+        i {
+          order: 3;
+          flex: none;
+          display: none;
+          width: 18px;
+          margin-left: 4px;
+          color: tok(text-label);
+          font-size: fs(13) !important;
+          line-height: 19.5px;
+          text-align: center;
+          &:hover { color: tok(link); }
+        }
+      }
+
+      &:hover .activitytype-actions i,
+      &:focus-within .activitytype-actions i { display: block; }
+    }
+
+    // "Select all" is no calendar: a plain row.
+    .feedslist > li.mass-edit-option {
+      margin-bottom: 8px;
+      > span:first-child { color: tok(text-2); }
+      .activitytype-actions input[type='checkbox'] { --mu-feed-color: #{tok(primary-check)}; }
+    }
+
+    #{$calendar} {
+      position: relative;
+      margin: 0;
+      padding: 0;
+      background-color: tok(surface);
+      font-family: tok(font-family);
+    }
+
+    // The v7 panel switch becomes the collapse button at the start of the calendar toolbar.
+    #{$calendar} > .essentials-toggle {
+      position: absolute;
+      z-index: 2;
+      top: 9px;
+      left: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 29px;
+      height: 36px;
+      margin: 0;
+      border-radius: tok(radius-sm);
+      background-color: tok(surface);
+      color: tok(primary);
+      box-shadow: none;
+      .essentials-toggle-marker { position: static; color: tok(primary); font-size: fs(13); }
+    }
+
+    #{$calendar} > .fc-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      min-height: 54px;
+      margin: 0;
+      padding: 8px 24px 8px 49px;
+      background-color: tok(bg);
+
+      > .fc-right, > .fc-center, > .fc-right > .fc-button-group { display: contents; float: none; }
+      > .fc-clear { display: none; }
+      > .fc-left {
+        order: 6;
+        float: none;
+        margin-left: auto;
+        > .fc-button-group {
+          display: flex;
+          gap: 2px;
+          padding: 2px;
+          border-radius: tok(radius-md);
+          background-color: tok(surface);
+        }
+      }
+
+      .fc-button {
+        height: 38px;
+        margin: 0;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 0;
+        background: tok(surface);
+        color: tok(text);
+        font-family: tok(font-family);
+        font-size: fs(13);
+        font-weight: 400;
+        line-height: 38px;
+        text-shadow: none;
+        text-transform: none;
+        box-shadow: none;
+        &:hover { background-color: tok(surface); color: tok(link); }
+        &:focus-visible { @include focus-ring; z-index: 1; }
+      }
+
+      .fc-today-button {
+        order: 1;
+        margin-right: 14px;
+        padding: 0 16px;
+        border-radius: tok(radius-sm);
+        &.fc-state-disabled { color: tok(text); opacity: 1; cursor: default; }
+      }
+      .fc-prev-button { order: 2; padding: 0 10px; border-radius: tok(radius-sm) 0 0 tok(radius-sm); }
+      .vt-goto-date { order: 3; padding: 0 0 0 10px; }
+      > .fc-center > h2 {
+        order: 4;
+        height: 38px;
+        margin: 0;
+        padding: 0 12px 0 8px;
+        background-color: tok(surface);
+        color: tok(text-body);
+        font-family: tok(font-family);
+        font-size: fs(13);
+        font-weight: 400;
+        line-height: 38px;
+        white-space: nowrap;
+      }
+      .fc-next-button { order: 5; padding: 0 10px; border-radius: 0 tok(radius-sm) tok(radius-sm) 0; }
+
+      // The views: the view switch of the cloud (the context navigation of stage 11), the current view light blue.
+      > .fc-left .fc-button {
+        height: 32px;
+        padding: 0 12px;
+        border-radius: tok(radius-sm);
+        color: tok(text-2);
+        line-height: 32px;
+        &.fc-state-active { background-color: tok(primary-soft); color: tok(text); }
+      }
+    }
+
+    // Grid: white header cells 13 px upper case, the current day in the accent, light lines; the background of the
+    // current day stays white as in the cloud. Events, their colours and positions are FullCalendar's.
+    #{$calendar} .fc-view-container { background-color: tok(surface); }
+    #{$calendar} {
+      // 16 + 19.5 + 16 px and the border: 53 px as in the cloud (a cell height would add the padding in Chrome).
+      th.fc-day-header, .fc-head th.fc-axis {
+        height: auto;
+        padding: 16px;
+        border-color: #ebebee;
+        background: tok(surface);
+        color: tok(text);
+        font-family: tok(font-family);
+        font-size: fs(13);
+        font-weight: 400;
+        line-height: 19.5px;
+        text-transform: uppercase;
+        vertical-align: middle;
+        a { color: inherit; }
+      }
+      .fc-head th.fc-axis { padding: 0 4px; }
+      th.fc-day-header.fc-today { color: tok(primary); font-weight: 600; }
+      td, th, .fc-divider, .fc-row, .fc-content, .fc-popover, hr { border-color: #ebebee; }
+      .fc-divider, hr.fc-divider { background-color: tok(surface); }
+      td.fc-today, .fc-bg td.fc-today { background-color: transparent !important; }
+      .fc-axis { color: #000000; font-family: tok(font-family); font-size: fs(13); }
+      .fc-day-top .fc-day-number { float: left; padding: 8px; color: tok(text-body); font-size: fs(15); }
+      .fc-day-top.fc-other-month .fc-day-number { color: tok(text-muted); }
+      .fc-day-top.fc-today .fc-day-number { color: tok(primary); font-weight: 600; }
+      .fc-event, .fc-list-item { font-family: tok(font-family); }
+    }
+  }
+}
+
+// A single main "Add" of a page toolbar is 36.5 px in the cloud (reports, email templates, calendar); the split "Add" of
+// the cloud lists (stage 12) stays 34 px, the buttons of the settings family (v8, stage 15) keep theirs.
+@media screen and (scripting: enabled) {
+  #{$gate}:not(:has(#modnavigator.settingsNav)) #appnav :is(#{$add-record-ids}):not([data-mu-list-add]) {
+    min-height: 36.5px;
+    padding-top: 7.5px;
+    padding-bottom: 7.5px;
+  }
+}
+
+// ---- Home dashboard (V11): tabs and actions in the toolbar band, widgets as cards ----
+// The tabs (sortable by jQuery UI), the "More" menu and "Add widget" stay the same nodes: the tab bar is the toolbar,
+// "Add widget" of the active tab is placed at its right end (the adapter measures it: --mu-dashboard-add). Widgets keep
+// the size and the position computed by gridster and the content heights computed by v7; only their surfaces change.
+$dash: '#{$gate}:has(#page > .dashBoardContainer)';
+
+@media screen and (scripting: enabled) {
+  #{$dash} {
+    --mu-shell-tools: 52px;
+
+    // The band belongs to the tabs below the header layer (its menus stay above them, as on lists).
+    #page > nav.app-fixed-navbar .module-action-bar {
+      background: transparent;
+      pointer-events: none;
+      .module-action-content > * { pointer-events: auto; }
+    }
+
+    #page > .dashBoardContainer {
+      position: relative;
+      min-height: calc(100dvh - var(--mu-shell-header) - var(--mu-shell-tools));
+      padding: 0 0 24px;
+      background-color: tok(bg);
+
+      > .tabContainer > .nav-tabs {
+        position: fixed;
+        z-index: 1094;
+        top: var(--mu-shell-header);
+        right: 0;
+        left: 0;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        height: 52px;
+        margin: 0;
+        padding: 0 calc(var(--mu-dashboard-add, 170px) + 36px) 0 24px;
+        border: 0;
+        background-color: tok(bg);
+        &::before, &::after { content: none; }
+
+        > li.dashboardTab {
+          float: none;
+          margin: 0;
+          border: 0;
+          > a {
+            display: flex;
+            align-items: center;
+            height: 36px;
+            margin: 0;
+            padding: 0 12px;
+            border: 0;
+            border-radius: tok(radius-sm);
+            background-color: tok(surface);
+            color: tok(text-2);
+            box-shadow: none;
+            strong { font-weight: 400; }
+          }
+          > a:hover { color: tok(text); }
+          &.active > a, &.active > a:hover, &.active > a:focus { background-color: tok(primary-soft); color: tok(text); box-shadow: none; }
+          .deleteTab { margin-left: 8px; color: tok(text-label); }
+        }
+
+        > .moreSettings {
+          float: none;
+          margin: 0 0 0 auto;
+          padding: 0;
+          .reArrangeTabs { @include button-toolbar; height: 36px; }
+        }
+      }
+
+      .dashBoardTabContainer { padding: 0; }
+      .dashboardHeading {
+        position: fixed;
+        z-index: 1094;
+        top: calc(var(--mu-shell-header) + 8px);
+        right: 24px;
+        width: auto;
+        height: 36px;
+        margin: 0;
+        padding: 0;
+        .buttonGroups { float: none; }
+        .addButton.dropdown-toggle { @include button-primary; height: 36px; }
+      }
+      .dashboardHeading + br { display: none; }
+      .dashBoardTabContents { padding: 16px 12px 0; }
+
+      // Widgets: white cards with the radius of the cloud panels, the header with its divider.
+      .dashboardWidget {
+        border: 0;
+        border-radius: tok(radius-lg);
+        background-color: tok(surface);
+        box-shadow: none;
+        overflow: hidden;
+      }
+      .dashboardWidgetHeader {
+        border-bottom: 1px solid #dee2e6;
+        background-color: tok(surface);
+        .dashboardTitle { color: #000000; font-size: fs(16.25); font-weight: 600; }
+        .dashboardTitle b { font-weight: inherit; }
+      }
+      .dashboardWidgetFooter {
+        border-top: 1px solid tok(divider);
+        background-color: tok(surface);
+        .widgeticons i, i { color: tok(text-label); }
+        .widgeticons a:hover i, a:hover i { color: tok(link); }
+      }
+    }
+  }
+}
+
+// ---- Report result and chart report (V11) ----
+// Header row of the cloud report: [title] … [Modify conditions] [actions]; the conditions and the result are cards on
+// the light page. v7 keeps the three columns, the buttons, the conditions form and the generated table (data and
+// colours unchanged); the column order changes with CSS only.
+$report: '#{$gate}:has(.reports-content-area .reportsDetailHeader)';
+
+@media screen and (scripting: enabled) {
+  #{$report} {
+    .main-container:has(.reports-content-area) { background-color: tok(surface-subtle); }
+    .editViewPageDiv.viewContent:has(> .reports-content-area) { padding: 0; }
+    .reports-content-area { padding: 0 0 24px; background-color: tok(surface-subtle); }
+
+    .reportsDetailHeader {
+      margin: 0;
+      padding: 0;
+
+      > form#detailView {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        margin: 0;
+        > br { display: none; }
+        > .listViewPageDiv { grid-column: 1; min-width: 0; margin: 0; padding: 0; }
+        > div:has(> button[name='modify_condition']) {
+          grid-column: 2;
+          grid-row: 1;
+          display: flex;
+          align-items: center;
+          height: 64px;
+          padding: 0 24px 0 12px;
+          background-color: tok(surface);
+          button[name='modify_condition'] {
+            @include button-secondary;
+            height: 36px;
+            padding: 6px 16px;
+            strong { font-weight: 400; }
+          }
+        }
+        > #filterContainer {
+          grid-column: 1 / -1;
+          margin: 24px 24px 0;
+          padding: 16px;
+          border: 1px solid #dee2e6;
+          border-radius: tok(radius-sm);
+          background-color: tok(surface);
+          > br { display: none; }
+          // "Add condition": the small secondary button of the cloud filters (30 px, 12 px).
+          .addCondition .btn {
+            @include button-secondary;
+            min-height: 30px;
+            height: 30px;
+            padding: 0 12px;
+            border: 0;
+            font-size: fs(12);
+            line-height: 30px;
+          }
+          .well, .filterContainer { margin: 0; padding: 0; border: 0; background: transparent; box-shadow: none; }
+          .reportActionButtons:not(.hide) {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 16px 0 0;
+            .generateReport:not([data-mode='save']) { @include button-secondary; }
+            .generateReport[data-mode='save'] { @include button-primary; }
+            .generateReport strong { font-weight: 400; }
+          }
+        }
+      }
+
+      .reportHeader { margin: 0; padding: 0; background-color: tok(surface); }
+      .reportHeader > .row {
+        display: flex;
+        align-items: center;
+        min-height: 64px;
+        margin: 0;
+        padding: 6px 12px 6px 24px;
+        &::before, &::after { content: none; }
+        > div { float: none; width: auto; min-width: 0; padding: 0; }
+        > .textAlignCenter {
+          order: 1;
+          display: flex;
+          flex: 1 1 auto;
+          align-items: baseline;
+          flex-wrap: wrap;
+          gap: 4px 16px;
+          text-align: left;
+          h3 {
+            margin: 0;
+            overflow: hidden;
+            color: #000000;
+            font-family: tok(font-family);
+            font-size: fs(18);
+            font-weight: 400;
+            line-height: 27px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          #noOfRecords { color: tok(text-2); font-size: fs(13); }
+          #countValue {
+            display: inline-block;
+            min-width: 22px;
+            margin-left: 4px;
+            padding: 0 6px;
+            border-radius: 11px;
+            background-color: tok(btn-secondary);
+            color: tok(text);
+            text-align: center;
+          }
+        }
+        > .detailViewButtoncontainer { order: 2; flex: none; margin-left: 12px; }
+        > .detailViewButtoncontainer:last-child { order: 3; }
+        .pull-right { float: none !important; }
+        .btn-toolbar { display: flex; margin: 0; }
+        .btn-group { display: flex; gap: 8px; float: none; }
+        .btn-group > .btn, .btn-group > .btn-group > .btn {
+          @include button-toolbar;
+          float: none;
+          height: 36px;
+          border-radius: tok(radius-sm) !important;
+          color: tok(link);
+          &:hover { color: tok(primary-hover); }
+        }
+      }
+    }
+
+    #reportContentsDiv {
+      margin: 24px;
+      .contents-topscroll, .contents-bottomscroll { overflow: auto; }
+      .topscroll-div > table, .bottomscroll-div > table {
+        width: 100%;
+        margin: 0 0 16px;
+        border: 1px solid tok(bg);
+        border-radius: tok(radius-sm);
+        background-color: tok(surface);
+      }
+      .bottomscroll-div {
+        border: 1px solid tok(bg);
+        border-radius: tok(radius-sm);
+        background-color: tok(surface);
+      }
+      .bottomscroll-div > table { margin: 0; border: 0; }
+      // Header rows of v7 (tr.blockHeader) as the header of the cloud tables.
+      tr.blockHeader > th {
+        height: 50px;
+        padding: 12px 12px 8px;
+        border-color: tok(divider);
+        background: tok(surface);
+        color: tok(text-heading);
+        font-family: tok(font-family);
+        font-size: fs(13);
+        font-weight: 700;
+        text-transform: uppercase;
+        vertical-align: middle;
+      }
+      td { padding: 8px 12px; border-color: tok(divider); }
+      .bottomscroll-div > div:only-of-type, .bottomscroll-div > div:last-child:not(:has(table)) {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 240px;
+        color: tok(text);
+        font-size: fs(13);
+      }
+      .alert-info { margin: 0 0 16px; border-radius: tok(radius-sm); }
+    }
+  }
+}
+
+// ---- Wizard steps (report and chart wizards, import): the step chevrons of the cloud dialogs ----
+// BreadCrumbs.tpl of v7: ul.crumbs > li.step(.active) > a > .stepNum + .stepText. Same nodes and click handlers.
+@media screen and (scripting: enabled) {
+  #{$gate} :is(.editContainer, .fc-overlay-modal, #importContainer) .breadcrumb {
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    padding: 8px 16px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+
+    > ul.crumbs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+
+      > li.step {
+        position: relative;
+        float: none;
+        width: auto !important;
+        height: 35px;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        background: tok(btn-secondary);
+        clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%);
+        &.first { clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%); border-radius: tok(radius-sm) 0 0 tok(radius-sm); }
+        &::before, &::after { content: none; display: none; }
+
+        > a {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          height: 35px;
+          margin: 0;
+          padding: 8px 20px 8px 22px;
+          border: 0;
+          background: transparent;
+          color: #000000;
+          font-family: tok(font-family);
+          font-size: fs(13);
+          font-weight: 400;
+          line-height: 19.5px;
+          text-decoration: none;
+          &::before, &::after { content: none; display: none; }
+        }
+        &.first > a { padding-left: 12px; }
+        .stepNum { position: static; float: none; width: auto; height: auto; margin: 0; padding: 0; border: 0; background: none; color: inherit; font-size: inherit; font-weight: 600; line-height: inherit; }
+        .stepText { position: static; float: none; width: auto; max-width: 220px; margin: 0; padding: 0; overflow: hidden; color: inherit; font-size: inherit; text-overflow: ellipsis; white-space: nowrap; }
+
+        &.active { background: tok(primary-strong); }
+        &.active > a { color: #ffffff; }
+      }
+    }
+  }
+
+  // Report and chart wizards (full page): the wizard window of the cloud on the light page, the footer of the cloud
+  // dialog with the main action at the right end. v7 keeps the forms, validation and the step scripts.
+  #{$gate}:has(#page .editContainer > .row > .breadcrumb) {
+    .main-container:has(.editContainer) { background-color: tok(bg); }
+    .editContainer {
+      margin: 24px 24px 96px;
+      padding: 0 0 24px !important;
+      border-radius: tok(radius-lg);
+      background-color: tok(surface);
+      box-shadow: tok(shadow-modal);
+      > .row:first-child { margin: 0; box-shadow: tok(shadow-block); }
+      .well, .reportContents, .contents { border-color: transparent; background-color: transparent; box-shadow: none; }
+      // The steps draw an inline grey frame inside the window: the window is the frame now.
+      form > div[style*='border'] { border-color: transparent !important; }
+    }
+    // The footer of the steps belongs to the window (v7 fixes it to the bottom of the viewport): it ends the card and
+    // stays visible at the bottom of the screen while a long step scrolls.
+    .editContainer:has(.modal-overlay-footer) { padding-bottom: 0 !important; overflow: clip; }
+    .modal-overlay-footer {
+      position: sticky;
+      bottom: 0;
+      left: auto;
+      width: auto;
+      margin: 24px 0 0;
+      padding: 12px 16px;
+      border-top: 1px solid tok(divider);
+      .row { margin: 0; }
+      .textAlignCenter, [class*='col-'] { display: flex; align-items: center; justify-content: flex-end; gap: 12px; float: none; width: 100%; padding: 0; text-align: right; }
+      .btn-success, .btn-primary, button[type='submit'] { order: 2; @include button-primary; }
+      .cancelLink { order: 1; @include button-base; @include button-secondary; text-decoration: none; }
+    }
+  }
+}
+
+// ---- Import (V11): the page overlay of v7 as the import dialog of the cloud (1140 px, radius 12) ----
+// Vtiger_Import_Js loads the wizard into #overlayPageContent (the record window of the theme uses the same container
+// only with .mu-record-overlay). The overlay itself becomes the window: its height follows the content up to the
+// viewport, the header and the footer of the wizard stay visible while the steps scroll. Steps, uploads, mappings,
+// buttons and their handlers stay those of v7 (core 8.4 and builds with their own landing step).
+@media screen and (scripting: enabled) and (min-width: 768px) {
+  #{$gate} #overlayPageContent.overlayPageContent:not(.mu-record-overlay):has(.fc-overlay-modal) {
+    top: 28px !important;
+    right: auto;
+    bottom: auto;
+    left: 50%;
+    width: min(1140px, calc(100vw - 48px));
+    height: auto !important;
+    max-height: calc(100dvh - 56px);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: tok(radius-lg);
+    background-color: tok(surface);
+    box-shadow: tok(shadow-modal);
+    overflow: auto;
+    overscroll-behavior: contain;
+    transform: translateX(-50%);
+
+    > .data, .fc-overlay-modal, .fc-overlay-modal > .modal-content {
+      position: static;
+      width: auto;
+      height: auto !important;
+      min-height: 0 !important;
+      margin: 0;
+      border: 0;
+      border-radius: 0;
+      background-color: tok(surface);
+      box-shadow: none;
+    }
+    > .modal-dialog { display: none; }
+
+    .overlayHeader {
+      position: sticky;
+      z-index: 2;
+      top: 0;
+      background-color: tok(surface);
+      box-shadow: tok(shadow-block);
+      .modal-header { min-height: 51px; padding: 6px 28px; border: 0; background: transparent; }
+      .modal-header h4, .modal-header .pull-left { color: #000000; font-family: tok(font-family); font-size: fs(16.25); font-weight: 500; }
+    }
+    // The choice of the file type (core landing step): drop-zone cards of the cloud dialog instead of app tiles.
+    #landingPageDiv { margin-bottom: 0 !important; padding: 24px 28px; > hr { display: none; } }
+    .importServiceSelectionContainer {
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      align-items: flex-start;
+      gap: 16px;
+      height: auto !important;
+      min-height: 0;
+      &::before, &::after { content: none; }
+      > div:first-child { flex: 1 1 100%; padding: 0; color: tok(text); font-size: fs(15) !important; }
+      > br { display: none; }
+      > div[id] { width: 220px; height: auto; padding: 0; float: none; }
+      .menu-item.app-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: 120px;
+        margin: 0;
+        border: 1px dashed #d5d7d9;
+        border-radius: tok(radius-md);
+        background: #f8f9fa !important;
+        color: tok(text);
+        cursor: pointer;
+        .fa { color: tok(primary); font-size: 32px; }
+        h4 { margin: 0; color: tok(text); font-family: tok(font-family); font-size: fs(14); font-weight: 400; }
+        &:hover { border-color: tok(primary); }
+      }
+    }
+
+    .modal-overlay-footer {
+      position: sticky;
+      z-index: 2;
+      bottom: 0;
+      margin: 0;
+      padding: 12px 16px;
+      border: 0;
+      border-top: 1px solid tok(divider);
+      background-color: tok(surface);
+      .row { margin: 0; }
+      // Every wrapper of the buttons (core dialogs differ: columns, center, pull-right) lays them out at the right end,
+      // the main action last as in the cloud dialogs; the cancel link stays a link to the same handler.
+      [class*='col-'], .textAlignCenter, #importStepOneButtonsDiv, #importStepTwoButtonsDiv:not(.hide), :is(div, center, span):has(> .cancelLink, > .btn) {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        width: 100%;
+        float: none;
+        padding: 0;
+        text-align: right;
+      }
+      .btn-success, button[type='submit'].btn-primary { order: 4; @include button-primary; }
+      .btn-primary:not(.btn-success):not([type='submit']) { order: 3; @include button-secondary; }
+      #backToStep1 { order: 2; @include button-secondary; }
+      .cancelLink { order: 1; }
+      .btn.btn-lg { height: auto; min-height: 0; padding: 6px 12px; font-size: fs(13); line-height: 19.5px; }
+    }
+  }
+}
+
+// ---- Find duplicates: no permanent list tree (it opens from the toolbar, adapter), title and actions as a toolbar ----
+$duplicates: '#{$gate}:has(#listViewContent #findDuplicateContents)';
+
+@media screen and (scripting: enabled) {
+  #{$duplicates} {
+    --mu-shell-tools: 52px;
+    @include lists.list-controls;
+
+    .main-container > #sidebar-essentials {
+      position: fixed;
+      z-index: 1097;
+      top: calc(var(--mu-shell-header) + 54px);
+      left: 24px;
+      display: none !important;
+      width: 288px;
+      max-height: calc(100dvh - var(--mu-shell-header) - 66px);
+      padding: 16px 0;
+      border: 1px solid tok(border);
+      border-radius: 8px;
+      background-color: tok(surface);
+      box-shadow: tok(shadow-dropdown);
+      overflow: auto;
+      .sidebar-container { padding: 0 24px; }
+    }
+    &[data-mu-list-filters] .main-container > #sidebar-essentials { display: block !important; }
+    .main-container > #listViewContent { padding: 0 24px 24px; }
+    #listViewContent .essentials-toggle { display: none; }
+    #listViewContent > div:first-child > .container-fluid {
+      padding: 0;
+      > .row:first-child { display: flex; align-items: center; margin: 0; min-height: 52px; }
+      > .row:first-child > h3 { display: flex; align-items: center; width: 100%; margin: 0; }
+      > .row:first-child > h3 > .col-lg-7 { padding: 0; color: #000000; font-family: tok(font-family); font-size: fs(16.25); font-weight: 500; }
+      > .row:last-child { display: flex; align-items: center; margin: 0 0 12px; }
+      > .row:last-child > .col-lg-1 { width: auto; padding: 0 12px 0 0; }
+      > .row:last-child > .col-lg-11 { flex: 1 1 auto; padding: 0; }
+    }
+    #findDuplicateContents { padding: 0; > .row { margin: 0; } .col-lg-12 { padding: 0; } }
+    #findDuplicateContents .listview-table {
+      border: 0;
+      border-radius: tok(radius-md);
+      background-color: tok(surface);
+      th { height: tok(table-head-height); color: tok(text-heading); font-size: fs(13); font-weight: 700; text-transform: uppercase; }
+      th, td { border-color: tok(divider); }
+    }
+  }
+}
+
+// ---- Mail manager without a mailbox (Inbox of the cloud: a welcome card on the light page) ----
+@media screen and (scripting: enabled) {
+  #{$gate}:has(.main-container-MailManager) {
+    .main-container-MailManager { background-color: tok(bg); }
+    .mailManagerSettings, #mailConfig, .mmDescription, .main-container-MailManager .content-area > .container-fluid:has(.btn-success, .btn-primary) {
+      border: 0;
+      border-radius: tok(radius-lg);
+      background-color: tok(surface);
+      box-shadow: none;
+    }
+  }
+}
+
+// ---- Narrow screens (stage 17): the cloud is not adaptive; the same parts stack without horizontal scrolling ----
+@media screen and (scripting: enabled) and (max-width: 991px) {
+  // The calendar panel goes above the calendar (calendars side by side); the calendar takes the whole width.
+  #{$cal} {
+    .main-container:has(> #CalendarViewContent) > #sidebar-essentials {
+      position: static;
+      width: auto;
+      height: auto;
+      min-height: 0;
+      border-right: 0;
+      border-bottom: 1px solid #dee2e6;
+      .feedslist { display: flex; flex-wrap: wrap; column-gap: 16px; }
+      .feedslist > li.calendar-feed-indicator { flex: 0 1 220px; min-width: 0; }
+    }
+    .main-container:has(> #CalendarViewContent) > #CalendarViewContent { padding-left: 0; }
+    #{$calendar} > .fc-toolbar { flex-wrap: wrap; row-gap: 8px; }
+  }
+
+  // The header of a report: the title first, the actions wrap under it.
+  #{$report} .reportsDetailHeader .reportHeader > .row {
+    flex-wrap: wrap;
+    row-gap: 4px;
+    > .textAlignCenter { flex: 1 1 100%; }
+    > .detailViewButtoncontainer { margin-left: 0; }
+    .btn-group { flex-wrap: wrap; }
+  }
+}
+
+@media screen and (scripting: enabled) {
+  // Wrapped steps of a wizard take their own height (v7 fixes the bar to one line of arrows).
+  #{$gate} :is(.editContainer, .fc-overlay-modal, #importContainer) .breadcrumb { height: auto; min-height: 0; > ul.crumbs { height: auto; } }
+}
+
+// Phones: the title of the module heads the toolbar (stage 11); the dashboard tabs get the row under it.
+@media screen and (scripting: enabled) and (max-width: 767px) {
+  #{$dash} {
+    --mu-shell-tools: 104px;
+    #page > .dashBoardContainer > .tabContainer > .nav-tabs {
+      top: calc(var(--mu-shell-header) + 52px);
+      padding-left: 12px;
+      overflow-x: auto;
+    }
+    #page > .dashBoardContainer .dashboardHeading { top: calc(var(--mu-shell-header) + 60px); right: 12px; }
+  }
+}
