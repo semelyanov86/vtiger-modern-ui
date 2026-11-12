@@ -4,9 +4,19 @@
  * from .local/clean/<instance>.env. The vendor's statistics pixel and registration are not reached: the browser
  * talks to the CRM only, the web server has no internet route.
  */
-import { expect, test } from '@playwright/test'
+import { expect, test, type Locator } from '@playwright/test'
 import { adminCredentials, cleanDbPassword, crmUrl, isClean, target } from '../env'
 import { isolateNetwork } from '../support'
+
+async function waitForClickHandler(control: Locator) {
+  // Installer buttons are painted before its footer script binds their native jQuery handlers.
+  await expect.poll(() => control.evaluate((element) => {
+    const jq = (window as unknown as {
+      jQuery?: { _data: (node: Element, key: string) => { click?: unknown[] } | undefined }
+    }).jQuery
+    return jq?._data(element, 'events')?.click?.length ?? 0
+  }), { message: 'the installer click handler must be ready' }).toBeGreaterThan(0)
+}
 
 test('install Vtiger 8.4.0 with the web installer', async ({ page, context }) => {
   test.skip(!isClean, 'the installer runs on the clean stand only')
@@ -26,11 +36,13 @@ test('install Vtiger 8.4.0 with the web installer', async ({ page, context }) =>
   await page.locator('form[name="step1"] input[type="submit"]').click()
   await page.locator('#agree').click()
   await expect(page.locator('form[name="step3"]')).toBeVisible()
+  await waitForClickHandler(page.locator('input[name="step4"]'))
   const failedChecks = await page.locator('form[name="step3"] .no, form[name="step3"] .alert-error').allInnerTexts()
   await page.locator('input[name="step4"]').click()
 
   const step4 = page.locator('form[name="step4"]')
   await expect(step4).toBeVisible()
+  await waitForClickHandler(step4.locator('input[name="step5"]'))
   await step4.locator('input[name="db_hostname"]').fill('db')
   await step4.locator('input[name="db_username"]').fill('vtiger')
   await step4.locator('input[name="db_password"]').fill(dbPassword)
@@ -47,11 +59,13 @@ test('install Vtiger 8.4.0 with the web installer', async ({ page, context }) =>
 
   const step5 = page.locator('form[name="step5"]')
   await expect(step5).toBeVisible({ timeout: 60_000 })
+  await waitForClickHandler(step5.locator('input[name="step6"]'))
   await expect(page.locator('.errorMessageContent')).toHaveCount(0)
   await step5.locator('input[name="step6"]').click()
 
   const step6 = page.locator('form[name="step6"]')
   await expect(step6).toBeVisible()
+  await waitForClickHandler(step6.locator('input[name="step7"]'))
   await step6.locator('input[name="myname"]').fill('ModernUI clean stand')
   await step6.locator('input[name="myemail"]').fill('admin@clean.example.test')
   await step6.locator('select[name="industry"]').evaluate((select: HTMLSelectElement) => {
