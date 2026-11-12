@@ -80,6 +80,9 @@ task test:settings-page # этап 16: страница ModernUI и предпо
 task test:special-screens # этап 17: календарь (цвета, виды, панель), панель виджетов, отчёты (папки, результат, экспорт, мастер), импорт, корзина, дубликаты, шаблоны, почта против v7; ширины, 200 %, RU/EN/DE, без JS
 task visual:pairs  # снимки и замеры ModernUI по dev/visual/states.json в MU_VISUAL_DIR (dev — приватный каталог)
 task visual:compare # пары и таблица геометрии против закреплённого облачного эталона (MU_VISUAL_REFERENCE, приватный)
+task visual:capture # кандидаты контрольных областей 18, только чистый PACKAGE, без перезаписи baseline
+task visual:regression # сравнение с принятым синтетическим видом; MU_E2E_TARGET=c81/c85
+task test:visual-tools # негативные проверки инструментов визуального сравнения
 task test:devcycle # правка → результат на dev-стенде (PHP, Smarty, словарь, CSS, Vue), всё откатывает
 task shots         # снимки экранов 1440/1024/768/412 с темой и без (dev-стенд — только MU_SHOTS_DIR из PRIVATE.md)
 task measure       # стоимость темы относительно безопасного режима (время, CLS, байты, Bootstrap/304)

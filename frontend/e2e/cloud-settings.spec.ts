@@ -223,6 +223,9 @@ test('search: the same items as the native search of v7, an own empty state and 
   await search(page, 'zzqq')
   await expect(page.locator('.settingsgroup > .mu-settings-empty')).toBeVisible()
   await expect(page.locator('.mu-settings-empty__title')).toHaveText(dictionary(locale).empty)
+  const empty = await page.locator('.mu-settings-empty__title').boundingBox()
+  expect(empty).not.toBeNull()
+  expect(Math.abs((empty?.x ?? 0) + (empty?.width ?? 0) / 2 - (page.viewportSize()?.width ?? 0) / 2)).toBeLessThanOrEqual(4)
   expect(await matched(page)).toEqual([])
   await expect(page.locator('.settingsgroup a.menuItemLabel').first()).toBeHidden()
   // Cleared: everything is back.

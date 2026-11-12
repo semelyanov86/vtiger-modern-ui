@@ -154,6 +154,7 @@ interface Snapshot {
   overflow: number
   actions: string[]
   covered: string[]
+  partiallyCovered: string[]
   railMissing: string[]
   errors: string[]
 }
@@ -476,6 +477,7 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
     }
     const actions: string[] = []
     const covered: string[] = []
+    const partiallyCovered: string[] = []
     for (const element of Array.from(document.querySelectorAll('a[href], button, input:not([type="hidden"]), select, textarea, [role="button"], [onclick]'))) {
       // Stage 12 moves disabled mass actions out of the toolbar; they are unavailable in both views (stage 17: the record
       // actions of the recycle bin the same way — they appear with a selection, special-screens checks it).
@@ -485,29 +487,40 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
       }
       const key = keyOf(element)
       actions.push(key)
-      const rect = element.getBoundingClientRect()
-      const x = rect.left + rect.width / 2
-      const y = rect.top + rect.height / 2
-      if (x < 0 || y < 0 || x >= window.innerWidth || y >= window.innerHeight) {
-        continue
-      }
-      // Scrolled out of its own scroll box (a list of the sidebar, a table with its own scroll bars, a popup): reachable by
-      // scrolling that box, not covered — the theme's taller rows put other rows there than v7 does.
-      let clipped = false
+      // Inline links can have several line boxes, or extend beyond an ellipsis/scroll container. Only the drawn part
+      // receives pointer events; probing the union or the clipped text would incorrectly hit a neighbouring row.
+      const clip = { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight }
       for (let box = element.parentElement; box !== null && box !== document.body; box = box.parentElement) {
         const style = getComputedStyle(box)
         if (style.overflowX !== 'visible' || style.overflowY !== 'visible') {
           const area = box.getBoundingClientRect()
-          if (x < area.left || x > area.right || y < area.top || y > area.bottom) {
-            clipped = true
-            break
+          if (style.overflowX !== 'visible') {
+            clip.left = Math.max(clip.left, area.left)
+            clip.right = Math.min(clip.right, area.right)
+          }
+          if (style.overflowY !== 'visible') {
+            clip.top = Math.max(clip.top, area.top)
+            clip.bottom = Math.min(clip.bottom, area.bottom)
           }
         }
       }
-      if (clipped) {
-        continue
-      }
-      const hit = document.elementFromPoint(x, y)
+      const areas = Array.from(element.getClientRects()).map((rect) => ({
+        left: Math.max(rect.left, clip.left), top: Math.max(rect.top, clip.top),
+        right: Math.min(rect.right, clip.right), bottom: Math.min(rect.bottom, clip.bottom),
+      })).filter((rect) => rect.right - rect.left >= 1 && rect.bottom - rect.top >= 1)
+      // Scrolled-out controls remain reachable by scrolling their own box.
+      if (areas.length === 0) continue
+      // Probe the interior even when the centre works: native partial overlap must be compared in both modes, and a
+      // newly covered edge must not silently pass. Completely covered and partially covered controls stay distinct.
+      const receives = (point: Element | null): boolean => point !== null && (point === element || element.contains(point)
+        || point.contains(element) || (point.closest('label')?.contains(element) ?? false))
+      // Keep ordinary probes within the painted interior (radio corners and search adornments are not control
+      // surfaces). A native file input also has a long blank filename area: probe its edges in both modes.
+      const probes = element.matches('input[type="file"]') ? [0.05, 0.2, 0.5, 0.8, 0.95] : [0.2, 0.5, 0.8]
+      const hits = areas.flatMap((rect) => probes.flatMap((dx) => probes.map((dy) =>
+        document.elementFromPoint(rect.left + (rect.right - rect.left) * dx, rect.top + (rect.bottom - rect.top) * dy))))
+      const reachable = hits.some(receives)
+      const hit = hits.find((point) => point !== null && !receives(point)) ?? null
       if (hit !== null && hit !== element && !element.contains(hit) && !hit.contains(element)) {
         // Labels that wrap their control are not "covering". Fixed bars of v7 at the bottom of the window (footer, the save
         // bar of forms) cover whatever is under them: with the favorites bar the page starts 42 px lower, so other rows are
@@ -527,7 +540,8 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
         if (!label?.contains(element) && !fixedBottom && !scrollbar) {
           const classes = typeof hit.className === 'string' ? hit.className : ''
           const by = `${hit.tagName.toLowerCase()}${hit.id !== '' ? `#${hit.id}` : ''}.${classes.trim().split(/\s+/).slice(0, 3).join('.')}`
-          covered.push(`${key} ⟂ ${by}`)
+          if (reachable) partiallyCovered.push(`${key} ⟂ ${by}`)
+          else covered.push(`${key} ⟂ ${by}`)
         }
       }
     }
@@ -542,10 +556,15 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
       overflow: html.scrollWidth - html.clientWidth,
       actions,
       covered,
+      partiallyCovered,
       railMissing,
     }
   }, { region, menuLinks })
-  const state = await measure(null)
+  // A prepared dropdown/popover is the screen under test, just like a prepared modal. Its underlying record may have
+  // collapsed disclosures in the theme; their contract belongs to the record scenarios, not to this open popup.
+  const popup = screen.prepare !== undefined && await page.locator('.dropdown-menu:visible, .popover.in').count() > 0
+    ? '.dropdown-menu, .popover.in' : null
+  const state = await measure(popup)
   // Controls inside native disclosures are reachable after one click. Measure each panel on its own so that its
   // intentional overlap with the table does not count as a covered table action. Preserve duplicate action counts.
   if (mode === 'on' && screen.prepare === undefined) {
@@ -559,12 +578,13 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
       for (const [key, value] of counts(right)) result.set(key, Math.max(value, result.get(key) ?? 0))
       return [...result].flatMap(([key, value]) => Array<string>(value).fill(key))
     }
-    const globalSearch = page.locator('.search-link .keyword-input')
+    const globalSearch = page.locator('#page > nav.app-fixed-navbar .search-link .keyword-input').first()
     if (await globalSearch.isVisible()) {
       await globalSearch.click()
       const panel = await measure('.search-link')
       state.actions = maximum(state.actions, panel.actions)
       state.covered = maximum(state.covered, panel.covered)
+      state.partiallyCovered = maximum(state.partiallyCovered, panel.partiallyCovered)
       await globalSearch.press('Escape')
     }
     for (const [trigger, region] of [
@@ -579,6 +599,7 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
       const panel = await measure(region)
       state.actions = maximum(state.actions, panel.actions)
       state.covered = maximum(state.covered, panel.covered)
+      state.partiallyCovered = maximum(state.partiallyCovered, panel.partiallyCovered)
       await button.click()
     }
   }
@@ -636,6 +657,10 @@ test('every screen keeps its actions under the theme', async ({ browser }) => {
       const onKeys = result.on.covered.map((entry) => entry.split(' ⟂ ')[0] ?? entry)
       const lost = multisetMinus(onKeys, offCovered)
       result.newlyCovered = result.on.covered.filter((entry) => lost.includes(entry.split(' ⟂ ')[0] ?? entry))
+      const offPartial = result.off.partiallyCovered.map((entry) => entry.split(' ⟂ ')[0] ?? entry)
+      const onPartial = result.on.partiallyCovered.map((entry) => entry.split(' ⟂ ')[0] ?? entry)
+      const lostPartial = multisetMinus(onPartial, [...offCovered, ...offPartial])
+      result.newlyCovered.push(...result.on.partiallyCovered.filter((entry) => lostPartial.includes(entry.split(' ⟂ ')[0] ?? entry)))
       result.newErrors = result.on.errors.filter((error) => !(result.off?.errors.includes(error) ?? false))
       // Horizontal scrolling of the page: a regression when v7 has none, or when the theme adds much more to what v7 has
       // (a slightly wider button in a row that already overflows in v7 is not).

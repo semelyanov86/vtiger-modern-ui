@@ -1,0 +1,637 @@
+[
+  {
+    "id": "V01-header",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List",
+    "steps": [],
+    "region": "#page > nav.app-fixed-navbar"
+  },
+  {
+    "id": "V01-user-menu",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List",
+    "steps": [
+      "user-menu"
+    ],
+    "region": "#navbar .logout-content"
+  },
+  {
+    "id": "V01-search",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List",
+    "steps": [
+      "global-search"
+    ],
+    "region": "#page > nav.app-fixed-navbar > .global-nav"
+  },
+  {
+    "id": "V02-menu",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List",
+    "steps": [
+      "open-menu"
+    ],
+    "region": "[data-mu-panel=\"mega-menu\"]"
+  },
+  {
+    "id": "V02-menu-search-empty",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List",
+    "steps": [
+      "open-menu",
+      "search-nothing"
+    ],
+    "region": "[data-mu-panel=\"mega-menu\"]"
+  },
+  {
+    "id": "V03-list",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List",
+    "steps": [
+      "all-records"
+    ],
+    "region": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 450
+    }
+  },
+  {
+    "id": "V03-filter",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List",
+    "steps": [
+      "all-records",
+      "open-list-filters"
+    ],
+    "region": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 650
+    }
+  },
+  {
+    "id": "V03-selected",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List",
+    "steps": [
+      "all-records",
+      "select-first"
+    ],
+    "region": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 450
+    }
+  },
+  {
+    "id": "V04-list",
+    "module": "SalesOrder",
+    "url": "index.php?module=SalesOrder&view=List",
+    "steps": [
+      "all-records"
+    ],
+    "region": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 450
+    }
+  },
+  {
+    "id": "V03-sort",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List",
+    "steps": [
+      "all-records",
+      "sort-first"
+    ],
+    "region": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 450
+    }
+  },
+  {
+    "id": "V03-empty",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List",
+    "steps": [
+      "all-records",
+      "search-empty"
+    ],
+    "region": {
+      "x": 0,
+      "y": 148,
+      "width": 1440,
+      "height": 600
+    }
+  },
+  {
+    "id": "V05-summary",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List",
+    "steps": [
+      "all-records",
+      "open-first-record",
+      "record-summary"
+    ],
+    "region": "#overlayPageContent .detailview-header-block"
+  },
+  {
+    "id": "V06-documents",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List",
+    "steps": [
+      "all-records",
+      "open-first-record",
+      "record-documents"
+    ],
+    "region": "#overlayPageContent .detailview-header-block"
+  },
+  {
+    "id": "V06-updates",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List",
+    "steps": [
+      "all-records",
+      "open-first-record",
+      "record-updates"
+    ],
+    "region": "#overlayPageContent .detailview-header-block"
+  },
+  {
+    "id": "V05-details",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List",
+    "steps": [
+      "all-records",
+      "open-first-record",
+      "record-details"
+    ],
+    "region": "#overlayPageContent .mu-record-sections"
+  },
+  {
+    "id": "V07-create",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List",
+    "steps": [
+      "open-create"
+    ],
+    "region": {
+      "x": 15,
+      "y": 20,
+      "width": 1410,
+      "height": 900
+    }
+  },
+  {
+    "id": "V07-edit",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List",
+    "steps": [
+      "all-records",
+      "open-first-record",
+      "open-edit"
+    ],
+    "region": {
+      "x": 15,
+      "y": 20,
+      "width": 1410,
+      "height": 900
+    }
+  },
+  {
+    "id": "V07-error",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List",
+    "steps": [
+      "open-create",
+      "required-error"
+    ],
+    "region": {
+      "x": 15,
+      "y": 20,
+      "width": 1410,
+      "height": 900
+    }
+  },
+  {
+    "id": "V07-quick",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List",
+    "steps": [
+      "quick-create"
+    ],
+    "region": ".mu-quick-form"
+  },
+  {
+    "id": "V07-confirm",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List",
+    "steps": [
+      "open-create",
+      "cancel-confirmation"
+    ],
+    "region": ".bootbox .modal-content"
+  },
+  {
+    "id": "V08-items",
+    "module": "SalesOrder",
+    "url": "index.php?module=SalesOrder&view=List",
+    "steps": [
+      "open-create",
+      "inventory-items"
+    ],
+    "region": ".mu-cloud-form .fieldBlockContainer:has(#lineItemTab) > .row > .well"
+  },
+  {
+    "id": "V09-home",
+    "module": "Accounts",
+    "url": "index.php?module=Vtiger&parent=Settings&view=Index",
+    "steps": [],
+    "region": {
+      "x": 0,
+      "y": 96,
+      "width": 1440,
+      "height": 650
+    }
+  },
+  {
+    "id": "V09-picklist-dialog",
+    "module": "Accounts",
+    "url": "index.php?parent=Settings&module=Picklist&view=Index&source_module=Accounts",
+    "steps": [
+      "picklist-add"
+    ],
+    "region": ".modal.in .modal-content"
+  },
+  {
+    "id": "V10-frame",
+    "module": "Accounts",
+    "url": "index.php?module=ModernUI&parent=Settings&view=Index",
+    "steps": [
+      "mu-tab:appearance"
+    ],
+    "region": {
+      "x": 0,
+      "y": 95,
+      "width": 1440,
+      "height": 760
+    }
+  },
+  {
+    "id": "V10-tabs",
+    "module": "Accounts",
+    "url": "index.php?module=ModernUI&parent=Settings&view=Index",
+    "steps": [
+      "mu-tab:compatibility"
+    ],
+    "region": {
+      "x": 0,
+      "y": 95,
+      "width": 1440,
+      "height": 760
+    }
+  },
+  {
+    "id": "V10-scope",
+    "module": "Accounts",
+    "url": "index.php?module=ModernUI&parent=Settings&view=Index",
+    "steps": [
+      "mu-tab:access"
+    ],
+    "region": {
+      "x": 0,
+      "y": 95,
+      "width": 1440,
+      "height": 760
+    }
+  },
+  {
+    "id": "V10-menu",
+    "module": "Accounts",
+    "url": "index.php?module=ModernUI&parent=Settings&view=Index",
+    "steps": [
+      "mu-tab:menu"
+    ],
+    "region": {
+      "x": 0,
+      "y": 95,
+      "width": 1440,
+      "height": 760
+    }
+  },
+  {
+    "id": "V11-calendar-week",
+    "module": "Calendar",
+    "url": "index.php?module=Calendar&view=Calendar",
+    "steps": [
+      "fc-view:agendaWeek",
+      "calendar-fixed-date"
+    ],
+    "region": ".calendarview .fc-toolbar"
+  },
+  {
+    "id": "V11-import",
+    "module": "Contacts",
+    "url": "index.php?module=Contacts&view=List",
+    "steps": [
+      "open-import",
+      "import-csv"
+    ],
+    "region": "#overlayPageContent"
+  },
+  {
+    "id": "V11-report-wizard",
+    "module": "Reports",
+    "url": "index.php?module=Reports&view=Edit",
+    "steps": [],
+    "region": ".editContainer"
+  },
+  {
+    "id": "V12-list-1920",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List&page=1",
+    "steps": [
+      "all-records"
+    ],
+    "region": {
+      "x": 0,
+      "y": 0,
+      "width": 1920,
+      "height": 360
+    },
+    "viewport": {
+      "width": 1920,
+      "height": 1000
+    }
+  },
+  {
+    "id": "V12-list-1024",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List&page=1",
+    "steps": [
+      "all-records"
+    ],
+    "region": {
+      "x": 0,
+      "y": 0,
+      "width": 1024,
+      "height": 360
+    },
+    "viewport": {
+      "width": 1024,
+      "height": 900
+    }
+  },
+  {
+    "id": "V12-list-768",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List&page=1",
+    "steps": [
+      "all-records"
+    ],
+    "region": {
+      "x": 0,
+      "y": 0,
+      "width": 768,
+      "height": 360
+    },
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    }
+  },
+  {
+    "id": "V12-list-412",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List&page=1",
+    "steps": [
+      "all-records"
+    ],
+    "region": {
+      "x": 0,
+      "y": 0,
+      "width": 412,
+      "height": 360
+    },
+    "viewport": {
+      "width": 412,
+      "height": 915
+    }
+  },
+  {
+    "id": "V12-list-720",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List&page=1",
+    "steps": [
+      "all-records"
+    ],
+    "region": {
+      "x": 0,
+      "y": 0,
+      "width": 720,
+      "height": 360
+    },
+    "viewport": {
+      "width": 720,
+      "height": 500
+    }
+  },
+  {
+    "id": "V12-menu-ru-RU",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List&page=1",
+    "steps": [
+      "all-records",
+      "open-menu"
+    ],
+    "region": "[data-mu-panel=\"mega-menu\"]",
+    "locale": "ru-RU"
+  },
+  {
+    "id": "V12-menu-de-DE",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List&page=1",
+    "steps": [
+      "all-records",
+      "open-menu"
+    ],
+    "region": "[data-mu-panel=\"mega-menu\"]",
+    "locale": "de-DE"
+  },
+  {
+    "id": "V03-list-Leads",
+    "module": "Leads",
+    "url": "index.php?module=Leads&view=List",
+    "steps": [
+      "all-records"
+    ],
+    "region": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 300
+    }
+  },
+  {
+    "id": "V03-list-Contacts",
+    "module": "Contacts",
+    "url": "index.php?module=Contacts&view=List",
+    "steps": [
+      "all-records"
+    ],
+    "region": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 300
+    }
+  },
+  {
+    "id": "V04-list-Quotes",
+    "module": "Quotes",
+    "url": "index.php?module=Quotes&view=List",
+    "steps": [
+      "all-records"
+    ],
+    "region": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 300
+    }
+  },
+  {
+    "id": "V04-list-Invoice",
+    "module": "Invoice",
+    "url": "index.php?module=Invoice&view=List",
+    "steps": [
+      "all-records"
+    ],
+    "region": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 300
+    }
+  },
+  {
+    "id": "V04-list-PurchaseOrder",
+    "module": "PurchaseOrder",
+    "url": "index.php?module=PurchaseOrder&view=List",
+    "steps": [
+      "all-records"
+    ],
+    "region": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 300
+    }
+  },
+  {
+    "id": "V12-list-Gadgets",
+    "module": "Gadgets",
+    "url": "index.php?module=Gadgets&view=List",
+    "steps": [
+      "all-records"
+    ],
+    "region": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 360
+    }
+  },
+  {
+    "id": "V09-home-search-empty",
+    "module": "Accounts",
+    "url": "index.php?module=Vtiger&parent=Settings&view=Index",
+    "steps": [
+      "settings-search-empty"
+    ],
+    "region": {
+      "x": 0,
+      "y": 96,
+      "width": 1440,
+      "height": 650
+    }
+  },
+  {
+    "id": "V06-direct",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List",
+    "steps": [
+      "all-records",
+      "open-direct-record"
+    ],
+    "region": ".mu-record-sections"
+  },
+  {
+    "id": "V05-summary-fields",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List",
+    "steps": [
+      "all-records",
+      "open-first-record",
+      "record-summary"
+    ],
+    "region": "#overlayPageContent .summaryViewFields"
+  },
+  {
+    "id": "V05-details-fields",
+    "module": "Accounts",
+    "url": "index.php?module=Accounts&view=List",
+    "steps": [
+      "all-records",
+      "open-first-record",
+      "record-details"
+    ],
+    "region": {
+      "x": 288,
+      "y": 200,
+      "width": 1137,
+      "height": 500
+    }
+  },
+  {
+    "id": "V08-table",
+    "module": "SalesOrder",
+    "url": "index.php?module=SalesOrder&view=List",
+    "steps": [
+      "open-create",
+      "inventory-items"
+    ],
+    "region": "#lineItemTab"
+  },
+  {
+    "id": "V11-calendar-grid",
+    "module": "Calendar",
+    "url": "index.php?module=Calendar&view=Calendar",
+    "steps": [
+      "fc-view:agendaWeek",
+      "calendar-fixed-date"
+    ],
+    "region": {
+      "x": 238,
+      "y": 253,
+      "width": 1202,
+      "height": 600
+    }
+  },
+  {
+    "id": "V11-duplicates-panel",
+    "module": "Contacts",
+    "url": "index.php?module=Contacts&view=FindDuplicates&fields[]=lastname",
+    "steps": [
+      "open-list-filters"
+    ],
+    "region": "#sidebar-essentials"
+  }
+]

@@ -427,7 +427,16 @@ $embedded: '#{$list}:has(#listview-actions > .row ~ * #table-content)';
 @media screen and (scripting: enabled) and (max-width: 767px) {
   #{$list} {
     --mu-shell-tools: 144px;
-    .mu-list-controls { left: 12px; max-width: calc(100% - 24px); }
+    .mu-list-controls { left: 12px; max-width: calc(50% - 24px); }
+    // The native module title shares this band with the filter on phones; reserve a separate half for each.
+    #page > nav.app-fixed-navbar .module-action-content > :first-child {
+      flex: 0 1 auto;
+      max-width: calc(50% - 12px);
+      margin-left: auto;
+      padding: 0;
+      text-align: right;
+      h4.module-title { max-width: 100%; }
+    }
     #listViewContent #listview-actions { top: calc(var(--mu-shell-header) + 96px); right: 12px; max-width: calc(100vw - 24px); }
     #listViewContent #listview-actions > .row { gap: 8px; }
     #page > nav.app-fixed-navbar .module-action-content > :not(:first-child) {

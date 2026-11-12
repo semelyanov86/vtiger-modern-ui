@@ -180,6 +180,22 @@ tasks:
     desc: 'Pairs and geometry table against the pinned cloud reference - MU_VISUAL_REFERENCE (private directory of the reference) and MU_VISUAL_DIR (output of visual:pairs)'
     cmd: python3 dev/visual/compare.py --reference "$MU_VISUAL_REFERENCE" --candidate "$MU_VISUAL_DIR" {{.CLI_ARGS}}
 
+  visual:capture:
+    desc: 'Capture deterministic visual regions on a seeded clean PACKAGE instance only; never updates accepted images'
+    deps: [fe:install]
+    dir: frontend
+    cmd: MU_E2E_TARGET=${MU_E2E_TARGET:-c81} npx playwright test --config e2e/playwright.config.ts --project visual-regression {{.CLI_ARGS}}
+
+  visual:regression:
+    desc: 'Capture and compare with reviewed clean-instance images; fails on missing evidence or unexplained differences'
+    cmds:
+      - task: visual:capture
+      - python3 dev/visual/regression.py --candidate "${MU_REGRESSION_DIR:-.local/visual-regression/${MU_E2E_TARGET:-c81}}"
+
+  test:visual-tools:
+    desc: Verify that the visual comparison gates fail on missing evidence and real differences
+    cmd: python3 -m unittest discover -s tests -p 'visual_*_test.py'
+
   test:screens:
     desc: 'Every screen of the instance with and without the theme (stage 08, read-only): lost or covered actions, new errors, scrolling, level of the theme; MU_E2E_TARGET=dev|c81|c85 (default dev), MU_SCREENS=prefixes, MU_SCREENS_EXTRA=<json of more screens>, MU_SCREENS_SHOTS_DIR (dev: private directory)'
     deps: [fe:install]

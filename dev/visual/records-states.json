@@ -94,7 +94,11 @@
             "radius"
           ]
         }
-      }
+      },
+      "regions": [
+        "blockCard",
+        "search"
+      ]
     },
     {
       "id": "V05-summary",
@@ -185,7 +189,11 @@
             "radius"
           ]
         }
-      }
+      },
+      "regions": [
+        "header",
+        "window"
+      ]
     },
     {
       "id": "V06-documents",
@@ -236,7 +244,11 @@
             "h"
           ]
         }
-      }
+      },
+      "regions": [
+        "header",
+        "window"
+      ]
     },
     {
       "id": "V06-updates",
@@ -287,7 +299,11 @@
             "h"
           ]
         }
-      }
+      },
+      "regions": [
+        "header",
+        "window"
+      ]
     },
     {
       "id": "V06-direct",
@@ -299,7 +315,8 @@
         "all-records",
         "open-direct-record"
       ],
-      "elements": {}
+      "elements": {},
+      "regions": []
     }
   ]
 }

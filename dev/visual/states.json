@@ -22,9 +22,11 @@
         "title": {"ref": ["moduleTitle"], "theme": "#page > nav.app-fixed-navbar .module-action-content > :first-child .module-title", "check": ["x", "y"], "styles": ["size", "weight", "color"], "shift": true},
         "search": {"ref": ["searchIcon"], "theme": "#page > nav.app-fixed-navbar .search-link", "check": ["y", "w"], "shift": true},
         "avatar": {"ref": ["avatar"], "theme": "#navbar a.userName", "check": ["x", "y", "w", "h"], "styles": ["radius"], "shift": true},
-        "toolbar": {"ref": ["toolbar"], "theme": "#page > nav.app-fixed-navbar .module-action-bar", "check": ["y", "h"], "styles": ["bg"], "shift": true},
-        "addInToolbar": {"ref": ["addBtn"], "theme": "#Accounts_listView_basicAction_LBL_ADD_RECORD", "check": ["y"], "styles": ["bg", "color"], "shift": true}
-      }
+        "toolbar": {"ref": ["toolbar"], "theme": "#page > nav.app-fixed-navbar .module-action-bar", "check": ["y", "h"], "shift": true},
+        "addInToolbar": {"ref": ["addBtn"], "theme": "#Accounts_listView_basicAction_LBL_ADD_RECORD", "check": ["y"], "styles": ["bg", "color"], "shift": true},
+        "toolbarSurface": {"ref": ["toolbar"], "theme": "#listview-actions", "pseudo": "::before", "styles": ["bg"]}
+      },
+      "regions": ["header", "toolbar", "search"]
     },
     {
       "id": "V02-menu",
@@ -51,7 +53,8 @@
         "settingsGroup": {"ref": ["settingsGroupTitle"], "theme": ".mu-mega__subhead--service", "check": ["y"], "styles": ["size", "color"], "shift": true},
         "footer": {"ref": ["menuFooter"], "theme": ".mu-mega__footer", "check": ["w", "h"], "styles": ["bg"]},
         "footerButton": {"ref": ["footerBtn"], "theme": ".mu-mega__footer-button", "check": ["x", "h"], "styles": ["bg"]}
-      }
+      },
+      "regions": ["panel", "bar", "search"]
     },
     {
       "id": "V02-menu-search-empty",
@@ -62,7 +65,8 @@
       "steps": ["open-menu", "search-nothing"],
       "elements": {
         "panel": {"ref": ["menuPanel"], "theme": ".mu-mega", "check": ["x", "y", "w"], "shift": true}
-      }
+      },
+      "regions": ["panel"]
     },
     {
       "id": "V03-list",
@@ -80,7 +84,8 @@
         "rowCell": {"ref": ["td"], "theme": "#listview-table tbody tr.listViewEntries td:nth-child(3)", "check": ["h"], "styles": ["font", "size", "color"]},
         "addButton": {"ref": ["addBtn"], "theme": "#Accounts_listView_basicAction_LBL_ADD_RECORD", "check": ["h"], "styles": ["bg", "color", "radius", "font"]},
         "pageBackground": {"ref": ["body"], "theme": "#listViewContent", "styles": ["bg"]}
-      }
+      },
+      "regions": ["header"]
     },
     {
       "id": "V05-details",
@@ -95,7 +100,8 @@
         "blockHeader": {"ref": ["blockHeaderText"], "theme": "#overlayPageContent #detailView > .block h4", "styles": ["size", "weight"]},
         "fieldLabel": {"ref": ["fieldLabel"], "theme": "#overlayPageContent .overlayDetail td.fieldLabel", "styles": ["size", "color"]},
         "fieldValue": {"ref": ["fieldValue"], "theme": "#overlayPageContent .overlayDetail td.fieldValue > .value", "check": ["h"], "styles": ["bg", "radius"]}
-      }
+      },
+      "regions": ["window", "blockCard"]
     },
     {
       "id": "V05-window",
@@ -109,8 +115,9 @@
         "header": {"ref": ["header"], "theme": "#overlayPageContent .detailview-header", "check": ["h"], "styles": ["bg"]},
         "title": {"ref": ["recordTitle"], "theme": "#overlayPageContent .detailview-header .recordLabel, #overlayPageContent .detailview-header .name", "styles": ["font", "size", "weight", "color"]},
         "tabs": {"ref": ["tabsBar"], "theme": "#overlayPageContent .related-tabs", "check": ["h"]},
-        "button": {"ref": ["headerBtnSecondary"], "theme": "#overlayPageContent .detailview-header .btn", "check": ["h"], "styles": ["bg", "radius", "font"]}
-      }
+        "button": {"ref": ["editBtn"], "theme": "#overlayPageContent [id$=\"_detailView_basicAction_LBL_EDIT\"]", "check": ["h"], "styles": ["bg", "radius", "font"]}
+      },
+      "regions": ["header", "window"]
     },
     {
       "id": "V07-edit",
@@ -118,7 +125,7 @@
       "screenshot": "V07-edit-overlay.png",
       "module": "Accounts",
       "url": "index.php?module=Accounts&view=List",
-      "steps": ["open-first-record", "open-edit"],
+      "steps": ["open-first-record", "open-edit", "blur-field"],
       "elements": {
         "window": {"ref": ["dialog"], "theme": "#overlayPageContent", "check": ["x", "y", "w", "h"]},
         "header": {"ref": ["editHeader"], "theme": "#overlayPageContent .overlayHeader", "check": ["h"], "styles": ["bg"]},
@@ -128,7 +135,9 @@
         "input": {"ref": ["input"], "theme": "#overlayPageContent form#EditView input.inputElement[type=text]", "check": ["h"], "styles": ["radius", "bBottom"]},
         "footer": {"ref": ["footer"], "theme": "#overlayPageContent .overlayFooter", "check": ["h"], "styles": ["bg"]},
         "save": {"ref": ["saveBtn"], "theme": "#overlayPageContent .overlayFooter .saveButton", "check": ["h"], "styles": ["bg", "color", "radius"]}
-      }
+      },
+      "regions": ["header", "window", "blockCard"]
     }
-  ]
+  ],
+  "prepare": {"favorites": ["Accounts", "Contacts"]}
 }

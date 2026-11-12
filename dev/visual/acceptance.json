@@ -1,0 +1,119 @@
+{
+  "_doc": "Supplementary live cloud reference captured during stage 18. Original references stay pinned. User menu height and search x depend on native actions and are assessed structurally, without a pixel score. Empty menu uses an original open-source icon in place of the commercial illustration.",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "banner": 0,
+  "tolerance": {
+    "position": 4,
+    "size": 2
+  },
+  "prepare": {
+    "favorites": [
+      "Accounts",
+      "Contacts"
+    ]
+  },
+  "states": [
+    {
+      "id": "V01-user-menu",
+      "reference": "V01-user-menu",
+      "screenshot": "V01-user-menu.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": [
+        "user-menu"
+      ],
+      "elements": {
+        "surface": {
+          "ref": [
+            "surface"
+          ],
+          "theme": "#navbar .logout-content",
+          "check": [
+            "w"
+          ],
+          "styles": [
+            "bg",
+            "radius",
+            "shadow",
+            "font",
+            "size"
+          ]
+        }
+      },
+      "regions": [
+        "surface"
+      ]
+    },
+    {
+      "id": "V01-search",
+      "reference": "V01-search",
+      "screenshot": "V01-search.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": [
+        "global-search"
+      ],
+      "elements": {
+        "surface": {
+          "ref": [
+            "surface"
+          ],
+          "theme": ".search-link .keyword-input",
+          "check": [
+            "y",
+            "w",
+            "h"
+          ],
+          "styles": [
+            "font",
+            "size",
+            "weight",
+            "lh",
+            "color"
+          ]
+        }
+      },
+      "regions": [
+        "surface"
+      ]
+    },
+    {
+      "id": "V02-menu-empty",
+      "reference": "V02-menu-empty",
+      "screenshot": "V02-menu-empty.png",
+      "module": "Accounts",
+      "url": "index.php?module=Accounts&view=List",
+      "steps": [
+        "open-menu",
+        "search-nothing"
+      ],
+      "elements": {
+        "surface": {
+          "ref": [
+            "surface"
+          ],
+          "theme": ".mu-mega__no-results > p",
+          "check": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "styles": [
+            "font",
+            "size",
+            "weight",
+            "lh",
+            "color"
+          ]
+        }
+      },
+      "regions": [
+        "surface"
+      ]
+    }
+  ]
+}

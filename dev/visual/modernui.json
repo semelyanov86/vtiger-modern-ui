@@ -83,7 +83,10 @@
             "weight"
           ]
         }
-      }
+      },
+      "regions": [
+        "bar"
+      ]
     },
     {
       "id": "V10-tabs",
@@ -153,7 +156,10 @@
             "size"
           ]
         }
-      }
+      },
+      "regions": [
+        "tabsBar"
+      ]
     },
     {
       "id": "V10-scope",
@@ -204,7 +210,11 @@
             "bg"
           ]
         }
-      }
+      },
+      "regions": [
+        "scopebar",
+        "page"
+      ]
     },
     {
       "id": "V10-form",
@@ -313,7 +323,10 @@
             "size"
           ]
         }
-      }
+      },
+      "regions": [
+        "card"
+      ]
     },
     {
       "id": "V10-menu",
@@ -457,7 +470,10 @@
             "size"
           ]
         }
-      }
+      },
+      "regions": [
+        "groupsCol"
+      ]
     },
     {
       "id": "V10-picker",
@@ -511,7 +527,10 @@
             "size"
           ]
         }
-      }
+      },
+      "regions": [
+        "picker"
+      ]
     },
     {
       "id": "V10-confirm",
@@ -571,7 +590,10 @@
             "color"
           ]
         }
-      }
+      },
+      "regions": [
+        "dialog"
+      ]
     },
     {
       "id": "V10-prefs",
@@ -613,7 +635,10 @@
             "pad"
           ]
         }
-      }
+      },
+      "regions": [
+        "favorite"
+      ]
     }
   ]
 }

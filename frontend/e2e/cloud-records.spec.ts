@@ -80,6 +80,12 @@ test('Summary, Details, search, related tabs and history preserve the list URL a
   await expect(page.locator('.mu-record-search input')).toBeVisible()
   expect(await recordContract(page)).toEqual(baseline)
   await openCloudRecord(page, 'Accounts', id, search)
+  const title = await page.locator('#overlayPageContent .recordLabel').boundingBox()
+  const titleRow = await page.locator('#overlayPageContent .recordBasicInfo > .info-row').first().boundingBox()
+  expect(title).not.toBeNull()
+  expect(titleRow).not.toBeNull()
+  expect((title?.y ?? 0) + (title?.height ?? 0), 'the title line fits its row without clipping')
+    .toBeLessThanOrEqual((titleRow?.y ?? 0) + (titleRow?.height ?? 0))
   const listUrl = page.url()
   await recordTab(page, '[data-link-key="LBL_RECORD_DETAILS"]')
   expect(page.url()).toBe(listUrl)
@@ -148,18 +154,33 @@ test('inventory, documents and custom modules keep their native actions, authori
   // A clean seed need not contain a document. Create our own through the native action, as on the dev stand.
   await fixture(page, 'Documents', { notes_title: `${NAME} Module Document`, filelocationtype: 'E', filename: 'https://example.invalid/mu13', filestatus: '1' })
   const extra = (process.env['MU_RECORD_MODULES'] ?? '').split(',').filter((module) => /^[A-Za-z0-9_]+$/.test(module))
+  const orderBy = new URLSearchParams(process.env['MU_RECORD_ORDER_BY'] ?? '')
   for (const module of ['SalesOrder', 'Documents', ...(isClean ? ['Gadgets'] : extra)]) {
     await page.goto(`index.php?module=${module}&view=List&modernui=on&search_params=%5B%5D&page=1`)
     await waitForShell(page)
     const all = await page.locator('.lists-menu a.filterName').filter({ hasText: /^(All|Все|Alle)$/ }).first().getAttribute('data-filter-id')
     if (all !== null) { await page.goto(`index.php?module=${module}&view=List&viewname=${all}&search_params=%5B%5D&page=1&modernui=on`); await waitForShell(page) }
+    // Imported rows can share modifiedtime: native navigation then has no stable tie-breaker. A private test
+    // profile can select a unique sortable field; it applies to both views and never changes the action assertion.
+    const sortField = orderBy.get(module)
+    if (sortField !== null) {
+      expect(sortField).toMatch(/^[A-Za-z][A-Za-z0-9_]*$/)
+      const orderedList = new URL(page.url())
+      orderedList.searchParams.set('orderby', sortField)
+      orderedList.searchParams.set('sortorder', 'ASC')
+      await page.goto(orderedList.href)
+      await waitForShell(page)
+    }
     const first = page.locator('#listViewContent tr.listViewEntries[data-id]').first()
     const record = await first.getAttribute('data-id')
     expect(record, `${module}: a fixture exists`).toMatch(/^\d+$/)
+    // Previous/next belong to the source list's filter and order. Reopen exactly that list for the themed comparison.
+    const listContext = new URL(page.url()).searchParams
+    for (const key of ['module', 'view', 'modernui']) listContext.delete(key)
     await page.goto(`index.php?module=${module}&view=Detail&record=${record ?? ''}&mode=showDetailViewByMode&requestMode=full&modernui=off`)
     await settle(page)
     const baseline = await recordContract(page)
-    await openCloudRecord(page, module, record ?? '')
+    await openCloudRecord(page, module, record ?? '', `&${listContext.toString()}`)
     if (await page.locator('.related-tabs [data-link-key="LBL_RECORD_DETAILS"]').count()) {
       await recordTab(page, '[data-link-key="LBL_RECORD_DETAILS"]')
     }

@@ -359,6 +359,25 @@ test('recycle bin, find duplicates, email templates and mail manager keep their 
   await expect(page.locator('#sidebar-essentials')).toBeHidden()
   await page.locator('.mu-list-filter').click()
   await expect(page.locator('#sidebar-essentials')).toBeVisible()
+  const panelBox = await page.locator('#sidebar-essentials').boundingBox()
+  expect(panelBox).not.toBeNull()
+  expect((panelBox?.y ?? 0) + (panelBox?.height ?? 0), 'the whole filter panel fits the viewport')
+    .toBeLessThanOrEqual(page.viewportSize()?.height ?? 0)
+  const createList = page.locator('#createFilter')
+  const closeFilters = page.locator('.mu-list-close')
+  const createBox = await createList.boundingBox()
+  const closeBox = await closeFilters.boundingBox()
+  expect(createBox).not.toBeNull()
+  expect(closeBox).not.toBeNull()
+  if (createBox !== null && closeBox !== null) {
+    expect(createBox.x < closeBox.x + closeBox.width && createBox.x + createBox.width > closeBox.x
+      && createBox.y < closeBox.y + closeBox.height && createBox.y + createBox.height > closeBox.y,
+    'the close button must not cover the native create-list button').toBe(false)
+  }
+  await createList.click({ trial: true })
+  await closeFilters.click()
+  await expect(page.locator('#sidebar-essentials')).toBeHidden()
+  await page.locator('.mu-list-filter').click()
   await page.keyboard.press('Escape')
   await expect(page.locator('#sidebar-essentials')).toBeHidden()
   await expect(page.locator('.mu-list-filter')).toBeFocused()

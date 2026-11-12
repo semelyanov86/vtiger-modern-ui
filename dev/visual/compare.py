@@ -61,8 +61,30 @@ def pair(reference, candidate, out):
     sheet = Image.new('RGB', (a.size[0] + b.size[0] + 16, height), (255, 255, 255))
     sheet.paste(a, (0, 0))
     sheet.paste(b, (a.size[0] + 16, 0))
-    sheet.thumbnail((2880, 1000))
     sheet.save(out)
+
+
+def region_images(reference, candidate, ref_box, cand_box, out):
+    """Compare a named region without scaling, masking text, or producing a misleading cross-product score."""
+    from PIL import Image, ImageChops
+    import math
+
+    def crop(path, box):
+        x, y, w, h = box
+        if w <= 0 or h <= 0:
+            raise ValueError('a compared region has no visible area')
+        return Image.open(path).convert('RGB').crop((math.floor(x), math.floor(y), math.ceil(x + w), math.ceil(y + h)))
+
+    a, b = crop(reference, ref_box), crop(candidate, cand_box)
+    size = max(a.width, b.width), max(a.height, b.height)
+    # Unequal extents remain visible; fitting one image to the other would hide geometry defects.
+    canvases = []
+    for image in (a, b):
+        canvas = Image.new('RGB', size, '#ff00ff')
+        canvas.paste(image, (0, 0))
+        canvases.append(canvas)
+    Image.blend(*canvases, 0.5).save(out + '-overlay.png')
+    ImageChops.difference(*canvases).save(out + '-diff.png')
 
 
 def main():
@@ -86,6 +108,7 @@ def main():
     tolerance = spec['tolerance']
     banner = spec.get('banner', 0)
     lines = ['| State | Element | Check | Cloud | ModernUI | Δ / tolerance | Result |', '|---|---|---|---|---|---|---|']
+    regions = []
     failures = 0
     for state in spec['states']:
         ref_state = reference.get(state['reference'], {}).get('items', {})
@@ -94,33 +117,52 @@ def main():
         shot_cand = os.path.join(args.candidate, state['id'] + '.png')
         if os.path.isfile(shot_ref) and os.path.isfile(shot_cand):
             pair(shot_ref, shot_cand, os.path.join(out, state['id'] + '-pair.png'))
+        else:
+            lines.append(f"| {state['id']} | screenshot | — | {os.path.isfile(shot_ref)} | {os.path.isfile(shot_cand)} | required | FAIL |")
+            failures += 1
         for element_id, element in state['elements'].items():
             refs = [ref_state.get(name) for name in element['ref']]
             cand = cand_state.get(element_id)
             if any(item is None or item.get('missing') for item in refs):
                 lines.append(f"| {state['id']} | {element_id} | — | not measured | | | NO REFERENCE |")
+                failures += 1
                 continue
             if cand is None or cand.get('missing'):
                 lines.append(f"| {state['id']} | {element_id} | — | | missing | | FAIL |")
                 failures += 1
                 continue
             box = union([item['box'] for item in refs])
+            if element_id in state.get('regions', []) and os.path.isfile(shot_ref) and os.path.isfile(shot_cand):
+                prefix = os.path.join(out, state['id'] + '-' + element_id)
+                region_images(shot_ref, shot_cand, box, cand['box'], prefix)
+                regions.append({'state': state['id'], 'element': element_id, 'referenceBox': box,
+                                'candidateBox': cand['box'], 'masks': [], 'rescaled': False,
+                                'pixelScore': None, 'reason': 'Different CRM data; inspect images and geometry separately.'})
             if element.get('shift'):
                 box = [box[0], box[1] - banner, box[2], box[3]]
             for check in element.get('check', []):
-                index = 'xywh'.index(check)
-                limit = tolerance['position'] if check in 'xy' else tolerance['size']
-                delta = cand['box'][index] - box[index]
+                if check in ('cx', 'cy'):
+                    index = 'xy'.index(check[1])
+                    expected = box[index] + box[index + 2] / 2
+                    actual = cand['box'][index] + cand['box'][index + 2] / 2
+                else:
+                    index = 'xywh'.index(check)
+                    expected, actual = box[index], cand['box'][index]
+                limit = tolerance['position'] if check in ('x', 'y', 'cx', 'cy') else tolerance['size']
+                delta = actual - expected
                 ok = abs(delta) <= limit
                 failures += 0 if ok else 1
-                lines.append(f"| {state['id']} | {element_id} | {check} | {box[index]:g} | {cand['box'][index]:g} | {delta:+g} / ±{limit} | {'PASS' if ok else 'FAIL'} |")
+                lines.append(f"| {state['id']} | {element_id} | {check} | {expected:g} | {actual:g} | {delta:+g} / ±{limit} | {'PASS' if ok else 'FAIL'} |")
             first = refs[0]
             for style in element.get('styles', []):
-                ok = first.get(style) == cand.get(style)
+                ok = style in first and style in cand and first[style] == cand[style]
                 failures += 0 if ok else 1
                 lines.append(f"| {state['id']} | {element_id} | {style} | {first.get(style)} | {cand.get(style)} | exact | {'PASS' if ok else 'FAIL'} |")
     with open(os.path.join(out, 'geometry.md'), 'w', encoding='utf-8') as handle:
         handle.write('\n'.join(lines) + '\n')
+    with open(os.path.join(out, 'regions.json'), 'w', encoding='utf-8') as handle:
+        json.dump(regions, handle, indent=2)
+        handle.write('\n')
     print('\n'.join(lines))
     print(f'{failures} value(s) out of tolerance; pairs and geometry.md in {out}')
     return 1 if failures else 0

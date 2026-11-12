@@ -200,8 +200,19 @@ test('mega menu replaces the v7 app menu: every v7 entry stays reachable, plain 
 
   // Search: ё/ß-insensitive, Enter opens the first result.
   const search = panel.locator('[data-mu-field="menu-search"]')
+  const preferences = await panel.locator('[data-mu-item="preferences"]').innerText()
   await search.fill('zzz-no-module')
-  await expect(panel.locator('#mu-mega-panel [role="status"]')).toContainText('zzz-no-module')
+  await expect(panel.locator('.mu-mega__no-results [role="status"]')).toContainText('zzz-no-module')
+  const empty = await panel.locator('.mu-mega__no-results > p').boundingBox()
+  expect(empty).not.toBeNull()
+  expect(Math.abs((empty?.x ?? 0) + (empty?.width ?? 0) / 2 - 428.5)).toBeLessThanOrEqual(4)
+  const expectedY = 595 + ((page.viewportSize()?.height ?? 1000) - 1000) / 2
+  expect(Math.abs((empty?.y ?? 0) - expectedY)).toBeLessThanOrEqual(4)
+  await expect(panel.locator('.mu-mega__groups')).toBeHidden()
+  // A configuration-only result must keep its link, even if no module matches.
+  await search.fill(preferences)
+  await expect(panel.locator('.mu-mega__no-results')).toBeHidden()
+  await expect(panel.locator('.mu-mega__service [data-mu-item="preferences"]')).toBeVisible()
   const target = menu.groups.flatMap((group) => group.items).find((item) => item.module === 'Contacts')
   expect(target).toBeDefined()
   await search.fill((target?.label ?? '').slice(0, 4))

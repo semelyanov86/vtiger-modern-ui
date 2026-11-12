@@ -791,6 +791,7 @@ $duplicates: '#{$gate}:has(#listViewContent #findDuplicateContents)';
       left: 24px;
       display: none !important;
       width: 288px;
+      min-height: 0;
       max-height: calc(100dvh - var(--mu-shell-header) - 66px);
       padding: 16px 0;
       border: 1px solid tok(border);
@@ -799,6 +800,7 @@ $duplicates: '#{$gate}:has(#listViewContent #findDuplicateContents)';
       box-shadow: tok(shadow-dropdown);
       overflow: auto;
       .sidebar-container { padding: 0 24px; }
+      .sidebar-header { padding-right: 20px; }
     }
     &[data-mu-list-filters] .main-container > #sidebar-essentials { display: block !important; }
     .main-container > #listViewContent { padding: 0 24px 24px; }

@@ -77,6 +77,7 @@ export default defineConfig({
     { name: 'lists', testMatch: /lists\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'special-screens', testMatch: /special-screens\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'pairs', testMatch: /pairs\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
+    { name: 'visual-regression', testMatch: /visual-regression\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin, launchOptions: { args: ['--disable-lcd-text'] } } },
     { name: 'baseline', testMatch: /baseline\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'import', testMatch: /tools\/module-import\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'devcycle', testMatch: /devcycle\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },

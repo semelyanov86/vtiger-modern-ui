@@ -1103,6 +1103,7 @@ $icon-modules: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 
     // ---- The catalog: the groups in four columns of a quarter of the window, 16 px under the search ----
     .settingsgroup .panel-group {
+      grid-column: 1 / -1;
       grid-row: 3;
       width: 100vw;
       margin: 16px 0 0;
@@ -1240,7 +1241,9 @@ $icon-modules: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 
     // ---- No matches: in the middle, as the cloud ----
     .settingsgroup > .mu-settings-empty {
+      grid-column: 1 / -1;
       grid-row: 3;
+      width: 100vw;
       margin-top: 16px;
       padding: 160px 15px 150px;
       color: $text;

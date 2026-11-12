@@ -163,7 +163,12 @@
             "radius"
           ]
         }
-      }
+      },
+      "regions": [
+        "header",
+        "window",
+        "card"
+      ]
     },
     {
       "id": "V07-edit",
@@ -320,7 +325,12 @@
             "radius"
           ]
         }
-      }
+      },
+      "regions": [
+        "header",
+        "window",
+        "card"
+      ]
     },
     {
       "id": "V07-error",
@@ -448,7 +458,11 @@
             "radius"
           ]
         }
-      }
+      },
+      "regions": [
+        "header",
+        "window"
+      ]
     },
     {
       "id": "V07-confirm",
@@ -498,7 +512,10 @@
             "pad"
           ]
         }
-      }
+      },
+      "regions": [
+        "window"
+      ]
     },
     {
       "id": "V07-quick",
@@ -563,7 +580,11 @@
             "pad"
           ]
         }
-      }
+      },
+      "regions": [
+        "header",
+        "window"
+      ]
     },
     {
       "id": "V08-items",
@@ -666,7 +687,11 @@
             "bg"
           ]
         }
-      }
+      },
+      "regions": [
+        "header",
+        "window"
+      ]
     }
   ]
 }

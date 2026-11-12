@@ -31,6 +31,8 @@
     .recordImage img { max-width: 34px; max-height: 34px; object-fit: contain; }
     .recordBasicInfo { position: relative; width: auto; max-width: calc(100% - 42px); padding: 0; min-width: 0; margin: 0; }
     .recordBasicInfo h4 { margin: 0; }
+    // Match the label's 30 px line box; the native row plus its margin otherwise centers it at a half pixel.
+    .recordBasicInfo > .info-row:first-child { height: 30px; margin-bottom: 0; }
     .recordBasicInfo .info-row:not(:first-child) { display: none; }
     .recordLabel, .recordLabel .name { font-size: fs(20); line-height: 30px; font-weight: 400; margin: 0; }
     .recordLabel { display: block; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; padding: 0; }

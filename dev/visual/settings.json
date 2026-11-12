@@ -198,7 +198,11 @@
             "size"
           ]
         }
-      }
+      },
+      "regions": [
+        "bar",
+        "search"
+      ]
     },
     {
       "id": "V09-home-search",
@@ -252,7 +256,10 @@
             "color"
           ]
         }
-      }
+      },
+      "regions": [
+        "search"
+      ]
     },
     {
       "id": "V09-home-search-empty",
@@ -272,14 +279,18 @@
           "cloud": "#settingsContainer .emptyMessage h4",
           "theme": ".settingsgroup > .mu-settings-empty .mu-settings-empty__title",
           "check": [
-            "y"
+            "y",
+            "cx"
           ],
           "styles": [
             "size",
             "color"
           ]
         }
-      }
+      },
+      "regions": [
+        "empty"
+      ]
     },
     {
       "id": "V09-users",
@@ -516,7 +527,10 @@
             "bTop"
           ]
         }
-      }
+      },
+      "regions": [
+        "bar"
+      ]
     },
     {
       "id": "V09-roles",
@@ -606,7 +620,10 @@
             "bTop"
           ]
         }
-      }
+      },
+      "regions": [
+        "bar"
+      ]
     },
     {
       "id": "V09-profiles",
@@ -707,7 +724,11 @@
             "bTop"
           ]
         }
-      }
+      },
+      "regions": [
+        "table",
+        "bar"
+      ]
     },
     {
       "id": "V09-layout",
@@ -775,7 +796,10 @@
             "tt"
           ]
         }
-      }
+      },
+      "regions": [
+        "bar"
+      ]
     },
     {
       "id": "V09-picklist",
@@ -843,7 +867,10 @@
             "size"
           ]
         }
-      }
+      },
+      "regions": [
+        "bar"
+      ]
     },
     {
       "id": "V09-picklist-dialog",
@@ -926,7 +953,11 @@
             "size"
           ]
         }
-      }
+      },
+      "regions": [
+        "header",
+        "dialog"
+      ]
     },
     {
       "id": "V09-workflows",
@@ -1013,7 +1044,10 @@
             "color"
           ]
         }
-      }
+      },
+      "regions": [
+        "bar"
+      ]
     },
     {
       "id": "V09-modules",
@@ -1097,7 +1131,10 @@
             "color"
           ]
         }
-      }
+      },
+      "regions": [
+        "bar"
+      ]
     }
   ]
 }

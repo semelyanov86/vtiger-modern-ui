@@ -199,7 +199,11 @@
             "bg"
           ]
         }
-      }
+      },
+      "regions": [
+        "panel",
+        "toolbar"
+      ]
     },
     {
       "id": "V11-calendar-month",
@@ -258,7 +262,10 @@
             "size"
           ]
         }
-      }
+      },
+      "regions": [
+        "toolbar"
+      ]
     },
     {
       "id": "V11-reports",
@@ -357,7 +364,11 @@
             "size"
           ]
         }
-      }
+      },
+      "regions": [
+        "table",
+        "toolbar"
+      ]
     },
     {
       "id": "V11-report",
@@ -438,7 +449,12 @@
             "bTop"
           ]
         }
-      }
+      },
+      "regions": [
+        "bar",
+        "page",
+        "result"
+      ]
     },
     {
       "id": "V11-report-conditions",
@@ -483,7 +499,10 @@
             "size"
           ]
         }
-      }
+      },
+      "regions": [
+        "filters"
+      ]
     },
     {
       "id": "V11-report-wizard",
@@ -565,7 +584,10 @@
             "size"
           ]
         }
-      }
+      },
+      "regions": [
+        "window"
+      ]
     },
     {
       "id": "V11-import",
@@ -680,7 +702,11 @@
             "size"
           ]
         }
-      }
+      },
+      "regions": [
+        "header",
+        "window"
+      ]
     },
     {
       "id": "V11-dashboard",
@@ -762,7 +788,11 @@
             "color"
           ]
         }
-      }
+      },
+      "regions": [
+        "card",
+        "toolbar"
+      ]
     },
     {
       "id": "V11-recycle",
@@ -817,7 +847,11 @@
             "size"
           ]
         }
-      }
+      },
+      "regions": [
+        "toolbar",
+        "empty"
+      ]
     },
     {
       "id": "V11-email-templates",
@@ -888,7 +922,10 @@
             "size"
           ]
         }
-      }
+      },
+      "regions": [
+        "toolbar"
+      ]
     },
     {
       "id": "V11-event-quick",
@@ -931,7 +968,10 @@
             "bg"
           ]
         }
-      }
+      },
+      "regions": [
+        "window"
+      ]
     },
     {
       "id": "V11-mail",
@@ -942,7 +982,8 @@
       "cloudUrl": "view/mailboxtype?module=Inbox&app=ESSENTIALS",
       "steps": [],
       "cloudSteps": [],
-      "elements": {}
+      "elements": {},
+      "regions": []
     }
   ]
 }

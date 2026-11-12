@@ -1,0 +1,64 @@
+name: Accepted visual appearance
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: visual-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  visual:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Dependencies and visual gate controls
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pil
+          npm ci --ignore-scripts --prefix frontend
+          cd frontend
+          npx playwright install --with-deps chromium
+      - name: Build the installable package
+        run: |
+          npm run typecheck --prefix frontend
+          npm run lint --prefix frontend
+          npm test --prefix frontend
+          npm run build --prefix frontend
+          python3 packaging/build-zip.py
+          python3 -m unittest discover -s tests -p 'visual_*_test.py'
+      - name: Install and seed isolated Vtiger instances
+        run: |
+          dev/clean/clean.sh up
+          dev/clean/clean.sh install
+          dev/clean/clean.sh seed
+          dev/clean/clean.sh import-zip "$PWD/dist/ModernUI-$(cat VERSION).zip"
+      - name: Compare accepted appearance on both PHP versions and URL layouts
+        run: |
+          for target in c81 c85; do
+            (cd frontend && MU_E2E_TARGET="$target" npx playwright test --config e2e/playwright.config.ts --project visual-regression)
+            python3 dev/visual/regression.py --candidate ".local/visual-regression/$target"
+          done
+      - name: Upload synthetic differences
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: visual-differences
+          path: .local/visual-regression/
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7

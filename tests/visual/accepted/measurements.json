@@ -1,0 +1,702 @@
+{
+  "V01-header": {
+    "box": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 96
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V01-user-menu": {
+    "box": {
+      "x": 1156,
+      "y": 96,
+      "width": 260,
+      "height": 238.28125
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V01-search": {
+    "box": {
+      "x": 0,
+      "y": 40,
+      "width": 1440,
+      "height": 56
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V02-menu": {
+    "box": {
+      "x": 0,
+      "y": 40,
+      "width": 864,
+      "height": 960
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V02-menu-search-empty": {
+    "box": {
+      "x": 0,
+      "y": 40,
+      "width": 864,
+      "height": 960
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V03-list": {
+    "box": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 450
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V03-filter": {
+    "box": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 650
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V03-selected": {
+    "box": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 450
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V04-list": {
+    "box": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 450
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V03-sort": {
+    "box": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 450
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V03-empty": {
+    "box": {
+      "x": 0,
+      "y": 148,
+      "width": 1440,
+      "height": 600
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V05-summary": {
+    "box": {
+      "x": 15,
+      "y": 21,
+      "width": 1400,
+      "height": 69
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V06-documents": {
+    "box": {
+      "x": 15,
+      "y": 21,
+      "width": 1400,
+      "height": 69
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V06-updates": {
+    "box": {
+      "x": 15,
+      "y": 21,
+      "width": 1400,
+      "height": 69
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V05-details": {
+    "box": {
+      "x": 15,
+      "y": 142,
+      "width": 272,
+      "height": 190.5
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V07-create": {
+    "box": {
+      "x": 15,
+      "y": 20,
+      "width": 1410,
+      "height": 900
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V07-edit": {
+    "box": {
+      "x": 15,
+      "y": 20,
+      "width": 1410,
+      "height": 900
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V07-error": {
+    "box": {
+      "x": 15,
+      "y": 20,
+      "width": 1410,
+      "height": 900
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V07-quick": {
+    "box": {
+      "x": 320,
+      "y": 28,
+      "width": 800,
+      "height": 546
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V07-confirm": {
+    "box": {
+      "x": 470,
+      "y": 28,
+      "width": 500,
+      "height": 118
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V08-items": {
+    "box": {
+      "x": 302,
+      "y": 221.5625,
+      "width": 1090,
+      "height": 91.5
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V09-home": {
+    "box": {
+      "x": 0,
+      "y": 96,
+      "width": 1440,
+      "height": 650
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V09-picklist-dialog": {
+    "box": {
+      "x": 420,
+      "y": 0,
+      "width": 600,
+      "height": 434.375
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V10-frame": {
+    "box": {
+      "x": 0,
+      "y": 95,
+      "width": 1440,
+      "height": 760
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V10-tabs": {
+    "box": {
+      "x": 0,
+      "y": 95,
+      "width": 1440,
+      "height": 760
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V10-scope": {
+    "box": {
+      "x": 0,
+      "y": 95,
+      "width": 1440,
+      "height": 760
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V10-menu": {
+    "box": {
+      "x": 0,
+      "y": 95,
+      "width": 1440,
+      "height": 760
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V11-calendar-week": {
+    "box": {
+      "x": 238,
+      "y": 148,
+      "width": 1202,
+      "height": 54
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V11-import": {
+    "box": {
+      "x": 150,
+      "y": 28,
+      "width": 1140,
+      "height": 477.59375
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V11-report-wizard": {
+    "box": {
+      "x": 39,
+      "y": 135,
+      "width": 1362,
+      "height": 565.875
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V12-list-1920": {
+    "box": {
+      "x": 0,
+      "y": 0,
+      "width": 1920,
+      "height": 360
+    },
+    "viewport": {
+      "width": 1920,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V12-list-1024": {
+    "box": {
+      "x": 0,
+      "y": 0,
+      "width": 1024,
+      "height": 360
+    },
+    "viewport": {
+      "width": 1024,
+      "height": 900
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V12-list-768": {
+    "box": {
+      "x": 0,
+      "y": 0,
+      "width": 768,
+      "height": 360
+    },
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V12-list-412": {
+    "box": {
+      "x": 0,
+      "y": 0,
+      "width": 412,
+      "height": 360
+    },
+    "viewport": {
+      "width": 412,
+      "height": 915
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V12-list-720": {
+    "box": {
+      "x": 0,
+      "y": 0,
+      "width": 720,
+      "height": 360
+    },
+    "viewport": {
+      "width": 720,
+      "height": 500
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V12-menu-ru-RU": {
+    "box": {
+      "x": 0,
+      "y": 40,
+      "width": 864,
+      "height": 960
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "ru-RU",
+    "masks": []
+  },
+  "V12-menu-de-DE": {
+    "box": {
+      "x": 0,
+      "y": 40,
+      "width": 864,
+      "height": 960
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "de-DE",
+    "masks": []
+  },
+  "V03-list-Leads": {
+    "box": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 300
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V03-list-Contacts": {
+    "box": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 300
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V04-list-Quotes": {
+    "box": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 300
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V04-list-Invoice": {
+    "box": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 300
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V04-list-PurchaseOrder": {
+    "box": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 300
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V12-list-Gadgets": {
+    "box": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 360
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V09-home-search-empty": {
+    "box": {
+      "x": 0,
+      "y": 96,
+      "width": 1440,
+      "height": 650
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V06-direct": {
+    "box": {
+      "x": 0,
+      "y": 288.5,
+      "width": 272,
+      "height": 190.5
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V05-summary-fields": {
+    "box": {
+      "x": 40,
+      "y": 159,
+      "width": 883.328125,
+      "height": 70
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V05-details-fields": {
+    "box": {
+      "x": 288,
+      "y": 200,
+      "width": 1137,
+      "height": 500
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V08-table": {
+    "box": {
+      "x": 326,
+      "y": 313.0625,
+      "width": 1042,
+      "height": 66.375
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V11-calendar-grid": {
+    "box": {
+      "x": 238,
+      "y": 253,
+      "width": 1202,
+      "height": 600
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  },
+  "V11-duplicates-panel": {
+    "box": {
+      "x": 24,
+      "y": 150,
+      "width": 288,
+      "height": 838
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "locale": "en-US",
+    "masks": []
+  }
+}

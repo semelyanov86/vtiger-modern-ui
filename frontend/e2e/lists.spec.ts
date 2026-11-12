@@ -179,6 +179,13 @@ test('RU EN DE, narrow screens and 200 percent: original controls stay reachable
         }
         const sizes = await geometry(page)
         expect(sizes['page']?.[1]).toBeLessThanOrEqual((sizes['page']?.[0] ?? 0) + 1)
+        if ((width ?? 1440) < 768) {
+          const filter = await page.locator('.mu-list-controls').boundingBox()
+          const title = await page.locator('.module-action-content h4.module-title').boundingBox()
+          expect(title, 'the module title stays visible beside the filter').not.toBeNull()
+          expect((filter?.x ?? 0) + (filter?.width ?? 0), 'filter and module title do not overlap')
+            .toBeLessThanOrEqual(title?.x ?? 0)
+        }
         if ((width ?? 1440) <= 1100) {
           expect((sizes['add']?.[1] ?? 0) + (sizes['add']?.[3] ?? 0), 'module actions stay above the pagination row')
             .toBeLessThanOrEqual(sizes['tail']?.[1] ?? 0)

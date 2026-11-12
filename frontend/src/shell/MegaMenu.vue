@@ -24,7 +24,7 @@ import {
   DialogTrigger,
   VisuallyHidden,
 } from 'reka-ui'
-import { ChevronDown, ChevronsRight, Link as LinkIcon, Menu as MenuIcon, Puzzle, Search, X } from '@lucide/vue'
+import { ChevronDown, ChevronsRight, Link as LinkIcon, Menu as MenuIcon, Puzzle, Search, SearchX, X } from '@lucide/vue'
 import type { Bootstrap, MenuGroup, MenuItem, SystemItem } from '../api/types'
 import type { ExtraLink } from '../adapters/v7/appMenu'
 import { linkTarget, pageContext } from '../adapters/v7/page'
@@ -94,6 +94,8 @@ const serviceMatches = computed(() => {
     extras: props.extras.value.filter((extra) => matches(extra.label)),
   }
 })
+const noResults = computed(() => searching.value && results.value.length === 0
+  && serviceMatches.value.items.length === 0 && serviceMatches.value.extras.length === 0)
 
 /** Colour of a section icon (--mu-app-* of the design, by position). */
 function tone(index: number): string {
@@ -359,7 +361,11 @@ onBeforeUnmount(() => {
         <!-- Wide screens: apps (sections) | modules | configuration, the footer below. -->
         <template v-else>
           <div class="mu-mega__body">
-            <div ref="tabs" class="mu-mega__groups" role="tablist" aria-orientation="vertical" :aria-label="t('menu.sections')" :class="{ 'mu-mega__groups--muted': searching }">
+            <div v-if="noResults" class="mu-mega__no-results">
+              <SearchX :size="153" :stroke-width="1" aria-hidden="true" />
+              <p role="status">{{ t('menu.noResults', { query: query.trim() }) }}</p>
+            </div>
+            <div v-show="!noResults" ref="tabs" class="mu-mega__groups" role="tablist" aria-orientation="vertical" :aria-label="t('menu.sections')" :class="{ 'mu-mega__groups--muted': searching }">
               <button
                 v-for="(group, index) in groups"
                 :id="tabId(group)"
@@ -382,7 +388,7 @@ onBeforeUnmount(() => {
                 <span class="mu-mega__group-label">{{ group.label }}</span>
               </button>
             </div>
-            <div class="mu-mega__panel">
+            <div v-show="!noResults" class="mu-mega__panel">
               <section
                 id="mu-mega-panel"
                 ref="panel"
@@ -866,6 +872,31 @@ html[data-mu-replaced~='app-menu'] nav.app-fixed-navbar #appnavigator {
   color: tok(text-2);
   font-size: fs(18);
   text-align: center;
+}
+
+// Empty search spans the whole body; configuration-only matches keep their working column.
+.mu-root .mu-mega__no-results {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 30px 0 23px;
+  background: tok(surface);
+  color: tok(text-2);
+
+  > svg {
+    flex: none;
+    color: #9eb6e4;
+  }
+
+  > p {
+    width: 100%;
+    margin: 16px 0 8px;
+    font-size: fs(18);
+    line-height: 27px;
+    text-align: center;
+  }
 }
 
 .mu-root .mu-mega__status {

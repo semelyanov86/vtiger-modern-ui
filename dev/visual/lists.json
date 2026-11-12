@@ -103,7 +103,11 @@
             "font"
           ]
         }
-      }
+      },
+      "regions": [
+        "table",
+        "toolbar"
+      ]
     },
     {
       "id": "V03-filter",
@@ -253,7 +257,12 @@
             "tt"
           ]
         }
-      }
+      },
+      "regions": [
+        "panel",
+        "table",
+        "toolbar"
+      ]
     },
     {
       "id": "V03-selected",
@@ -317,7 +326,11 @@
             "color"
           ]
         }
-      }
+      },
+      "regions": [
+        "table",
+        "toolbar"
+      ]
     },
     {
       "id": "V04-list",
@@ -411,7 +424,11 @@
             "font"
           ]
         }
-      }
+      },
+      "regions": [
+        "table",
+        "toolbar"
+      ]
     },
     {
       "id": "V03-sort",
@@ -507,7 +524,11 @@
             "font"
           ]
         }
-      }
+      },
+      "regions": [
+        "table",
+        "toolbar"
+      ]
     },
     {
       "id": "V03-empty",
@@ -562,7 +583,10 @@
             "font"
           ]
         }
-      }
+      },
+      "regions": [
+        "toolbar"
+      ]
     }
   ]
 }
