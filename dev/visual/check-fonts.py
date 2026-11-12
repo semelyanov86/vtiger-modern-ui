@@ -3,15 +3,17 @@
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 
 
 def check(manifest):
     failures = 0
+    env = dict(os.environ, FONTCONFIG_FILE=str(Path(__file__).with_name('fontconfig.conf').resolve()))
     for expected in manifest['systemFonts']:
         family, filename = subprocess.check_output(
-            ['fc-match', '-f', '%{family}|%{file}', expected['pattern']], text=True,
+            ['fc-match', '-f', '%{family}|%{file}', expected['pattern']], text=True, env=env,
         ).split('|', 1)
         digest = hashlib.sha256(Path(filename).read_bytes()).hexdigest()
         matches = family == expected['family'] and digest == expected['sha256']

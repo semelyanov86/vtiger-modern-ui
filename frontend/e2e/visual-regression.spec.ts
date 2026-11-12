@@ -20,6 +20,11 @@ interface Scene {
 }
 const scenes = JSON.parse(readFileSync(resolve(repoRoot, 'dev/visual/regression.json'), 'utf8')) as Scene[]
 const output = resolve(repoRoot, process.env['MU_REGRESSION_DIR'] ?? `.local/visual-regression/${target}`)
+const accepted = JSON.parse(readFileSync(resolve(repoRoot, 'tests/visual/accepted/manifest.json'), 'utf8')) as { launchArgs: string[] }
+test.use({ launchOptions: {
+  args: accepted.launchArgs,
+  env: { ...process.env, FONTCONFIG_FILE: resolve(repoRoot, 'dev/visual/fontconfig.conf') },
+} })
 
 test('capture accepted visual regions, with clean synthetic data only', async ({ page, context, browser }) => {
   expect(isClean, 'visual regression capture is restricted to the isolated clean instances').toBe(true)

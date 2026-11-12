@@ -20,3 +20,7 @@ regular/bold (`fonts-noto-core`, the Segoe UI fallback). CI installs them; `dev/
 checks resolved families and font-file hashes before capture. These system fonts are not distributed
 in the module or this repository. Bundled Arimo remains the product fallback when Arial is absent;
 switching to that face is a different screenshot environment, not rasterization noise.
+
+`dev/visual/fontconfig.conf` pins Noto Sans Math (also in `fonts-noto-core`) after Arial/Noto Sans
+for missing symbols. The capture browser alone uses this configuration; the product's CSS and system
+configuration are unchanged. Its font hash and the U+2197 fallback choice are checked before capture.

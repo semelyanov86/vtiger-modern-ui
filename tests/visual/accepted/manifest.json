@@ -8,6 +8,7 @@
   "browser": "153.0.8010.12",
   "playwright": "1.63.0",
   "os": "Ubuntu 24.04",
+  "fontconfig": "dev/visual/fontconfig.conf",
   "systemFonts": [
     {
       "pattern": "Arial",
@@ -28,6 +29,11 @@
       "pattern": "Segoe UI:style=Bold",
       "family": "Noto Sans",
       "sha256": "e83493c945848ecd4a9ad0f6d19164541a0d3e23a9c952304a00a46e00272ac5"
+    },
+    {
+      "pattern": "Arial:charset=2197",
+      "family": "Noto Sans Math",
+      "sha256": "8242bd1e55368b27e32455260754cf9aa58f3ad7ea80664b66c21f1b09910d6c"
     }
   ],
   "deviceScaleFactor": 1,
