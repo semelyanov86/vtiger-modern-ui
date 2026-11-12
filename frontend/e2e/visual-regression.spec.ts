@@ -1,5 +1,6 @@
 /** Stage 18: capture deterministic regions on an isolated, seeded PACKAGE instance. Never updates a baseline. */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
 import { resolve } from 'node:path'
 import { expect, test } from '@playwright/test'
 import { isClean, repoRoot, target } from './env'
@@ -22,6 +23,7 @@ const output = resolve(repoRoot, process.env['MU_REGRESSION_DIR'] ?? `.local/vis
 
 test('capture accepted visual regions, with clean synthetic data only', async ({ page, context, browser }) => {
   expect(isClean, 'visual regression capture is restricted to the isolated clean instances').toBe(true)
+  execFileSync('python3', [resolve(repoRoot, 'dev/visual/check-fonts.py')], { stdio: 'inherit' })
   test.setTimeout(600_000)
   page.setDefaultTimeout(30_000)
   page.setDefaultNavigationTimeout(30_000)

@@ -29,10 +29,12 @@ jobs:
       - name: Dependencies and visual gate controls
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3-pil
+          echo 'ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true' | sudo debconf-set-selections
+          sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pil fonts-noto-core ttf-mscorefonts-installer
           npm ci --ignore-scripts --prefix frontend
           cd frontend
           npx playwright install --with-deps chromium
+          python3 ../dev/visual/check-fonts.py
       - name: Build the installable package
         run: |
           npm run typecheck --prefix frontend

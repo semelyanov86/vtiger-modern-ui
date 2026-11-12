@@ -14,3 +14,9 @@ repeat for `c85`, after importing one package into both fresh seeded instances. 
 never changed by the command. `task visual:capture` captures candidates for inspection only. A deliberate update requires cloud comparison, visual review,
 noise calibration and a reviewable replacement of these files. Keep browser and OS versions aligned
 with the manifest; browser updates require review.
+
+The accepted system fonts are Arial regular/bold (`ttf-mscorefonts-installer`) and Noto Sans
+regular/bold (`fonts-noto-core`, the Segoe UI fallback). CI installs them; `dev/visual/check-fonts.py`
+checks resolved families and font-file hashes before capture. These system fonts are not distributed
+in the module or this repository. Bundled Arimo remains the product fallback when Arial is absent;
+switching to that face is a different screenshot environment, not rasterization noise.

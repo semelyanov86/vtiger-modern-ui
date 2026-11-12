@@ -273,6 +273,9 @@ Capture candidates with `MU_E2E_TARGET=c81 task visual:capture`; compare both cl
 `MU_E2E_TARGET=c81 task visual:regression` and `MU_E2E_TARGET=c85 task visual:regression`.
 The comparison never overwrites its baseline. Changes require reviewing the cloud evidence,
 geometry, image pairs and the calibration described in the acceptance report.
+The screenshot environment also requires Arial and Noto Sans (`ttf-mscorefonts-installer` and
+`fonts-noto-core` on Ubuntu 24.04). CI installs them; capture checks font families and SHA-256
+against the accepted manifest. These system fonts are not part of the module package.
 
 Visual runs save global and personal settings, including favorites, and verify their restoration.
 If a process was interrupted, the private recovery file remains. Rerun on the same target with
