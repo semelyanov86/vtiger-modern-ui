@@ -9,6 +9,12 @@
   "playwright": "1.63.0",
   "os": "Ubuntu 24.04",
   "fontconfig": "dev/visual/fontconfig.conf",
+  "platformFonts": {
+    ".mu-record-back": "ArialMT",
+    ".mu-record-open": "NotoSansMath-Regular",
+    ".fc-icon-left-single-arrow": "CourierNewPS-BoldMT",
+    ".fc-icon-right-single-arrow": "CourierNewPS-BoldMT"
+  },
   "systemFonts": [
     {
       "pattern": "Arial",
@@ -34,6 +40,16 @@
       "pattern": "Arial:charset=2197",
       "family": "Noto Sans Math",
       "sha256": "8242bd1e55368b27e32455260754cf9aa58f3ad7ea80664b66c21f1b09910d6c"
+    },
+    {
+      "pattern": "Courier New:style=Bold",
+      "family": "Courier New",
+      "sha256": "edf8a7c5bfcac2e1fe507faab417137cbddc9071637ef4648238d0768c921e02"
+    },
+    {
+      "pattern": "monospace",
+      "family": "DejaVu Sans Mono",
+      "sha256": "c805f9436dbc268644c1d9584f01a601a653e028e08fd74b9b949f6cf8304d88"
     }
   ],
   "deviceScaleFactor": 1,

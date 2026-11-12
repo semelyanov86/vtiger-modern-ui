@@ -24,3 +24,7 @@ switching to that face is a different screenshot environment, not rasterization 
 `dev/visual/fontconfig.conf` pins Noto Sans Math (also in `fonts-noto-core`) after Arial/Noto Sans
 for missing symbols. The capture browser alone uses this configuration; the product's CSS and system
 configuration are unchanged. Its font hash and the U+2197 fallback choice are checked before capture.
+Only the seven pinned system faces are exposed to this browser process; the preflight rejects any
+other font file. The remaining two faces are Courier New bold for FullCalendar arrows and
+DejaVu Sans Mono (`fonts-dejavu-core`) for color values. CDP also verifies the actual fonts of
+record and calendar arrows against `platformFonts`.

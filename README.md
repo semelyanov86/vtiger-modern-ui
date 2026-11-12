@@ -277,7 +277,8 @@ The screenshot environment also requires Arial and Noto Sans (`ttf-mscorefonts-i
 `fonts-noto-core` on Ubuntu 24.04). CI installs them; capture checks font families and SHA-256
 against the accepted manifest. These system fonts are not part of the module package.
 The capture browser also uses `dev/visual/fontconfig.conf` to select the accepted Noto Sans Math
-fallback for symbols; this does not change the machine's global font configuration.
+fallback for symbols. Its system font inventory is limited to the seven accepted faces, and CDP
+checks the fonts actually used for record and calendar arrows. The machine's global configuration is unchanged.
 
 Visual runs save global and personal settings, including favorites, and verify their restoration.
 If a process was interrupted, the private recovery file remains. Rerun on the same target with

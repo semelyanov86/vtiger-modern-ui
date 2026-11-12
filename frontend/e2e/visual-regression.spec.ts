@@ -20,7 +20,10 @@ interface Scene {
 }
 const scenes = JSON.parse(readFileSync(resolve(repoRoot, 'dev/visual/regression.json'), 'utf8')) as Scene[]
 const output = resolve(repoRoot, process.env['MU_REGRESSION_DIR'] ?? `.local/visual-regression/${target}`)
-const accepted = JSON.parse(readFileSync(resolve(repoRoot, 'tests/visual/accepted/manifest.json'), 'utf8')) as { launchArgs: string[] }
+const accepted = JSON.parse(readFileSync(resolve(repoRoot, 'tests/visual/accepted/manifest.json'), 'utf8')) as {
+  launchArgs: string[]
+  platformFonts: Record<string, string>
+}
 test.use({ launchOptions: {
   args: accepted.launchArgs,
   env: { ...process.env, FONTCONFIG_FILE: resolve(repoRoot, 'dev/visual/fontconfig.conf') },
@@ -52,6 +55,24 @@ test('capture accepted visual regions, with clean synthetic data only', async ({
       await page.waitForFunction(() => document.fonts.status === 'loaded', undefined, { timeout: 15_000 })
       await page.mouse.move(viewport.width - 2, viewport.height - 2)
       await page.waitForTimeout(350)
+      // fc-match alone cannot prove which fallback Chromium uses for a missing web-font glyph.
+      // Check the actual rendered symbols before accepting pixels from this environment.
+      const cdp = await context.newCDPSession(page)
+      try {
+        await cdp.send('DOM.enable')
+        await cdp.send('CSS.enable')
+        const { root } = await cdp.send('DOM.getDocument')
+        for (const [selector, postScriptName] of Object.entries(accepted.platformFonts)) {
+          if (!await page.locator(selector).isVisible()) continue
+          const { nodeId } = await cdp.send('DOM.querySelector', { nodeId: root.nodeId, selector })
+          const { fonts } = await cdp.send('CSS.getPlatformFontsForNode', { nodeId })
+          const actual = fonts.map((font) => font.postScriptName)
+          console.log(`[visual-font] ${scene.id} ${selector}: ${actual.join(', ')}`)
+          expect(actual, `${scene.id}: rendered font for ${selector}`).toEqual([postScriptName])
+        }
+      } finally {
+        await cdp.detach()
+      }
       const locator = typeof scene.region === 'string' ? page.locator(scene.region).first() : null
       if (locator) await expect(locator, scene.id).toBeVisible()
       const box = locator ? await locator.boundingBox() : scene.region
