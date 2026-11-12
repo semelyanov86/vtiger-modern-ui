@@ -1,9 +1,7 @@
 name: Accepted visual appearance
 
 on:
-  pull_request:
-  push:
-    branches: [main]
+  # Automatic runs are disabled at the maintainer's request.
   workflow_dispatch:
 
 permissions:

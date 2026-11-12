@@ -16,7 +16,8 @@ noise calibration and a reviewable replacement of these files. Keep browser and 
 with the manifest; browser updates require review.
 
 The accepted system fonts are Arial regular/bold (`ttf-mscorefonts-installer`) and Noto Sans
-regular/bold (`fonts-noto-core`, the Segoe UI fallback). CI installs them; `dev/visual/check-fonts.py`
+regular/bold (`fonts-noto-core`, the Segoe UI fallback). The local capture environment requires
+these packages; `dev/visual/check-fonts.py`
 checks resolved families and font-file hashes before capture. These system fonts are not distributed
 in the module or this repository. Bundled Arimo remains the product fallback when Arial is absent;
 switching to that face is a different screenshot environment, not rasterization noise.

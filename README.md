@@ -262,19 +262,19 @@ The design documents in `docs/` are currently written in Russian:
 
 [AGENTS.md](AGENTS.md) contains the rules for AI coding agents working on this repository.
 
-## Accepted appearance and CI
+## Accepted appearance
 
 [Visual acceptance](docs/visual-acceptance.md) records the cloud comparison and its specific limits.
-The cloud reference and dev screenshots stay private. GitHub Actions builds the ZIP, creates two
-fresh Vtiger instances, seeds synthetic data, imports the package and runs the accepted-image gate.
-It never needs a cloud session or a dev database. Actions are pinned by full commit SHA.
+The cloud reference and dev screenshots stay private. GitHub CI is disabled at the maintainer's
+request. Push and pull request triggers have been removed, and the workflow is disabled on GitHub.
+Do not enable or run it without a new explicit request. Visual regression checks run locally.
 
 Capture candidates with `MU_E2E_TARGET=c81 task visual:capture`; compare both clean instances with
 `MU_E2E_TARGET=c81 task visual:regression` and `MU_E2E_TARGET=c85 task visual:regression`.
 The comparison never overwrites its baseline. Changes require reviewing the cloud evidence,
 geometry, image pairs and the calibration described in the acceptance report.
 The screenshot environment also requires Arial and Noto Sans (`ttf-mscorefonts-installer` and
-`fonts-noto-core` on Ubuntu 24.04). CI installs them; capture checks font families and SHA-256
+`fonts-noto-core` on Ubuntu 24.04), plus `fonts-dejavu-core`. Capture checks font families and SHA-256
 against the accepted manifest. These system fonts are not part of the module package.
 The capture browser also uses `dev/visual/fontconfig.conf` to select the accepted Noto Sans Math
 fallback for symbols. Its system font inventory is limited to the seven accepted faces, and CDP
