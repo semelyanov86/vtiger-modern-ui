@@ -28,3 +28,7 @@ Only the seven pinned system faces are exposed to this browser process; the pref
 other font file. The remaining two faces are Courier New bold for FullCalendar arrows and
 DejaVu Sans Mono (`fonts-dejavu-core`) for color values. CDP also verifies the actual fonts of
 record and calendar arrows against `platformFonts`.
+
+The locale-only fallback request is pinned before loading system aliases. Chromium uses that
+request for missing web-font glyphs, independently of the named-family fallback order. The
+preflight checks it for English, Russian and German as well as checking the seven font files.

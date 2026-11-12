@@ -50,6 +50,21 @@
       "pattern": "monospace",
       "family": "DejaVu Sans Mono",
       "sha256": "c805f9436dbc268644c1d9584f01a601a653e028e08fd74b9b949f6cf8304d88"
+    },
+    {
+      "pattern": ":lang=en",
+      "family": "Noto Sans Math",
+      "sha256": "8242bd1e55368b27e32455260754cf9aa58f3ad7ea80664b66c21f1b09910d6c"
+    },
+    {
+      "pattern": ":lang=ru",
+      "family": "Noto Sans Math",
+      "sha256": "8242bd1e55368b27e32455260754cf9aa58f3ad7ea80664b66c21f1b09910d6c"
+    },
+    {
+      "pattern": ":lang=de",
+      "family": "Noto Sans Math",
+      "sha256": "8242bd1e55368b27e32455260754cf9aa58f3ad7ea80664b66c21f1b09910d6c"
     }
   ],
   "deviceScaleFactor": 1,
