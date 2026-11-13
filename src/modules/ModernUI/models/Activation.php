@@ -25,6 +25,7 @@ class ModernUI_Activation_Model {
 	const SCHEMA_MISSING = 'MU_SCHEMA_MISSING';
 	const SCHEMA_OUTDATED = 'MU_SCHEMA_OUTDATED';
 	const SCHEMA_NEWER = 'MU_SCHEMA_NEWER';
+	const RECOVERY_REQUIRED = 'MU_RECOVERY_REQUIRED';
 	const NO_BUILD = 'MU_NO_BUILD';
 	const SAFE_MODE = 'MU_SAFE_MODE';
 	const THEME_OFF = 'MU_THEME_OFF';
@@ -221,6 +222,10 @@ class ModernUI_Activation_Model {
 				ModernUI_Schema_Model::STATE_NEWER => self::SCHEMA_NEWER,
 			);
 			$decision['reason'] = $reasons[$state];
+			return $decision;
+		}
+		if (ModernUI_Schema_Model::recoveryRequired()) {
+			$decision['reason'] = self::RECOVERY_REQUIRED;
 			return $decision;
 		}
 		if (self::isSafeMode($request)) {

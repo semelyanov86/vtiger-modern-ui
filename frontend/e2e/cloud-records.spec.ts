@@ -335,6 +335,8 @@ test('403/500, slow responses, missing scripts, deleted and mismatched records r
   await page.route(route, async (request) => { await new Promise((resolve) => setTimeout(resolve, 1200)); await request.continue() })
   await openCloudRecord(page, 'Accounts', id, search)
   await page.locator('.mu-record-back').click()
+  await page.waitForFunction(() => !document.documentElement.hasAttribute('data-mu-record')
+    && (history.state as { muRecord?: unknown } | null)?.muRecord == null)
   await page.unroute(route)
   const deleted = await fixture(page, 'Accounts', { accountname: `${NAME} Deleted` })
   await deleteSynthetic(page, 'Accounts', deleted, 'MU13')
@@ -374,4 +376,56 @@ test('restricted user: private records are refused; hidden and read-only fields 
     expect(await response.text()).not.toContain(NAME)
     expect(await response.text()).not.toContain('class="overlayDetail mu-cloud-record')
   } finally { await context.close() }
+})
+
+test('conditional layout: inline changes reapply native rules and reopening preserves their field contract', async ({ page }) => {
+  const module = process.env['MU_CONDITIONAL_MODULE'] ?? ''
+  const field = process.env['MU_CONDITIONAL_FIELD'] ?? ''
+  const name = process.env['MU_CONDITIONAL_TITLE_FIELD'] ?? 'name'
+  test.skip(module === '' || field === '', 'an installed extension and a synthetic module profile are required')
+  test.setTimeout(180_000)
+  expect(module).toMatch(/^[A-Za-z][A-Za-z0-9_]*$/)
+  expect(field).toMatch(/^[A-Za-z][A-Za-z0-9_]*$/)
+  expect(name).toMatch(/^[A-Za-z][A-Za-z0-9_]*$/)
+  await page.goto(`index.php?module=${module}&view=Edit&modernui=off`)
+  await settle(page)
+  const marker = `${NAME} Conditional`
+  const options = await page.locator(`form#EditView select[name="${field}"] option`).evaluateAll((items) => items
+    .map((option) => (option as HTMLOptionElement).value).filter((value) => value !== ''))
+  const initial = options[0] ?? ''
+  const choices = options.slice(1, 4)
+  expect(choices.length).toBeGreaterThanOrEqual(2)
+  // The extension can hide the entity label and require numeric controls. Create the fixture through the native API;
+  // do not guess that the first visible mandatory text input is the record title.
+  const record = await fixture(page, module, { [name]: marker, [field]: initial })
+  await page.goto(`index.php?module=${module}&view=List&modernui=off`)
+  await settle(page)
+  const all = await page.locator('.lists-menu a.filterName').filter({ hasText: /^(All|Все|Alle)$/ }).first().getAttribute('href')
+  const view = new URL(all ?? '', page.url()).searchParams.get('viewname') ?? ''
+  expect(view, 'the native All filter is available').toMatch(/^\d+$/)
+  // The installation's remembered filter can exclude a new fixture, and native handlers may extend its label.
+  const query = `&viewname=${view}&page=1&search_params=${encodeURIComponent(JSON.stringify([[[name, 'c', marker]]]))}`
+  for (const choice of choices) {
+    await openCloudRecord(page, module, record, query)
+    if (await page.locator('.related-tabs [data-link-key="LBL_RECORD_DETAILS"]').count()) {
+      await recordTab(page, '[data-link-key="LBL_RECORD_DETAILS"]')
+    }
+    const cell = page.locator(`#overlayPageContent #${module}_detailView_fieldValue_${field}`)
+    await cell.hover()
+    await cell.locator('.editAction').click()
+    await cell.locator(`select[name="${field}"]`).selectOption(choice)
+    const reapplied = page.waitForResponse((answer) => {
+      const params = new Map(payload(answer.request()))
+      return params.get('module') === 'ControlLayoutFields' && params.get('mode') === 'checkCLFForModule'
+    })
+    await cell.locator('.inlineAjaxSave').click()
+    expect((await reapplied).ok()).toBe(true)
+    await settle(page)
+    const themed = (await recordContract(page)).fields
+    await page.locator('.mu-record-back').click({ noWaitAfter: true })
+    await expect(page.locator('html')).not.toHaveAttribute('data-mu-record')
+    await page.goto(`index.php?module=${module}&view=Detail&record=${record}&mode=showDetailViewByMode&requestMode=full&modernui=off`)
+    await settle(page)
+    expect(themed, `native fields after inline value ${choice}`).toEqual((await recordContract(page)).fields)
+  }
 })

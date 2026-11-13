@@ -176,6 +176,10 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
     window.location.assign(recordUrl(record))
   }
 
+  scope.listen(window, 'mu:record-extension-error', (event) => {
+    if (target !== null && event instanceof CustomEvent) fullPage(target, event.detail)
+  })
+
   const focusIn = (): void => {
     const close = overlay.querySelector<HTMLElement>('.mu-record-back, .overlayDetailHeader .close, .overlayHeader .close')
     ;(close ?? overlay).focus({ preventScroll: true })

@@ -67,6 +67,7 @@ export default defineConfig({
     { name: 'auth', testMatch: /auth\.setup\.ts$/ },
     { name: 'modernui', testMatch: /modernui\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'clean', testMatch: /(?:clean|access|extensions)\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
+    { name: 'lifecycle', testMatch: /lifecycle\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'settings', testMatch: /(?:^|[\\/])settings\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'navigation', testMatch: /navigation\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'records', testMatch: /records\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },

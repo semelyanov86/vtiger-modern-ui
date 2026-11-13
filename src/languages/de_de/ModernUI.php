@@ -16,6 +16,7 @@ $languageStrings = array(
 	'LBL_REASON_MU_SCHEMA_MISSING' => 'Die Einstellungen wurden noch nicht angelegt.',
 	'LBL_REASON_MU_SCHEMA_OUTDATED' => 'Die Einstellungen müssen von einem Administrator aktualisiert werden.',
 	'LBL_REASON_MU_SCHEMA_NEWER' => 'Die Einstellungen gehören zu einer neueren Version des Moduls.',
+	'LBL_REASON_MU_RECOVERY_REQUIRED' => 'Ein Update wurde nicht abgeschlossen. Stellen Sie das vollständige Paket wieder her und starten Sie unten die Wiederherstellung.',
 	'LBL_REASON_MU_NO_BUILD' => 'Die Oberflächendateien des Moduls fehlen.',
 	'LBL_REASON_MU_SAFE_MODE' => 'Der abgesicherte Modus ist in dieser Sitzung aktiv.',
 	'LBL_REASON_MU_THEME_OFF' => 'Der Administrator hat sie noch nicht eingeschaltet.',

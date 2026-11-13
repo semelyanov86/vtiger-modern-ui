@@ -24,6 +24,8 @@ class ModernUI_Schema_Model {
 
 	/** @var int|null|false schema version of the database for this request; false: not read yet */
 	private static $dbVersion = false;
+	/** @var array lifecycle markers, loaded with the schema version in the same query */
+	private static $recoveryMarkers = array();
 
 	/**
 	 * Schema version recorded in the database, or null when the tables do not exist (yet or any more).
@@ -33,8 +35,14 @@ class ModernUI_Schema_Model {
 	 */
 	public static function getDbVersion($fresh = false) {
 		if ($fresh || self::$dbVersion === false) {
-			$value = ModernUI_Db_Model::value('SELECT value FROM ' . self::META_TABLE . ' WHERE name = ?', array('schema_version'));
+			$meta = array();
+			foreach (ModernUI_Db_Model::rows('SELECT name, value FROM ' . self::META_TABLE . ' WHERE name IN (?, ?, ?)',
+					array('schema_version', 'update_started_at', 'last_error')) as $row) {
+				$meta[$row['name']] = $row['value'];
+			}
+			$value = $meta['schema_version'] ?? null;
 			self::$dbVersion = ($value === null || !preg_match('/^[0-9]+$/', (string) $value)) ? null : (int) $value;
+			self::$recoveryMarkers = array_intersect_key($meta, array('update_started_at' => true, 'last_error' => true));
 		}
 		return self::$dbVersion;
 	}
@@ -44,6 +52,13 @@ class ModernUI_Schema_Model {
 	 */
 	public static function forgetCache() {
 		self::$dbVersion = false;
+		self::$recoveryMarkers = array();
+	}
+
+	/** An unchanged schema version does not prove that an update completed successfully. */
+	public static function recoveryRequired() {
+		self::getDbVersion();
+		return count(self::$recoveryMarkers) > 0;
 	}
 
 	/**
@@ -78,6 +93,7 @@ class ModernUI_Schema_Model {
 	 * @param string|null $value null removes the entry
 	 */
 	public static function setMeta($name, $value) {
+		self::forgetCache();
 		if ($value === null) {
 			ModernUI_Db_Model::mustExecute('DELETE FROM ' . self::META_TABLE . ' WHERE name = ?', array($name));
 			return;

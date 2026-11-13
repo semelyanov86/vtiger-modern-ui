@@ -1053,11 +1053,16 @@ test('rights of a view-only user (clean stand): a record of another user is show
 /** An organization of the administrator that U may not see (seed of the clean stand). */
 async function adminAccount(browser: Browser): Promise<string> {
   const page = await adminPage(browser)
-  await page.goto('index.php?module=Accounts&view=List&modernui=on')
-  const id = await page.locator('tr.listViewEntries', { hasText: 'Weißbier Großhandel AG' }).first().getAttribute('data-id') ?? ''
-  await page.context().close()
-  expect(id).not.toBe('')
-  return id
+  try {
+    // Native list search is kept in the shared session. Select the seed explicitly after the preceding form scenarios.
+    const search = encodeURIComponent(JSON.stringify([[['accountname', 'e', 'Weißbier Großhandel AG']]]))
+    await page.goto(`index.php?module=Accounts&view=List&modernui=on&search_params=${search}&page=1`)
+    const id = await page.locator('tr.listViewEntries', { hasText: 'Weißbier Großhandel AG' }).first().getAttribute('data-id') ?? ''
+    expect(id).not.toBe('')
+    return id
+  } finally {
+    await page.context().close()
+  }
 }
 
 test('documents and comments (clean stand): upload a file and add a comment through the forms of v7, as without the theme', async ({ page }) => {
@@ -1103,3 +1108,74 @@ test('documents and comments (clean stand): upload a file and add a comment thro
   }
   expect(results['on']).toEqual(results['off'])
 })
+
+for (const mode of MODES) {
+  test(`signature fields: synthetic strokes survive native save and reopen (${mode})`, async ({ page }) => {
+    const fields = (process.env['MU_SIGNATURE_FIELDS'] ?? '').split(',').filter(Boolean)
+    test.skip(fields.length === 0, 'an installed signature widget profile is required')
+    test.setTimeout(240_000)
+    for (const field of fields) expect(field).toMatch(/^[A-Za-z][A-Za-z0-9_]*$/)
+    const draw = async (): Promise<Record<string, string>> => {
+      const values: Record<string, string> = {}
+      for (const field of fields) {
+        const canvas = page.locator(`#signature${field} canvas`).first()
+        await expect(canvas).toBeVisible()
+        await canvas.scrollIntoViewIfNeeded()
+        const box = await canvas.boundingBox()
+        expect(box).not.toBeNull()
+        if (box === null) throw new Error('Signature canvas has no rectangle')
+        await page.mouse.move(box.x + 20, box.y + 20)
+        await page.mouse.down()
+        await page.mouse.move(box.x + 80, box.y + 45, { steps: 8 })
+        await page.mouse.move(box.x + 145, box.y + 20, { steps: 8 })
+        await page.mouse.up()
+        await page.locator(`#donebutton${field}`).click()
+        values[field] = await page.locator(`form#EditView input[name="${field}"]`).inputValue()
+        expect(values[field]).toMatch(/^data:image\/png;base64,/)
+        expect(values[field].length).toBeGreaterThan(100)
+        await expect(page.locator(`#sigimage${field}`)).toHaveAttribute('src', values[field] ?? '')
+      }
+      return values
+    }
+    const persisted = async (record: string, mode: Mode, values: Record<string, string>): Promise<void> => {
+      await openIn(page, `index.php?module=SalesOrder&view=Edit&record=${record}`, mode)
+      for (const [field, value] of Object.entries(values)) {
+        await expect(page.locator(`form#EditView input[name="${field}"]`)).toHaveValue(value)
+        await expect(page.locator(`img[data-image-id="${field}"]`)).toHaveAttribute('src', value)
+      }
+    }
+    const account = await createThrough(page, 'Accounts', mode, async () => {
+      await page.locator('form#EditView [name="accountname"]').fill(`${marker(mode)} Signature fixture`)
+    })
+    let values: Record<string, string> = {}
+    const order = await createThrough(page, 'SalesOrder', mode, async () => {
+      await page.locator('form#EditView [name="subject"]').fill(`${marker(mode)} Synthetic strokes`)
+      await pickInPopup(page, () => page.locator('form#EditView input[name="account_id"]').locator('xpath=ancestor::td[1]').locator('.relatedPopup').click(), 'accountname', marker(mode))
+      await buildLineItems(page)
+      values = await draw()
+    })
+    expect(new Map(order.body).get('account_id')).toBe(account.id)
+    for (const [field, value] of Object.entries(values)) expect(new Map(order.body).get(field)).toBe(value)
+    await persisted(order.id, mode, values)
+    if (mode === 'on') {
+      const search = `&search_params=${encodeURIComponent(JSON.stringify([[['subject', 'c', marker(mode)]]]))}`
+      await openCloudRecord(page, 'SalesOrder', order.id, search)
+      await page.locator('#SalesOrder_detailView_basicAction_LBL_EDIT').click()
+      await expect(page.locator('#overlayPageContent form#EditView')).toBeVisible()
+      await settle(page)
+      values = await draw()
+      const saved = page.waitForResponse((response) => isSave('SalesOrder')(response.request()))
+      await page.locator('#overlayPageContent form#EditView .saveButton').evaluate((button: HTMLButtonElement) => { button.click() })
+      const response = await saved
+      expect(response.status()).toBe(302)
+      const body = new Map(payload(response.request()))
+      for (const [field, value] of Object.entries(values)) expect(body.get(field)).toBe(value)
+      // Navigation API cancels the native submit; locator assertions may retain its navigation barrier.
+      // Observe the saved record in the live document, as in the overlay form regression tests.
+      await page.waitForFunction((record) => !document.querySelector('#overlayPageContent form#EditView')
+        && document.querySelector('#overlayPageContent .mu-cloud-record')?.getClientRects().length
+        && document.documentElement.getAttribute('data-mu-record') === record, order.id, { timeout: 30_000 })
+      await persisted(order.id, mode, values)
+    }
+  })
+}

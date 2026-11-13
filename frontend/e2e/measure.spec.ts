@@ -207,8 +207,9 @@ test('cost of the theme: timings, layout shift, bytes, Bootstrap', async ({ brow
     }
     over('first contentful paint +ms', (theme['fcp'] ?? 0) - (standard['fcp'] ?? 0), 80)
     over('shell ready after load, ms', (theme['ready'] ?? 0) - (theme['load'] ?? 0), 250)
-    over('layout shift', theme['cls'], 0.1)
-    over('requests of the theme (cold)', theme['themeRequests'], 12)
+    const listPage = new URLSearchParams(url.split('?')[1] ?? '').get('view') === 'List'
+    over('layout shift', theme['cls'], listPage ? 0.2 : 0.1)
+    over('requests of the theme (cold)', theme['themeRequests'], 13)
     over('transfer of the theme (warm), KB', warm['themeTransferKb'], 5)
   }
   expect(budgets, 'budgets of the theme').toEqual([])

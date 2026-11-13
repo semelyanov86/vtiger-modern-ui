@@ -16,6 +16,7 @@ $languageStrings = array(
 	'LBL_REASON_MU_SCHEMA_MISSING' => 'Настройки ещё не созданы.',
 	'LBL_REASON_MU_SCHEMA_OUTDATED' => 'Администратору нужно обновить настройки.',
 	'LBL_REASON_MU_SCHEMA_NEWER' => 'Настройки относятся к более новой версии модуля.',
+	'LBL_REASON_MU_RECOVERY_REQUIRED' => 'Обновление не завершено. Восстановите полный пакет, затем запустите восстановление ниже.',
 	'LBL_REASON_MU_NO_BUILD' => 'Нет файлов интерфейса модуля.',
 	'LBL_REASON_MU_SAFE_MODE' => 'В этом сеансе включён безопасный режим.',
 	'LBL_REASON_MU_THEME_OFF' => 'Администратор его ещё не включил.',

@@ -139,8 +139,8 @@ test('PHP of the module: visible after a reload', async ({ page }) => {
 
 test('Smarty template: visible after a reload', async ({ page }) => {
   const start = Date.now()
-  edit(files.tpl, (text) => text.replace("<h4 class=\"pull-left\">{mu_t key='LBL_TITLE'}</h4>",
-    `<h4 class="pull-left">{mu_t key='LBL_TITLE'}</h4><span data-mu-devcycle="${marker}"></span>`))
+  edit(files.tpl, (text) => text.replace("<h4 class=\"modernui-page__title\">{mu_t key='LBL_TITLE'}</h4>",
+    `<h4 class="modernui-page__title">{mu_t key='LBL_TITLE'}</h4><span data-mu-devcycle="${marker}"></span>`))
   results['smartyMs'] = await until(page, SETTINGS, start, async (p) => (await p.locator(`[data-mu-devcycle="${marker}"]`).count()) === 1)
   await settle(page)
   restore(files.tpl)

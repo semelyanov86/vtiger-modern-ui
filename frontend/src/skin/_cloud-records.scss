@@ -52,7 +52,7 @@
   .mu-record-open { right: 16px; }
   .mu-record-actions-toggle { right: 56px; color: tok(text); }
   .mu-record-context-toggle { right: 96px; font-size: 20px; }
-  &.mu-record-actions-open .detailview-header .btn-toolbar {
+  &.mu-record-actions-open .detailview-header :is(.btn-toolbar, .detailViewButtoncontainer > .btn-group) {
     position: absolute; right: 56px; top: 58px; z-index: 6; width: 320px; max-width: calc(100vw - 100px);
     max-height: 65vh; overflow: auto; padding: 8px; background: #fff; border: 1px solid tok(divider);
     box-shadow: 0 8px 16px #0002; border-radius: 6px;
@@ -64,6 +64,8 @@
   &.mu-record-context-open .recordBasicInfo {
     .info-row:not(:first-child) { display: block; padding: 8px 12px; background: #fff; border: 1px solid tok(divider); }
   }
+  // Extra native header rows must take part in the layout before the tags below them.
+  &.mu-record-context-open .detailview-header { height: auto; }
   > .detailview-header-block > .tagContainer { display: none; margin: 0; padding: 0 24px 6px 56px; min-height: 0; font-size: 11px; }
   &.mu-record-context-open > .detailview-header-block > .tagContainer { display: block; }
   .tagContainer #addTagTriggerer { font-size: 11px; padding: 0; color: #7b7f85; background: transparent; }

@@ -90,9 +90,12 @@ test('adapters: only the adapters of active extensions of a checked version reac
   const expected = catalog.filter((adapter) => adapter.status === 'active').map((adapter) => adapter.id).sort()
   expect((await activeAdapters(page)).map((adapter) => adapter.id).sort(), 'Bootstrap lists the active adapters only').toEqual(expected)
   const sheet = await tokensSheet(page)
+  const styles: Record<string, boolean> = { pdfmaker: true, controllayoutfields: false }
   for (const adapter of catalog) {
-    expect(sheet.css.includes(`ModernUI adapter ${adapter.id} `), `${adapter.id}: stylesheet ${adapter.status === 'active' ? 'appended' : 'not loaded'}`)
-      .toBe(adapter.status === 'active')
+    expect(styles[adapter.id], `${adapter.id}: resource contract is specified`).toBeDefined()
+    const styled = adapter.status === 'active' && styles[adapter.id] === true
+    expect(sheet.css.includes(`ModernUI adapter ${adapter.id} `), `${adapter.id}: stylesheet ${styled ? 'appended' : 'not loaded'}`)
+      .toBe(styled)
   }
   if (isClean) {
     // A clean 8.4.0 has none of the extensions: every adapter is "not installed" and nothing of them reaches the page.

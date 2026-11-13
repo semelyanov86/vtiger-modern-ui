@@ -15,6 +15,8 @@
  * keys of actions, no field values) goes to .local/e2e-reports/<target>/screens-<label>.json. MU_SCREENS_SHOTS_DIR
  * saves a screenshot of each screen in both modes (dev instance: the private data directory — the pages show customer
  * data). MU_SCREENS=prefix,prefix narrows the run (ids: core:…, settings:…, list:…, detail:…).
+ * MU_SCREENS_NEGATIVE=record-action|record-tab deliberately removes one control in the browser of a clean instance;
+ * the comparison must fail. This verifies the auditor without modifying CRM files, data or the accepted screenshots.
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -28,6 +30,7 @@ test.describe.configure({ mode: 'serial' })
 const shotsDir = process.env['MU_SCREENS_SHOTS_DIR'] ?? ''
 const only = (process.env['MU_SCREENS'] ?? '').split(',').map((value) => value.trim()).filter((value) => value !== '')
 const label = process.env['MU_SCREENS_LABEL'] ?? 'run'
+const negative = process.env['MU_SCREENS_NEGATIVE'] ?? ''
 /**
  * MU_SCREENS_EXTRA: a JSON file with more screens of this instance — [{id, url, open?}] where open is a selector of the
  * element that opens an overlay (after "row:" the first row of the list is selected first). Screens of extensions that the
@@ -405,6 +408,9 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
       await page.waitForLoadState('networkidle', { timeout: 5_000 }).catch(() => undefined)
       await page.waitForTimeout(800)
     }
+    if (isClean && mode === 'on' && negative === 'record-action') {
+      await page.locator('.detailViewButtoncontainer [id$="_LBL_EDIT"]').first().evaluate((element) => { element.remove() })
+    }
   } finally {
     page.off('pageerror', onError)
   }
@@ -456,11 +462,7 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
       if (rect.width < 1 || rect.height < 1) {
         return false
       }
-      // The collapsed global search of the cloud header (stage 11) is a transparent field under its search icon: it takes
-      // the click and opens; it is reachable although it draws nothing until then.
-      if (element.matches('.search-link .keyword-input') && document.documentElement.classList.contains('mu-shell-ready')) {
-        return element.checkVisibility({ visibilityProperty: true, checkVisibilityCSS: true })
-      }
+      // The transparent collapsed search is measured after a real click below, with its full input surface exposed.
       return element.checkVisibility({ opacityProperty: true, visibilityProperty: true, checkOpacity: true, checkVisibilityCSS: true })
     }
     const keyOf = (element: Element): string => {
@@ -478,19 +480,40 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
     const actions: string[] = []
     const covered: string[] = []
     const partiallyCovered: string[] = []
+    // One page can expose the same node in several measurements, while two distinct links can have the same key
+    // (for example the owner in the record header and in its fields). Deduplicate by node, never by action text.
+    const audit = window as typeof window & { __muScreensSeen?: WeakSet<Element> }
+    const seen = audit.__muScreensSeen ??= new WeakSet<Element>()
+    // Overflow tabs dispatch to the original anchor. Keep that anchor's identity (including href) while probing the
+    // visible menu button. A missing, duplicate or covered proxy must still fail; do not count hidden originals alone.
+    const proxies = new Map<Element, Element>()
+    const overflow = Array.from(document.querySelectorAll('.mu-record-tab-menu button')).filter(visible)
+    for (const anchor of document.querySelectorAll('.related-tabs .mu-tab-overflow a, .related-tabs .related-tab-more-element li.more-tab a')) {
+      const label = anchor.getAttribute('displaylabel') ?? anchor.textContent.trim()
+      const matches = overflow.filter((button) => button.textContent.trim() === label)
+      const proxy = matches[0]
+      if (matches.length === 1 && proxy !== undefined && ![...proxies.values()].includes(proxy)) proxies.set(anchor, proxy)
+    }
+    const more = document.querySelector('.mu-record-tab-overflow > button')
+    const nativeMore = document.querySelector('.related-tabs .related-tab-more-element > a')
+    if (more !== null && nativeMore !== null && visible(more)) proxies.set(nativeMore, more)
     for (const element of Array.from(document.querySelectorAll('a[href], button, input:not([type="hidden"]), select, textarea, [role="button"], [onclick]'))) {
+      const control = proxies.get(element) ?? element
       // Stage 12 moves disabled mass actions out of the toolbar; they are unavailable in both views (stage 17: the record
       // actions of the recycle bin the same way — they appear with a selection, special-screens checks it).
-      if (element.closest(skip) !== null || !visible(element) || (region !== null && element.closest(region) === null)
+      if (element.closest(skip) !== null || !visible(control) || (region !== null && element.closest(region) === null)
         || element.matches(':is(.listViewActionsContainer, .recordDependentListActions) > button:disabled')) {
         continue
       }
       const key = keyOf(element)
-      actions.push(key)
+      if (!seen.has(element)) {
+        actions.push(key)
+        seen.add(element)
+      }
       // Inline links can have several line boxes, or extend beyond an ellipsis/scroll container. Only the drawn part
       // receives pointer events; probing the union or the clipped text would incorrectly hit a neighbouring row.
       const clip = { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight }
-      for (let box = element.parentElement; box !== null && box !== document.body; box = box.parentElement) {
+      for (let box = control.parentElement; box !== null && box !== document.body; box = box.parentElement) {
         const style = getComputedStyle(box)
         if (style.overflowX !== 'visible' || style.overflowY !== 'visible') {
           const area = box.getBoundingClientRect()
@@ -504,7 +527,7 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
           }
         }
       }
-      const areas = Array.from(element.getClientRects()).map((rect) => ({
+      const areas = Array.from(control.getClientRects()).map((rect) => ({
         left: Math.max(rect.left, clip.left), top: Math.max(rect.top, clip.top),
         right: Math.min(rect.right, clip.right), bottom: Math.min(rect.bottom, clip.bottom),
       })).filter((rect) => rect.right - rect.left >= 1 && rect.bottom - rect.top >= 1)
@@ -512,8 +535,8 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
       if (areas.length === 0) continue
       // Probe the interior even when the centre works: native partial overlap must be compared in both modes, and a
       // newly covered edge must not silently pass. Completely covered and partially covered controls stay distinct.
-      const receives = (point: Element | null): boolean => point !== null && (point === element || element.contains(point)
-        || point.contains(element) || (point.closest('label')?.contains(element) ?? false))
+      const receives = (point: Element | null): boolean => point !== null && (point === control || control.contains(point)
+        || point.contains(control) || (point.closest('label')?.contains(control) ?? false))
       // Keep ordinary probes within the painted interior (radio corners and search adornments are not control
       // surfaces). A native file input also has a long blank filename area: probe its edges in both modes.
       const probes = element.matches('input[type="file"]') ? [0.05, 0.2, 0.5, 0.8, 0.95] : [0.2, 0.5, 0.8]
@@ -567,7 +590,7 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
   const state = await measure(popup)
   // Controls inside native disclosures are reachable after one click. Measure each panel on its own so that its
   // intentional overlap with the table does not count as a covered table action. Preserve duplicate action counts.
-  if (mode === 'on' && screen.prepare === undefined) {
+  if (mode === 'on' && popup === null && await page.locator('.modal.in:visible, #overlayPageContent.in:visible').count() === 0) {
     const maximum = (left: string[], right: string[]): string[] => {
       const counts = (items: string[]): Map<string, number> => {
         const result = new Map<string, number>()
@@ -582,7 +605,7 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
     if (await globalSearch.isVisible()) {
       await globalSearch.click()
       const panel = await measure('.search-link')
-      state.actions = maximum(state.actions, panel.actions)
+      state.actions.push(...panel.actions)
       state.covered = maximum(state.covered, panel.covered)
       state.partiallyCovered = maximum(state.partiallyCovered, panel.partiallyCovered)
       await globalSearch.press('Escape')
@@ -591,13 +614,32 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
       ['.mu-list-search', '#listViewContent .searchRow'],
       ['.mu-list-filter', '#sidebar-essentials'],
       ['.mu-list-more', '[data-mu-list-import]'],
+      ['.mu-record-actions-toggle', '.detailview-header .btn-toolbar, .detailview-header .detailViewButtoncontainer > .btn-group'],
+      ['.mu-record-context-toggle', '.recordBasicInfo, .detailview-header-block > .tagContainer'],
+      ['.mu-record-tab-overflow > button', '.related-tabs'],
     ] as const) {
       const button = page.locator(trigger)
       if (!await button.isVisible()) continue
       if (await button.getAttribute('aria-expanded') !== 'true') await button.click()
       await expect(page.locator(region).first()).toBeVisible()
+      if (trigger === '.mu-list-search') {
+        // Native floatThead debounces resize after the row opens. Measure settled cells, not its intermediate widths.
+        let previous = ''
+        await expect.poll(async () => {
+          const geometry = await page.locator(`${region} input:visible, ${region} select:visible`).evaluateAll((controls) => JSON.stringify(controls.map((control) => {
+            const box = control.getBoundingClientRect()
+            return [box.x, box.y, box.width, box.height]
+          })))
+          const stable = geometry === previous
+          previous = geometry
+          return stable
+        }, { intervals: [50], timeout: 3000 }).toBe(true)
+      }
+      if (isClean && trigger === '.mu-record-tab-overflow > button' && negative === 'record-tab') {
+        await page.locator('.mu-record-tab-menu button').first().evaluate((element) => { element.remove() })
+      }
       const panel = await measure(region)
-      state.actions = maximum(state.actions, panel.actions)
+      state.actions.push(...panel.actions)
       state.covered = maximum(state.covered, panel.covered)
       state.partiallyCovered = maximum(state.partiallyCovered, panel.partiallyCovered)
       await button.click()

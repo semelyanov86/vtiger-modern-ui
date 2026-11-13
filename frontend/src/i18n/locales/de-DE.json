@@ -24,6 +24,7 @@
     "MU_MODULE_INACTIVE": "Das Modul ModernUI ist deaktiviert.",
     "MU_SCHEMA_OUTDATED": "Die Einstellungen müssen von einem Administrator aktualisiert werden.",
     "MU_SCHEMA_NEWER": "Die Einstellungen gehören zu einer neueren Version des Moduls.",
+    "MU_RECOVERY_REQUIRED": "Ein Update wurde nicht abgeschlossen. Stellen Sie das vollständige Paket wieder her und starten Sie die Wiederherstellung in den ModernUI-Einstellungen.",
     "MU_UNKNOWN": "Unbekannter Fehler.",
     "MU_UNKNOWN_KEY": "Diese Einstellung kennt diese Version des Moduls nicht.",
     "MU_UNKNOWN_ROLE": "Diese Rolle gibt es in diesem CRM nicht.",

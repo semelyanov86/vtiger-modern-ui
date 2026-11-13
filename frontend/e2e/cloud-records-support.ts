@@ -8,7 +8,13 @@ export async function openCloudRecord(page: Page, module: string, id: string, qu
   await waitForShell(page)
   const row = page.locator(`#listViewContent tr.listViewEntries[data-id="${id}"]`)
   await expect(row).toBeVisible()
-  await row.locator('a[href*="view=Detail"]:not([href*="mode="])').filter({ visible: true }).first().click()
+  const link = row.locator('a[href*="view=Detail"]:not([href*="mode="])').filter({ visible: true }).first()
+  if (await link.count()) {
+    await link.click()
+  } else {
+    // A native filter need not include the entity label. A plain cell uses v7's row click and data-recordurl.
+    await row.locator('td.listViewEntryValue:not(:has(a, input, button, select))').filter({ visible: true }).first().click()
+  }
   await expect(page.locator('html')).toHaveAttribute('data-mu-record', id)
   await expect(page.locator('#overlayPageContent .mu-record-back')).toBeVisible()
   await settle(page)

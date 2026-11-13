@@ -482,7 +482,7 @@
   {
     "id": "V03-list-Contacts",
     "module": "Contacts",
-    "url": "index.php?module=Contacts&view=List",
+    "url": "index.php?module=Contacts&view=List&orderby=contact_no&sortorder=ASC",
     "steps": [
       "all-records"
     ],

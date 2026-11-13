@@ -64,16 +64,12 @@ class ModernUI_Lifecycle_Model {
 				self::removeLinks();
 				break;
 			case 'module.preupdate':
-				// The new files are unpacked already, the schema is still the old one: change nothing.
-				// Until postupdate the link handler sees a schema mismatch and keeps the theme off.
+				// Files may be incomplete even when this release does not change the settings schema.
+				// The link handler keeps the theme off until postupdate or an explicit recovery succeeds.
 				self::safeMeta('update_started_at', gmdate('Y-m-d\TH:i:s\Z'));
 				break;
 			case 'module.postupdate':
-				self::migrate();
-				self::syncLinks();
-				self::addSettingsItem();
-				self::safeMeta('installed_version', self::moduleVersion());
-				self::safeMeta('update_started_at', null);
+				self::recover();
 				break;
 			case 'module.preuninstall':
 				self::uninstall(self::$purgeOnUninstall);
@@ -92,7 +88,10 @@ class ModernUI_Lifecycle_Model {
 			ModernUI_Settings_Model::update(ModernUI_Settings_Model::SCOPE_GLOBAL, '', array('theme.mode' => 'off'), null);
 			self::safeMeta('notice', 'MU_REINSTALLED_THEME_OFF');
 		}
-		self::safeMeta('installed_version', self::moduleVersion());
+		if ($report['error'] === null) {
+			self::safeMeta('installed_version', self::moduleVersion());
+			self::safeMeta('update_started_at', null);
+		}
 		if (ModernUI_Activation_Model::isSupportedVtiger()) {
 			self::syncLinks();
 		} else {
@@ -111,7 +110,27 @@ class ModernUI_Lifecycle_Model {
 		} catch (Throwable $e) {
 			$report = array('from' => null, 'to' => null, 'applied' => array(), 'error' => $e->getMessage());
 		}
+		if ($report['error'] !== null) {
+			// Also record failures before the migration runner's try block (for example a held lock).
+			// Detailed database errors belong in the log, not in the administrator's HTML page.
+			self::safeMeta('last_error', in_array($report['error'], array('MU_MIGRATION_LOCKED', 'MU_SCHEMA_NEWER'), true)
+				? $report['error'] : 'MU_MIGRATION_FAILED');
+		}
 		self::log('migrations: ' . json_encode($report));
+		return $report;
+	}
+
+	/** Complete an update, or retry it from the plain recovery form; keep failure markers on error. */
+	public static function recover() {
+		$report = self::migrate();
+		if ($report['error'] === null) {
+			if (vtlib_isModuleActive('ModernUI')) {
+				self::syncLinks();
+			}
+			self::addSettingsItem();
+			self::safeMeta('installed_version', self::moduleVersion());
+			self::safeMeta('update_started_at', null);
+		}
 		return $report;
 	}
 

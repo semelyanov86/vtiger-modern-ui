@@ -244,12 +244,17 @@ cmd_seed() {
 #    exists the Module Manager offers only "Update", which fails for a module that is not registered.
 cmd_uninstall() {
 	ensure_secrets
-	local inst svc dir
+	local inst svc dir output
 	for inst in $INSTANCES; do
 		svc=$(service "$inst")
 		dir=$(crm_dir "$inst")
-		compose exec -T -u www-data -w "$dir" "$svc" php -d auto_prepend_file=vendor/autoload.php vtlib/tools/console.php --remove=ModernUI 2>&1 \
-			| grep -v 'Deprecated' || true
+		if ! output=$(compose exec -T -u www-data -w "$dir" "$svc" php -d auto_prepend_file=vendor/autoload.php vtlib/tools/console.php --remove=ModernUI 2>&1); then
+			printf '%s\n' "$output" >&2
+			die "$inst: vtlib uninstall failed; module files kept"
+		fi
+		printf '%s\n' "$output" | grep -v 'Deprecated' || true
+		[[ $(mysql_ro "$inst" "SELECT COUNT(*) FROM vtiger_tab WHERE name = 'ModernUI'") == 0 ]] \
+			|| die "$inst: module still registered after uninstall; files kept"
 		compose exec -T -u www-data -w "$dir" "$svc" sh -c 'grep -vE "^(#|$)" /opt/mu-dev/crm-mounts.txt | while read -r pattern; do
 			for path in $pattern; do [ -e "$path" ] && rm -rf "$path" && echo "  removed $path"; done; done; true'
 		echo "clean: $inst — ModernUI removed (settings tables kept)"

@@ -5,7 +5,7 @@ require_once 'modules/ModernUI/models/Lifecycle.php';
 
 /** Settings rows and schema of the fake database for one evaluation. */
 function mu_prepare(array $global, array $user = array(), $schema = '1', $parentRole = 'H1::H2::H5') {
-	MU_Fake::answer('FROM vtiger_modernui_meta WHERE name', $schema === null ? array() : array(array('value' => $schema)));
+	MU_Fake::answer('FROM vtiger_modernui_meta WHERE name', $schema === null ? array() : array(array('name' => 'schema_version', 'value' => $schema)));
 	MU_Fake::answer('SELECT parentrole FROM vtiger_role', array(array('parentrole' => $parentRole)));
 	$rows = array(array('scope' => 'global', 'scope_key' => '', 'data' => json_encode(ModernUI_Settings_Model::nest($global)),
 		'doc_version' => 1, 'revision' => 2, 'updated_by' => null, 'updated_at' => '2026-11-01 10:00:00'));
@@ -99,9 +99,24 @@ test('link handler: active theme rewrites the three links to the current build a
 	assert_same('layouts/v7/modules/ModernUI/resources/loader.js', $other->linkurl);
 });
 
+test('activation: interrupted updates and failed migrations hide every theme link even with the current schema', function () {
+	foreach (array('update_started_at', 'last_error') as $marker) {
+		MU_Fake::reset();
+		mu_prepare(array('theme.mode' => 'all'));
+		MU_Fake::answer('FROM vtiger_modernui_meta WHERE name', array(
+			array('name' => 'schema_version', 'value' => '1'), array('name' => $marker, 'value' => 'test'),
+		));
+		assert_same('MU_RECOVERY_REQUIRED', ModernUI_Activation_Model::evaluate(array())['reason'], $marker);
+		foreach (ModernUI_Lifecycle_Model::links() as $definition) {
+			$link = new MU_FakeLink($definition['type'], $definition['label'], $definition['url']);
+			assert_same(false, ModernUI_LinkHandler_Model::filter(new Vtiger_LinkData($link)), $marker . ': ' . $definition['label']);
+		}
+	}
+});
+
 test('link handler: a failure inside the decision means "no theme on this page", never an exception', function () {
 	MU_Fake::$user = null;
-	MU_Fake::answer('FROM vtiger_modernui_meta WHERE name', array(array('value' => '1')));
+	MU_Fake::answer('FROM vtiger_modernui_meta WHERE name', array(array('name' => 'schema_version', 'value' => '1')));
 	MU_Fake::answer('FROM vtiger_modernui_settings', array(array('scope' => 'global', 'scope_key' => '', 'data' => '{not json',
 		'doc_version' => 1, 'revision' => 1, 'updated_by' => null, 'updated_at' => '')));
 	$link = new MU_FakeLink('HEADERCSS', 'ModernUISkin', 'x');

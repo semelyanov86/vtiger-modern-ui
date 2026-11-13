@@ -31,6 +31,7 @@ class ModernUI_Bootstrap_Action extends Vtiger_Action_Controller {
 			ModernUI_Activation_Model::SCHEMA_MISSING,
 			ModernUI_Activation_Model::SCHEMA_OUTDATED,
 			ModernUI_Activation_Model::SCHEMA_NEWER,
+			ModernUI_Activation_Model::RECOVERY_REQUIRED,
 		);
 		if (in_array($decision['reason'], $blocking, true)) {
 			ModernUI_Page_Model::json(null, array('code' => $decision['reason']), 409);

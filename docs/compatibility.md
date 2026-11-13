@@ -173,7 +173,7 @@
 | VTExperts Field Autofill (если включён) | снимает обработчики `Vtiger.Reference.Selection`, слушает `post.QuickCreateForm.show` | средний | не трогать события ссылочных полей |
 | SalesPlatform SPDynamicBlocks | после загрузки карточки/overlay/вкладки делает `.show()` всем `#detailView .block`; при изменении `select.inputElement` в `#EditView` — `.show()` всем `.fieldBlockContainer`; inline `min-height` у `.editViewPageDiv .content-area` | высокий для свёртки/вкладок блоков через `display` | не скрывать блоки через `display:none`; свёртку делать штатным механизмом v7. Этап 07: тема блоки не скрывает; на dev-стенде модуль активен без конфигураций — смена picklist формы показывает те же блоки, что без темы |
 | SalesPlatform SPKladr, SPTips; EEAddressAutocomplete | подключаются один раз на `ready` при `_META.view == 'Edit'` по `[name=…]` и id полей внутри `.editViewPageDiv`/`#EditView`; выпадающие списки jQuery UI / `.pac-container` | средний | полная форма остаётся полной страницей; z-index выпадающих выше закреплённой шапки |
-| vtigress vtDigiSign | глобальный `ajaxComplete`: `span.value[data-field-type]` → `closest('td').attr('id')`, скрывает `.editAction`; подпись инициализируется на `ready`; глобальный CSS `.signature`, `html.touch #content` | высокий при div-ячейках/скрытых блоках | только CSS, блоки не скрывать. Этап 07, dev-стенд: модуль активен, но полей подписи в модулях нет — подписывать нечего; ячейки `td.fieldValue` с id и карандаши inline-правки с темой и без те же |
+| vtigress vtDigiSign | глобальный `ajaxComplete`: `span.value[data-field-type]` → `closest('td').attr('id')`, скрывает `.editAction`; подпись инициализируется на `ready`; глобальный CSS `.signature`, `html.touch #content` | высокий при div-ячейках/скрытых блоках | только CSS, блоки не скрывать; сохранять `td.fieldValue` с id. Этап 20 уточнил инвентаризацию: поля подписи на dev-стенде есть; прежнее заключение об их отсутствии отменено. Параметризованный тест рисует синтетические штрихи, сохраняет штатную форму и сверяет сохранённый PNG после повторного открытия; результат — в [отчёте](regression-lifecycle.md) |
 | Инвентарные товарные строки (ядро + расширения) | `#lineItemTab`, `.lineItemRow`, `post.lineItem.New`, popup `post.LineItemPopupSelection.click` | высокий | только CSS. Этап 07, оба стенда: popup товаров и услуг, количество, скидка строки и общая, режим налога, корректировка, удаление и перестановка строк — те же итоги и то же тело запроса, что без темы; после сохранения — те же строки и суммы |
 
 ### 5.4. Списки
@@ -217,7 +217,7 @@ skin выше за счёт `:root:not(.mu-off)`, поэтому визуаль�
 | IT-Solutions4You Emails, Styles | `ITS4YouEmails` 0.44, `ITS4YouStyles` 0.3 | списки, карточки, правка стиля (CodeMirror) | общий skin |
 | IT-Solutions4You Installer | `ITS4YouInstaller` 0.53 | на dev-стенде не открывался: страница обращается к серверу поставщика | — |
 | VTExperts Listview Colors | `ListviewColors` 1.0 | цвета строк списков (этап 06), настройки и диалог правила | общий skin (ссылки в цветных строках и заголовок — правила этапа 08) |
-| VTExperts Conditional Layouts | `ControlLayoutFields` 1.0.0 | правила формы (этап 07), список и мастер правила | общий skin |
+| VTExperts Conditional Layouts | `ControlLayoutFields` 1.0.0 | правила формы (этап 07), список и мастер правила; правила полей карточки поверх списка (этап 20) | общий skin + адаптер `controllayoutfields` для overlay Detail |
 | VTExperts Advanced Custom Fields, Related Blocks & Lists | `AdvancedCustomFields` 1.0.0, `RelatedBlocksLists` 1.1.0 | поля и блоки форм и карточек (этап 07), страницы настроек | общий skin |
 | VTExperts Module & Link Creator, Customer Feedback | `ModuleLinkCreator` 0.1, `VTEFeedback` 1.0 | список модулей, настройки отзывов, карточка | общий skin |
 | VTExperts Reports & Dashboards | `VReports` 7.0.0 | список, отчёт-диаграмма, мастера, вкладки дашбордов | общий skin |
@@ -225,7 +225,7 @@ skin выше за счёт `:root:not(.mu-off)`, поэтому визуаль�
 | SalesPlatform | `SPPayments` 1.2, `SPUnits` 1.1, `SPSocialConnector` 1.1, `SPTips` 1.0.0, `SPKladr` 1.0, `SPDynamicBlocks`, `SPVoipIntegration`, `SPPDFTemplates` | списки и карточки, шаблоны PDF и их правка, настройки подсказок, соцсетей, телефонии, динамических блоков | общий skin |
 | Libertus GeoTools | `GeoTools` 3.3.1 | список с картой, основной экран | общий skin (своя оболочка страницы не мешает: острова монтируются по разметке v7) |
 | EE Address Autocomplete | `EEAddressAutocomplete` 2.0 | настройки | общий skin |
-| vtigress vtDigiSign | `vtDigiSign` 1.0 | полей подписи на стенде нет (этап 07) | — |
+| vtigress vtDigiSign | `vtDigiSign` 1.0 | прежний вывод этапа 07 об отсутствии полей отменён после инвентаризации этапа 20 | синтетическое рисование/сохранение: [актуальный результат](regression-lifecycle.md) |
 | Umnico | `Umnico` 1.0 | значок в шапке, кнопка в карточке (этапы 06–07), список | общий skin |
 | crm-now Search, crmtogo | `Search` 3.10, `crmtogo` 4.1 | настройки поиска; мобильный веб-клиент — без темы (§8) | общий skin |
 | VGS Related Fields | `VGSRelatedFields` 2.0 | генератор связанных полей | общий skin |
@@ -316,6 +316,13 @@ DOM, правила экранов `skin`/`standard`. Отсутствие мо�
 
 - `post.overlay.load` (после показа записи) и `post.overLayEditView.loaded` (после показа формы) — те же события, что вызывает
   `Detail.js`; Conditional Layouts (ControlLayoutFields) и подобные, подписанные на них, работают на форме поверх списка.
+- В Conditional Layouts 1.0.0 обработчик **карточки** дополнительно проверяет `view=Detail` в URL.
+  В окне поверх списка URL остаётся списочным, поэтому одного `ajaxComplete` недостаточно: правила
+  скрытия/обязательности не применялись. Адаптер `controllayoutfields` (этап 20) вызывает собственные
+  `displayByClfOnDetail` и `registerInlineAjaxSaveClickEvent` расширения при открытии и смене вкладки;
+  после inline-сохранения перезагружает штатную активную вкладку. Ответ закрытого или заменённого
+  вида игнорируется. Формулы условий, данные и права остаются у расширения; его файлы не меняются.
+  Версия ограничена проверенной 1.0.0; на полной странице адаптер не запускается.
 - Содержимое запрашивается `app.request` (jQuery): обработчики `ajaxComplete` расширений срабатывают как после любого
   AJAX-запроса v7. Найдено на dev-стенде: подписчик одного из расширений на `post.overLayEditView.loaded` добавляется заново на
   каждый `ajaxComplete` (+1 за запрос) — так же копится и без темы при работе со списком; на чистой 8.4 рост 0.

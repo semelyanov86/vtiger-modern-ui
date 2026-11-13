@@ -73,6 +73,17 @@ class ModernUI_Adapters_Model {
 			return self::$registryOverride;
 		}
 		return array(
+			'controllayoutfields' => array(
+				'module' => 'ControlLayoutFields',
+				'title' => 'Conditional Layouts',
+				'vendor' => 'VTExperts',
+				'versions' => array('min' => '1.0.0', 'below' => '1.0.1'),
+				'files' => array('modules/ControlLayoutFields/actions/ActionAjax.php', 'layouts/v7/modules/ControlLayoutFields/resources/ControlLayoutFields.js'),
+				'tables' => array('vte_control_layout_fields', 'vte_control_layout_fields_task'),
+				'style' => false,
+				'script' => true,
+				'screens' => array(),
+			),
 			'pdfmaker' => array(
 				'module' => 'PDFMaker',
 				'title' => 'PDF Maker',

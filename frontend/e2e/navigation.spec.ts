@@ -104,8 +104,11 @@ async function requestsDuring(page: Page, action: () => Promise<void>): Promise<
 /** Delegated jQuery handlers of the list and of the document (proof of no duplicated handlers after re-renders). */
 async function handlerCounts(page: Page): Promise<Record<string, number>> {
   return page.evaluate(() => {
-    const jq = (window as unknown as { jQuery: { _data: (element: unknown, name: string) => Record<string, unknown[]> | undefined } }).jQuery
-    const count = (element: unknown): number => Object.values(jq._data(element, 'events') ?? {}).reduce((sum, list) => sum + list.length, 0)
+    const jq = (window as unknown as { jQuery: { _data: (element: unknown, name: string) => Record<string, { namespace?: string }[]> | undefined } }).jQuery
+    // The optional Conditional Layouts bridge owns one documented AJAX listener. Count native handlers separately;
+    // the bridge count is asserted below, so a duplicated subscription still fails this scenario.
+    const count = (element: unknown): number => Object.values(jq._data(element, 'events') ?? {})
+      .reduce((sum, list) => sum + list.filter((handler) => handler.namespace !== 'modernuiConditionalLayouts').length, 0)
     return { document: count(document), list: count(document.getElementById('listViewContent')), body: count(document.body) }
   })
 }
@@ -477,6 +480,12 @@ test('lists: filter → sort → select rows → action → back to the list, wi
   expect(themed.sort).toEqual(v7.sort)
   expect(themed.check).toEqual([])
   expect(themed.handlers).toEqual(v7.handlers)
+  const conditionalHandlers = await page.evaluate(() => {
+    const jq = (window as unknown as { jQuery: { _data: (element: unknown, name: string) => Record<string, { namespace?: string }[]> | undefined } }).jQuery
+    return Object.values(jq._data(document, 'events') ?? {}).flat().filter((handler) => handler.namespace === 'modernuiConditionalLayouts').length
+  })
+  const adapters = (await page.locator('html').getAttribute('data-mu-adapters') ?? '').split(' ')
+  expect(conditionalHandlers).toBe(adapters.includes('controllayoutfields') ? 1 : 0)
 
   // Sorted by the first column: its mark shows the direction in the accent colour.
   const mark = page.locator('.listViewContentHeaderValues').nth(0).locator('.fa-sort-asc, .fa-sort-desc')
@@ -509,8 +518,12 @@ test('lists: filter → sort → select rows → action → back to the list, wi
   const overlay = page.locator('#overlayPageContent.in')
   await expect(overlay).toBeVisible()
   await expect(overlay.locator('form#exportForm')).toBeAttached()
-  const navBottom = await page.evaluate(() => document.querySelector('#page > nav.app-fixed-navbar')?.getBoundingClientRect().bottom ?? 0)
-  expect(await overlay.evaluate((element) => element.getBoundingClientRect().top)).toBeGreaterThanOrEqual(navBottom - 4)
+  // The stage 17 cloud dialog sits above the page chrome; the former v7 panel below the navbar is no longer the target.
+  const bounds = await overlay.boundingBox()
+  expect(bounds).not.toBeNull()
+  expect(bounds?.y).toBeCloseTo(28, 0)
+  expect(bounds?.width).toBeCloseTo(1140, 0)
+  await overlay.locator('.cancelLink, [data-dismiss="modal"]').first().click({ trial: true })
   await overlay.locator('.cancelLink, [data-dismiss="modal"]').first().click()
   await expect(overlay).toHaveCount(0)
   await expect(page.locator('#listview-table .listViewEntriesCheckBox:checked')).toHaveCount(rows)
@@ -533,9 +546,15 @@ test('lists: filter → sort → select rows → action → back to the list, wi
 
   // Back to the list from a record: the shell, the active filter and the table are there again.
   const activeFilter = await page.locator('.lists-menu > li.listViewFilter.active a.filterName').textContent()
-  await Promise.all([page.waitForURL(/view=Detail/), page.locator('#listview-table tr.listViewEntries td.listViewEntryValue a[href*="view=Detail"]').first().click()])
+  const record = page.locator('#listview-table tr.listViewEntries td.listViewEntryValue a[href*="view=Detail"]').first()
+  const recordId = new URL(await record.getAttribute('href') ?? '', page.url()).searchParams.get('record')
+  expect(recordId).not.toBeNull()
+  await record.click()
+  // The record overlay intentionally keeps the list URL; its history entry identifies the opened record.
+  await expect(page.locator('html')).toHaveAttribute('data-mu-record', recordId ?? '')
   await waitForShell(page)
   await page.goBack()
+  await expect(page.locator('.mu-cloud-record')).toHaveCount(0)
   await waitForShell(page)
   await expect(page.locator('.lists-menu > li.listViewFilter.active a.filterName')).toHaveText(activeFilter ?? '')
   await expect(page.locator('#listview-table tr.listViewEntries').first()).toBeVisible()

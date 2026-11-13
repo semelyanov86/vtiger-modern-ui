@@ -226,6 +226,7 @@
 					{mu_t key='LBL_SAFE_MODE_HELP'}&nbsp;<a href="index.php?modernui=off"><code>index.php?modernui=off</code></a>
 				{/if}
 			</p>
+			{if $MU_STATUS.recoveryRequired}<p class="alert alert-warning" role="status">{mu_t key='LBL_REASON_MU_RECOVERY_REQUIRED' module='ModernUI'}</p>{/if}
 			<p>{mu_t key='LBL_RECOVERY_HELP'}</p>
 			<form method="post" action="index.php" class="modernui-inline-form">
 				<input type="hidden" name="module" value="ModernUI">

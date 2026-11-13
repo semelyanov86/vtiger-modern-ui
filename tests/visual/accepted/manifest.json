@@ -1,10 +1,10 @@
 {
   "version": 1,
-  "acceptedOn": "2026-11-12",
-  "moduleVersion": "0.16.0",
-  "packageSha256": "16f76421e0576d9b10a54d64c17389c75523947cbeb7737e0e8d5284447f340c",
+  "acceptedOn": "2026-11-13",
+  "moduleVersion": "0.18.0",
+  "packageSha256": "aa9cdc35554bd7bdb88d7784b7aa81da203e6344eeabb1b0d3c9c3b3de6a25bd",
   "source": "Fresh Vtiger 8.4.0, native installer and dev/clean/tools/seed.php; synthetic data only",
-  "visualReview": "docs/visual-acceptance.md; pinned cloud references 09 and 12-18, V01-V12",
+  "visualReview": "docs/visual-acceptance.md; stage 20 revision notes; pinned cloud references 09 and 12-18, V01-V12",
   "browser": "153.0.8010.12",
   "playwright": "1.63.0",
   "os": "Ubuntu 24.04",
@@ -101,7 +101,7 @@
     "V04-list.png": "57cddacab22d4c78b27097fddc222836bfd42f6f2e423f590fdc089c4bcde925",
     "V05-details-fields.png": "01459cedcbd04138eb972102e690d31e1456591b68c75504bd3824f812002f5c",
     "V05-details.png": "4a28112ea83eeb8f0968b36f76d6bbc73a26e5971a7ef97f301dc08b062aa6e4",
-    "V05-summary-fields.png": "df93f19ad1527ebd2ccdaa7714afbfd40880acd7fe85f4b92093093ef792a2ce",
+    "V05-summary-fields.png": "d27f30d0cc4acec100869fea95c0412d6ed8072cf26e19f1ddc85e9e7b695217",
     "V05-summary.png": "b1ef35656164fb3e7d83a77385976a710fc7adf5414b4d5720564307df82f4df",
     "V06-direct.png": "38e92bb726f000acda3c9ad86318f724cad3c6666cad9d4a2e1eb688f2352ef0",
     "V06-documents.png": "ad6f6d6e089b77546454127841bbd7b0b5d61f3689764293535b6c7a65216986",
@@ -119,7 +119,7 @@
     "V10-frame.png": "a5c08d111bb58a06ed4e004933e6abd1e36cb58931ad6ce615d3a6601571c958",
     "V10-menu.png": "51f0a83a4a6b8bfcfd94bf6c09c6b22a8dd715e70c62d73dab930e3ba3d4bacb",
     "V10-scope.png": "26993b322e67df0e22b5c802335c5b8f84d3504dcd041278b11efdba5c4237b5",
-    "V10-tabs.png": "97b81aeebc3d9e164bc532e86b431cf6ecb7500df605f8dd636d4e990a2120d1",
+    "V10-tabs.png": "7147c01e66a1b38540bf3c952b528e1fe552fcd04a5815c614e43caacf4458cd",
     "V11-calendar-grid.png": "635b4bc3e2efe18891d6565514bda7580d0ae421d8e2eb99941ebc16829f4241",
     "V11-calendar-week.png": "da98e83d648f300ae3dfb00a2510618668af602f90f25335ca6bf3de5a0979d0",
     "V11-import.png": "d8883bd916611422015d351f51ddff73b79a7fdf33f4b7e475e12365b08a3d3c",
@@ -134,5 +134,26 @@
     "V12-menu-ru-RU.png": "e8da0f369c6b07653ae43f1b636915552a17af6e214c44c66dcda0b05afc8b0e",
     "measurements.json": "ea6f56ea04cbac4b076f79beae0c7474dd80977f1f5296f2de239a91caa036d5",
     "V11-duplicates-panel.png": "cff9c80e6ffc0dc4f4b98bc2d7b8d8d73365288a4de3cf5accafe455d2d6fae9"
-  }
+  },
+  "revisions": [
+    {
+      "date": "2026-11-13",
+      "previousSourceCommit": "af905ee0489b89d85a5530d8944c5a3d91521b7b",
+      "previousModuleVersion": "0.16.0",
+      "previousPackageSha256": "16f76421e0576d9b10a54d64c17389c75523947cbeb7737e0e8d5284447f340c",
+      "changes": [
+        {
+          "file": "V05-summary-fields.png",
+          "previousSha256": "df93f19ad1527ebd2ccdaa7714afbfd40880acd7fe85f4b92093093ef792a2ce",
+          "reason": "Stage 19 design.md section 13.15: cloud label color #7b7f85 at opacity 1 replaces native opacity 0.8; reviewed against the live cloud Summary."
+        },
+        {
+          "file": "V10-tabs.png",
+          "previousSha256": "97b81aeebc3d9e164bc532e86b431cf6ecb7500df605f8dd636d4e990a2120d1",
+          "reason": "Stage 20 adds the verified Conditional Layouts adapter to the compatibility catalog; one additional native product row, unchanged page structure."
+        }
+      ],
+      "unchanged": "All other PNG files, measured rectangles, masks, font inventory and calibrated thresholds."
+    }
+  ]
 }

@@ -16,6 +16,7 @@ $languageStrings = array(
 	'LBL_REASON_MU_SCHEMA_MISSING' => 'The settings have not been created yet.',
 	'LBL_REASON_MU_SCHEMA_OUTDATED' => 'The settings need to be upgraded by an administrator.',
 	'LBL_REASON_MU_SCHEMA_NEWER' => 'The settings belong to a newer version of the module.',
+	'LBL_REASON_MU_RECOVERY_REQUIRED' => 'An update did not finish. Restore the complete package, then run recovery below.',
 	'LBL_REASON_MU_NO_BUILD' => 'The interface files of the module are missing.',
 	'LBL_REASON_MU_SAFE_MODE' => 'Safe mode is on for this session.',
 	'LBL_REASON_MU_THEME_OFF' => 'The administrator has not switched it on yet.',

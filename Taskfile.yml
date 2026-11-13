@@ -116,6 +116,14 @@ tasks:
       - for: [c81, c85]
         cmd: MU_E2E_TARGET={{.ITEM}} npx playwright test --config e2e/playwright.config.ts --project clean --project modernui --project settings --project navigation --project records --project special --project layout --project foundation --project lists --project cloud-records --project cloud-forms --project cloud-settings --project settings-page --project auth-pages --project special-screens --project quality {{.CLI_ARGS}}
 
+  test:lifecycle:
+    desc: 'Stage 20, clean stand only: real ZIP 0.6.0 to candidate, every settings scope, disable/enable, interrupted update, migration lock, recovery, missing asset, uninstall/reinstall; restores settings'
+    deps: [fe:install]
+    dir: frontend
+    cmds:
+      - for: [c81, c85]
+        cmd: MU_E2E_TARGET={{.ITEM}} npx playwright test --config e2e/playwright.config.ts --project lifecycle {{.CLI_ARGS}}
+
   test:layout:
     desc: 'Stage 09 prototype of the cloud layout (Accounts): no permanent module rail, record and edit form over the list, history, failures; MU_E2E_TARGET=dev|c81|c85 (default dev); writes and deletes synthetic organizations MU09'
     deps: [fe:install]

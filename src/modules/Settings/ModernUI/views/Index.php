@@ -52,6 +52,7 @@ class Settings_ModernUI_Index_View extends Settings_Vtiger_Index_View {
 			'schemaDb' => ModernUI_Schema_Model::getDbVersion(),
 			'schemaCode' => ModernUI_Schema_Model::VERSION,
 			'lastError' => ModernUI_Schema_Model::getMeta('last_error'),
+			'recoveryRequired' => ModernUI_Schema_Model::recoveryRequired(),
 			'notice' => ModernUI_Schema_Model::getMeta('notice'),
 			'linksOk' => $this->linksRegistered(),
 		);
@@ -66,7 +67,7 @@ class Settings_ModernUI_Index_View extends Settings_Vtiger_Index_View {
 			'auth_installed', 'auth_restored', 'error_auth_conflict', 'error_auth_write',
 		)));
 
-		$ready = $schemaState === ModernUI_Schema_Model::STATE_CURRENT;
+		$ready = $schemaState === ModernUI_Schema_Model::STATE_CURRENT && !$status['recoveryRequired'];
 		$viewer->assign('MU_READY', $ready);
 		if ($ready) {
 			$context = ModernUI_Activation_Model::context($user);

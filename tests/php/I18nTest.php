@@ -64,9 +64,12 @@ test('i18n: keys used by the templates and the views exist in the dictionaries',
 		'layouts/v7/modules/Settings/ModernUI/Index.tpl' => 'Settings:ModernUI',
 	);
 	foreach ($templates as $template => $module) {
-		preg_match_all("/\\{mu_t key='([A-Z0-9_]+)'/", file_get_contents(MU_SRC . '/' . $template), $matches);
-		foreach ($matches[1] as $key) {
-			assert_true(isset($dictionaries[$module][$key]), "{$template}: {$key} is missing in {$module}");
+		preg_match_all("/\\{mu_t key='([A-Z0-9_]+)'([^}]*)\\}/", file_get_contents(MU_SRC . '/' . $template), $matches, PREG_SET_ORDER);
+		foreach ($matches as $match) {
+			$key = $match[1];
+			preg_match("/module='([^']+)'/", $match[2], $explicit);
+			$dictionary = $explicit[1] ?? $module;
+			assert_true(isset($dictionaries[$dictionary][$key]), "{$template}: {$key} is missing in {$dictionary}");
 		}
 	}
 	// Keys built from codes: reasons, schema states, modes, results of the forms.

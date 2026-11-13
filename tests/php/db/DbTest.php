@@ -109,13 +109,31 @@ check(ModernUI_Schema_Model::getMeta('installed_version') === '0.1.0', 'installe
 // Three global links (skin, tokens, loader): each is deleted and added again.
 check(count(MU_Fake::$links) === 6 && count(MU_Fake::$settingsLinks) === 1, 'reinstall: links and the settings item are created again');
 
-// 6. A schema newer than the code is never migrated down.
+// 6. An interrupted update with an unchanged schema must still stop the theme. A failed postupdate
+// must not report the new version as installed or clear the interruption; a successful retry repairs it.
+ModernUI_Lifecycle_Model::handle('module.preupdate');
+check(ModernUI_Activation_Model::evaluate(array())['reason'] === 'MU_RECOVERY_REQUIRED', 'preupdate disables the theme even on schema 1');
+$other->query("SELECT GET_LOCK('modernui_migrate', 0)");
+ModernUI_Schema_Model::setMeta('installed_version', 'previous');
+ModernUI_Lifecycle_Model::handle('module.postupdate');
+check(ModernUI_Schema_Model::getMeta('update_started_at') !== null, 'failed postupdate keeps the interruption marker');
+check(ModernUI_Schema_Model::getMeta('installed_version') === 'previous', 'failed postupdate does not advance the installed version');
+check(ModernUI_Schema_Model::getMeta('last_error') === 'MU_MIGRATION_LOCKED', 'lock timeout is visible in recovery status');
+$other->query("SELECT RELEASE_LOCK('modernui_migrate')");
+ModernUI_Lifecycle_Model::handle('module.postupdate');
+check(ModernUI_Schema_Model::getMeta('update_started_at') === null && ModernUI_Schema_Model::getMeta('last_error') === null,
+	'successful retry clears both failure markers');
+check(ModernUI_Schema_Model::getMeta('installed_version') === '0.1.0', 'successful retry records the installed version');
+$afterRetry = ModernUI_Settings_Model::decodeRow(ModernUI_Settings_Model::getRow('global', ''), 'global');
+check($afterRetry === $after, 'failed update and retry preserve settings and their revision');
+
+// 7. A schema newer than the code is never migrated down.
 ModernUI_Schema_Model::setMeta('schema_version', '9');
 $newer = ModernUI_Schema_Model::migrate();
 check($newer['error'] === 'MU_SCHEMA_NEWER' && ModernUI_Schema_Model::state(true) === 'newer', 'newer schema is reported');
 ModernUI_Schema_Model::setMeta('schema_version', '1');
 
-// 7. Uninstall with data removal drops only the own tables.
+// 8. Uninstall with data removal drops only the own tables.
 q("CREATE TABLE IF NOT EXISTS vtiger_other (id INT)");
 ModernUI_Lifecycle_Model::uninstall(true);
 $left = q("SELECT table_name AS t FROM information_schema.tables WHERE table_schema = DATABASE() ORDER BY 1");
