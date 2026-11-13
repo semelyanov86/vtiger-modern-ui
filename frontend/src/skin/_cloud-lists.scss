@@ -11,7 +11,9 @@
 // Extensions with the same embedded structure keep their layout (stage 12, VReports-like pages).
 $list-actions: ':is(.listViewActionsContainer, .recordDependentListActions, .btn-toolbar)';
 $embedded-modules: ':is(.main-container-Reports, .main-container-RecycleBin)';
-$list: ':root:not(.mu-off):not([data-mu-failed]):not([data-mu-level="skin"])[data-mu-build]:is(:has(#view[value="List"]), :has(.main-container-RecycleBin)):has(#listViewContent.listViewPageDiv #listview-actions #{$list-actions}):is(:not(:has(#listview-actions #table-content)), :has(#{$embedded-modules}))';
+// HEADERCSS is already authorized by the server. Waiting for data-mu-build (the footer script) lets a slow host paint
+// the old list before this geometry applies. Scripting/failure/structure guards still restore the native fallback.
+$list: ':root:not(.mu-off):not([data-mu-failed]):not([data-mu-level="skin"]):is(:has(#view[value="List"]), :has(.main-container-RecycleBin)):has(#listViewContent.listViewPageDiv #listview-actions #{$list-actions}):is(:not(:has(#listview-actions #table-content)), :has(#{$embedded-modules}))';
 $embedded: '#{$list}:has(#listview-actions > .row ~ * #table-content)';
 
 // The disclosure buttons of the toolbar (stage 12), shared with other screens of lists (stage 17: find duplicates).

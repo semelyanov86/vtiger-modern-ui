@@ -2,7 +2,7 @@
   "version": 1,
   "acceptedOn": "2026-11-13",
   "moduleVersion": "0.18.0",
-  "packageSha256": "aa9cdc35554bd7bdb88d7784b7aa81da203e6344eeabb1b0d3c9c3b3de6a25bd",
+  "packageSha256": "2fe2564c13b8bd3efec1a6b75c1a519ee0f34891fd14dd41d0a91145c54fed92",
   "source": "Fresh Vtiger 8.4.0, native installer and dev/clean/tools/seed.php; synthetic data only",
   "visualReview": "docs/visual-acceptance.md; stage 20 revision notes; pinned cloud references 09 and 12-18, V01-V12",
   "browser": "153.0.8010.12",
@@ -111,7 +111,7 @@
     "V07-edit.png": "6c5d6431c8f52628080255c35e44a43296e698f78c7ec5f77cd496b45b75314f",
     "V07-error.png": "c2594360aaf6b72a9feae7efbdbfc3d1717dabd73975477f71889f39a9200361",
     "V07-quick.png": "dd2a81a9c07571fc04c80f642f42e8193dcd56d1205b970c133dc296c75fdf39",
-    "V08-items.png": "ac9cdcbf906210b5a2606b5d9c4c53f1472e8d0a97803d2c8bbeef997b77c8c2",
+    "V08-items.png": "2c5b852967037d03aa9205ff48cd0c7fe6fd1b55be06696b8b4fe3a78904453e",
     "V08-table.png": "a7b6fe6e59040f4f647270965c25dc2daa111212f567effd045440e67a28a988",
     "V09-home-search-empty.png": "e2abb79d567ca52369e5fda177e549f93cf49e0379e4d28ae7c57716fb339e7a",
     "V09-home.png": "76e46e26ae427ac47691597acb75009e827bf89973cc0a542a246a13457f1597",
@@ -151,6 +151,18 @@
           "file": "V10-tabs.png",
           "previousSha256": "97b81aeebc3d9e164bc532e86b431cf6ecb7500df605f8dd636d4e990a2120d1",
           "reason": "Stage 20 adds the verified Conditional Layouts adapter to the compatibility catalog; one additional native product row, unchanged page structure."
+        }
+      ],
+      "unchanged": "All other PNG files, measured rectangles, masks, font inventory and calibrated thresholds."
+    },
+    {
+      "date": "2026-11-13",
+      "previousPackageSha256": "aa9cdc35554bd7bdb88d7784b7aa81da203e6344eeabb1b0d3c9c3b3de6a25bd",
+      "changes": [
+        {
+          "file": "V08-items.png",
+          "previousSha256": "ac9cdcbf906210b5a2606b5d9c4c53f1472e8d0a97803d2c8bbeef997b77c8c2",
+          "reason": "Manual stage 20 closure review: removing the native overlay fade changes only label/icon rasterization. Real old/new ZIP comparison: all 80 element rectangles, text ranges and computed styles match, except overlay transition-duration 0.3s to 0s. Live cloud labels retain Poppins 13px/400/19.5px. Full and isolated captures agree on both PHP instances."
         }
       ],
       "unchanged": "All other PNG files, measured rectangles, masks, font inventory and calibrated thresholds."

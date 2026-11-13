@@ -58,6 +58,180 @@
 
 	root.setAttribute('data-mu-build', build);
 	root.className += (root.className ? ' ' : '') + 'mu-pending';
+	watchPageContexts();
+
+	/**
+	 * The build caches only :has() predicates on :root, #page and .main-container; local selectors stay native CSS.
+	 * Read the original predicates from an inactive rule in our stylesheet, without extra requests or inline code.
+	 * Run synchronously here (before native DOM-ready controllers), then once per mutation batch. Early geometry in
+	 * the selected skin is only a hint: actual extension markup, dialogs, checkbox selection and AJAX always win.
+	 */
+	function watchPageContexts() {
+		if (!window.MutationObserver || !root.matches) {
+			return;
+		}
+		/** @type {Record<string, any[]>} */
+		var conditions = {};
+		/** @type {CSSStyleSheet[]} */
+		var sheets = [];
+		/** @type {Element[]} */
+		var previous = [];
+		var marker = 'data-mu-context-';
+		var attributes = ['class', 'id', 'checked', 'disabled', 'hidden', 'value', 'data-mu-failed'];
+		var stopped = false;
+		/** @type {string[]} */
+		var volatile = [];
+		var frame = 0;
+
+		function read() {
+			for (var i = 0; i < document.styleSheets.length; i++) {
+				var sheet = document.styleSheets[i];
+				if (!sheet || !sheet.href || sheet.href.indexOf(base) !== 0 || sheets.indexOf(sheet) !== -1) {
+					continue;
+				}
+				try {
+					for (var r = 0; r < sheet.cssRules.length; r++) {
+						var rule = /** @type {CSSMediaRule} */ (sheet.cssRules[r]);
+						if (!rule || !rule.media || rule.media.mediaText !== 'mu-page-contexts') { continue; }
+						var data = /** @type {CSSStyleRule | undefined} */ (rule.cssRules[0]);
+						if (!data || !data.style) { continue; }
+						var value = data.style.getPropertyValue('--mu-page-contexts').trim();
+						var entries = JSON.parse(decodeURIComponent(value.slice(1, -1)));
+						for (var e = 0; e < entries.length; e++) {
+							var entry = entries[e];
+							if (Array.isArray(entry) && entry.length === 3 && /^[0-9a-f]{12}$/.test(entry[0])
+								&& /^(?::root|#page|\.main-container)$/.test(entry[1]) && Array.isArray(entry[2])) {
+								conditions[entry[0]] = entry;
+								var pattern = /\[([A-Za-z0-9_-]+)/g;
+								var match;
+								var selectors = JSON.stringify(entry[2]);
+								if (/:(checked|indeterminate)\b/.test(selectors) && volatile.indexOf(entry[0]) === -1) { volatile.push(entry[0]); }
+								while ((match = pattern.exec(selectors)) !== null) {
+									if (match[1] && attributes.indexOf(match[1]) === -1) { attributes.push(match[1]); }
+								}
+							}
+						}
+					}
+					sheets.push(sheet);
+				} catch (ignore) {
+					// A sheet that is still loading is retried on its load event. Foreign sheets are never inspected.
+				}
+			}
+			refresh();
+			if (observer) { observe(); }
+			if (!stopped && volatile.length && !frame) { frame = requestAnimationFrame(sample); }
+		}
+
+		/** @param {any[]} plan @param {Element} element @param {Record<string, boolean>} cache @returns {boolean} */
+		function matches(plan, element, cache) {
+			var operation = plan[0];
+			if (operation === 'query' || operation === 'match') {
+				var key = operation + plan[1];
+				var cached = cache[key];
+				if (typeof cached === 'boolean') { return cached; }
+				var result = operation === 'query' ? element.querySelector(plan[1]) !== null : element.matches(plan[1]);
+				cache[key] = result;
+				return result;
+			}
+			if (operation === 'not') { return !matches(plan[1], element, cache); }
+			for (var i = 1; i < plan.length; i++) {
+				var yes = matches(plan[i], element, cache);
+				if (operation === 'all' && !yes) { return false; }
+				if (operation === 'any' && yes) { return true; }
+			}
+			return operation === 'all';
+		}
+
+		/** @param {Element} element @param {string} id @param {Record<string, boolean>} cache */
+		function update(element, id, cache) {
+			var condition = conditions[id];
+			var present = !!condition && element.matches(condition[1]) && matches(condition[2], element, cache);
+			var attribute = marker + id;
+			if (present && !element.hasAttribute(attribute)) { element.setAttribute(attribute, ''); }
+			else if (!present && element.hasAttribute(attribute)) { element.removeAttribute(attribute); }
+		}
+
+		// Checkbox properties do not emit mutations. Sample just these bounded queries before paint, so a native
+		// .prop('checked', ...) has the same visual result without replacing setters or waiting for a user event.
+		function sample() {
+			frame = 0;
+			if (stopped) { return; }
+			for (var p = 0; p < previous.length; p++) {
+				var element = previous[p];
+				if (!element) { continue; }
+				var cache = Object.create(null);
+				for (var v = 0; v < volatile.length; v++) {
+					var id = volatile[v];
+					if (id) { update(element, id, cache); }
+				}
+			}
+			frame = requestAnimationFrame(sample);
+		}
+
+		function refresh() {
+			if (stopped) { return; }
+			if (root.classList.contains('mu-off') || root.hasAttribute('data-mu-failed')) { stop(); return; }
+			var nodes = document.querySelectorAll(':root, #page, .main-container');
+			/** @type {Element[]} */
+			var current = [];
+			for (var n = 0; n < nodes.length; n++) {
+				var element = nodes[n];
+				if (!element) { continue; }
+				/** @type {Record<string, boolean>} */
+				var cache = Object.create(null);
+				for (var id in conditions) {
+					update(element, id, cache);
+				}
+				current.push(element);
+			}
+			for (var p = 0; p < previous.length; p++) {
+				var old = previous[p];
+				if (old && current.indexOf(old) === -1) {
+					for (var oldId in conditions) { old.removeAttribute(marker + oldId); }
+				}
+			}
+			previous = current;
+			if (Object.keys(conditions).length && !root.hasAttribute('data-mu-contexts-ready')) {
+				root.setAttribute('data-mu-contexts-ready', '');
+			}
+		}
+
+		read();
+		if (stopped) { return; }
+		var observer = new MutationObserver(function (records) {
+			for (var i = 0; i < records.length; i++) {
+				var record = records[i];
+				if (record) {
+					refresh();
+					break;
+				}
+			}
+		});
+		function observe() {
+			if (!stopped) { observer.observe(document, { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: attributes }); }
+		}
+		observe();
+		/** @param {Event} event */
+		function loaded(event) {
+			if (event.target instanceof HTMLLinkElement && event.target.rel === 'stylesheet') { read(); }
+		}
+		function stop() {
+			stopped = true;
+			if (observer) { observer.disconnect(); }
+			if (frame) { cancelAnimationFrame(frame); frame = 0; }
+			document.removeEventListener('load', loaded, true);
+			document.removeEventListener('change', refresh, true);
+			document.removeEventListener('input', refresh, true);
+			for (var i = 0; i < previous.length; i++) {
+				var element = previous[i];
+				if (element) { for (var id in conditions) { element.removeAttribute(marker + id); } }
+			}
+			previous = []; sheets = []; conditions = {}; volatile = [];
+		}
+		document.addEventListener('load', loaded, true);
+		document.addEventListener('change', refresh, true);
+		document.addEventListener('input', refresh, true);
+	}
 
 	var finished = false;
 
@@ -154,6 +328,18 @@
 		/** @type {string[]} */
 		var css = [];
 		collectCss(manifest, SHELL_ENTRY, {}, css);
+		// The skin already includes the shell geometry. Loading it twice invalidated the entire list again when the
+		// island CSS arrived. Keep the same fallback for a missing skin, without duplicating it on successful pages.
+		var skins = document.querySelectorAll('link[rel="stylesheet"][href*="/ModernUI/resources/dist/assets/skin-"]');
+		var hasSkin = false;
+		for (var s = 0; s < skins.length; s++) {
+			var skin = /** @type {HTMLLinkElement | undefined} */ (skins[s]);
+			if (skin && skin.sheet) { hasSkin = true; }
+		}
+		var fallback = manifest['src/skin/shell-fallback.scss'];
+		if (!hasSkin && fallback && typeof fallback.file === 'string' && ASSET_PATTERN.test(fallback.file)) {
+			css.push(fallback.file);
+		}
 		for (var i = 0; i < css.length; i++) {
 			var link = document.createElement('link');
 			link.rel = 'stylesheet';

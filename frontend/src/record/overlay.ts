@@ -30,7 +30,7 @@ import type { IslandScope } from '../boot/runtime'
 import { createScope } from '../boot/runtime'
 import { presentRecord, type RecordTexts } from './presentation'
 import {
-  $, busHandlers, disposeWidgets, paginationSince, ensureRecordScripts, ensureDetailDependencies, installRecordMeta, handlerCount, hidePageOverlay, hideProgress, notifyError, onJQuery, release, reloadList, request, resetRowTimers,
+  $, busHandlers, cancelOverlayHistoryLoad, disposeWidgets, watchBootstrapSwitches, paginationSince, ensureRecordScripts, ensureDetailDependencies, installRecordMeta, handlerCount, hidePageOverlay, hideProgress, notifyError, onJQuery, release, reloadList, request, resetRowTimers,
   showPageOverlay, startCloudDetail, startEdit, tracked, trackedFocus, trigger, urlParams, submitNativeForm, resetFormSubmit, type AddedHandler,
 } from '../adapters/v7/record'
 import { recordTarget, recordUrl, stateRecord, withRecord, type RecordTarget } from './target'
@@ -81,7 +81,9 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
   if (navigation === null || overlay === null) {
     return
   }
+  scope.onDispose(watchBootstrapSwitches(overlay))
   const html = document.documentElement
+  const nativeFade = overlay.classList.contains('fade')
   let state: State = 'closed'
   let target: RecordTarget | null = null
   let detail: unknown = null
@@ -102,6 +104,8 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
   let ownEntry = false
   /** history.back() issued by the overlay itself: the popstate it causes is not a user action. */
   let ownBack = false
+  /** Native history state of the list that stays mounted underneath this record, including after a reload. */
+  let listHistory: unknown = withRecord(history.state, null)
   /**
    * The overlay is closing because the history already left the entry of its record (Back): finish() must not touch the
    * history — a quick Forward during the fade-out is the current entry by then (stage 19).
@@ -113,6 +117,27 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
   let restoreController: (() => void) | null = null
   let restoreMetadata: (() => void) | null = null
   let presentation: ReturnType<typeof createScope> | null = null
+  // Unlike link timers, List.js does not expose its delayed cell clicks. Remember only their record IDs until
+  // those timers have run; native checks for text selection, checkboxes and double-click editing still decide.
+  let rowClicks: { record: string; blocked: boolean }[] = []
+  let rowClickCleanup = 0
+  let overlayClick: Event | null = null
+  scope.listen(document, 'click', (event) => {
+    const element = event.target
+    if (!(element instanceof Element)) return
+    if (overlay.contains(element)) {
+      // Explicit links/buttons inside the record remain usable even while a delayed list click is pending.
+      overlayClick = event
+      return
+    }
+    const row = element.closest('#listViewContent tr.listViewEntries[data-id]')
+    const record = row?.getAttribute('data-id')
+    if (!record || element.closest('a') !== null) return
+    rowClicks.push({ record, blocked: state !== 'closed' })
+    window.clearTimeout(rowClickCleanup)
+    rowClickCleanup = window.setTimeout(() => { rowClicks = [] }, 500)
+  }, { capture: true })
+  scope.onDispose(() => { window.clearTimeout(rowClickCleanup); rowClicks = []; overlayClick = null })
 
   const listRow = (record: string): Element | null => document.querySelector(`#listViewContent tr.listViewEntries[data-id="${record}"]`)
   const table = (): Element | null => document.querySelector('#listViewContent #table-content')
@@ -129,9 +154,18 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
     return links.find((link) => (link.getAttribute('href') ?? '').includes('view=Detail')) ?? links[0] ?? null
   }
   const rowLink = (record: string): Element | null => rowFocus(listRow(record))
+  const clearPendingRowLinks = (): void => {
+    document.querySelectorAll('#listViewContent tr.listViewEntries').forEach(resetRowTimers)
+  }
 
   const mark = (on: boolean): void => {
+    // List.js defers each row link independently. A second link clicked before the backdrop appears must not
+    // navigate after a fast first record has already reached the detail state.
+    if (on && !overlay.classList.contains(OVERLAY_CLASS)) clearPendingRowLinks()
     overlay.classList.toggle(OVERLAY_CLASS, on)
+    // The cloud window is immediate. Bootstrap's fade otherwise waits 300 ms for the window and 150 ms for its
+    // backdrop on both open and close, even when our layout has no matching transition. Other native overlays keep it.
+    overlay.classList.toggle('fade', !on && nativeFade)
     overlay.setAttribute('aria-hidden', on ? 'false' : 'true')
     if (on) { overlay.setAttribute('aria-modal', 'true') } else { overlay.removeAttribute('aria-modal') }
     if (on) {
@@ -202,6 +236,7 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
       await ensureDetailDependencies(answer)
       if (target !== record) return
       leaveView()
+      mark(true)
       const shown = await trackedFocus(() => showPageOverlay(answer))
       focusHandlers.push(...shown.added)
       const container = shown.result
@@ -223,6 +258,7 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
       presentation = createScope('record-presentation')
       presentRecord(presentation, root, texts, () => { hidePageOverlay() })
       if (push) {
+        listHistory = withRecord(history.state, null)
         history.pushState(withRecord(history.state, record), '', window.location.href)
         ownEntry = true
       }
@@ -234,6 +270,8 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
   }
 
   const open = (record: RecordTarget, row: Element | null, push: boolean): void => {
+    clearPendingRowLinks()
+    rowClicks.forEach((click) => { click.blocked = true })
     const scroller = table()
     restore = {
       x: window.scrollX,
@@ -257,6 +295,7 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
       await ensureDetailDependencies(answer)
       if (target !== record) return
       leaveView()
+      mark(true)
       // Dependencies have already been loaded in native order; do not re-evaluate external scripts on each edit.
       const shown = await trackedFocus(() => showPageOverlay(answer.replace(/<script\b[^>]*\bsrc=[^>]*>[\s\S]*?<\/script>/gi, '')))
       focusHandlers.push(...shown.added)
@@ -299,6 +338,7 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
     detail = null
     dirty = false
     restore = null
+    overlayClick = null
     mark(false)
     if (closingByHistory) {
       closingByHistory = false
@@ -408,6 +448,15 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
     const href: unknown = typeof route === 'object' && route !== null ? Reflect.get(route, 'url') : null
     // An explicit standard-view URL must load the actual page, including its native edit controller.
     if (typeof href === 'string' && new URL(href, document.baseURI).searchParams.get('modernui') === 'off') return
+    const clickedRecord = typeof href === 'string' ? recordTarget(href, module) : null
+    const source: unknown = Reflect.get(event, 'sourceElement')
+    const fromOverlay = (overlayClick !== null && overlayClick.eventPhase !== Event.NONE)
+      || (source instanceof Node && overlay.contains(source))
+    if (clickedRecord !== null && !fromOverlay) {
+      const index = rowClicks.findIndex((click) => click.record === clickedRecord.record)
+      const click = index >= 0 ? rowClicks.splice(index, 1)[0] : undefined
+      if (click?.blocked) { event.preventDefault(); return }
+    }
     if (state === 'edit' && Reflect.get(event, 'navigationType') === 'traverse') {
       event.preventDefault()
       overlay.querySelector<HTMLElement>('.cancelLink')?.click()
@@ -466,11 +515,13 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
 
   // 2. History: Back closes, Forward opens again.
   scope.listen(window, 'popstate', (event: Event) => {
+    const destination: unknown = (event as PopStateEvent).state
+    const wanted = stateRecord(destination, module)
+    if (ownBack || state !== 'closed' || wanted !== null) cancelOverlayHistoryLoad(destination, listHistory)
     if (ownBack) {
       ownBack = false
       return
     }
-    const wanted = stateRecord((event as PopStateEvent).state, module)
     if (state !== 'closed' && wanted === null) {
       ownEntry = false
       closingByHistory = true

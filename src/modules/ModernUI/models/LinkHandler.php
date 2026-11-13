@@ -44,7 +44,7 @@ class ModernUI_LinkHandler_Model {
 			}
 			$build = ModernUI_Assets_Model::buildId();
 			if ($link->linktype === 'HEADERCSS' && $link->linklabel === self::LABEL_SKIN) {
-				$link->linkurl = ModernUI_Assets_Model::skinUrl() . '?b=' . $build . '&z=';
+				$link->linkurl = ModernUI_Assets_Model::skinUrl(self::skinPreset()) . '?b=' . $build . '&z=';
 				return true;
 			}
 			if ($link->linktype === 'HEADERCSS' && $link->linklabel === self::LABEL_TOKENS) {
@@ -67,5 +67,19 @@ class ModernUI_LinkHandler_Model {
 	 */
 	public static function reset() {
 		self::$decision = null;
+	}
+
+	/** Initial geometry only; loader.js verifies native DOM capabilities before the host's ready handlers. */
+	public static function skinPreset() {
+		$module = isset($_REQUEST['module']) && is_string($_REQUEST['module']) ? $_REQUEST['module'] : '';
+		$view = isset($_REQUEST['view']) && is_string($_REQUEST['view']) ? $_REQUEST['view'] : '';
+		$parent = isset($_REQUEST['parent']) && is_string($_REQUEST['parent']) ? $_REQUEST['parent'] : '';
+		if ($parent === 'Settings' || ($module === 'Users' && in_array($view, array('PreferenceDetail', 'PreferenceEdit'), true))) {
+			if ($module === 'Vtiger' && $view === 'Index') {
+				return 'settings-home';
+			}
+			return $module === 'ModernUI' ? 'settings-own' : 'settings';
+		}
+		return $view === 'List' || $module === 'RecycleBin' ? 'list' : 'default';
 	}
 }

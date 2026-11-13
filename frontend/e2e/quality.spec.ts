@@ -97,6 +97,85 @@ async function outcome(response: { status(): number; headers(): Record<string, s
 
 const LEAK = /\/var\/www|\/home\/|\/data\/|Stack trace|#0 \/|SQLSTATE|mysqli|PearDatabase|\.php on line|Fatal error|Uncaught|Warning: /i
 
+test('page context predicates follow native DOM insertion, class changes and removal', async ({ page }) => {
+  await page.goto(LIST)
+  await waitForShell(page)
+  const id = await page.evaluate(() => {
+    for (const sheet of document.styleSheets) {
+      if (!sheet.href?.includes('/ModernUI/resources/dist/')) { continue }
+      for (const rule of sheet.cssRules) {
+        if (!(rule instanceof CSSMediaRule) || rule.media.mediaText !== 'mu-page-contexts') { continue }
+        const data = rule.cssRules[0]
+        if (!(data instanceof CSSStyleRule)) { continue }
+        const value = data.style.getPropertyValue('--mu-page-contexts').trim()
+        const definitions = JSON.parse(decodeURIComponent(value.slice(1, -1))) as [string, string, unknown][]
+        const condition = definitions.find((entry) => JSON.stringify(entry[2]) === JSON.stringify(['all', ['query', ':scope .mu-quick-form']]))
+        if (condition) { return condition[0] }
+      }
+    }
+    return null
+  })
+  expect(id).not.toBeNull()
+  const active = page.locator(`html[data-mu-context-${String(id)}]`)
+  await expect(active).toHaveCount(0)
+  try {
+    await page.evaluate(() => {
+      const probe = document.createElement('form')
+      probe.id = 'mu-context-probe'
+      probe.hidden = true
+      probe.className = 'mu-quick-form'
+      document.body.append(probe)
+    })
+    await expect(active).toHaveCount(1)
+    await page.locator('#mu-context-probe').evaluate((element) => { element.classList.remove('mu-quick-form') })
+    await expect(active).toHaveCount(0)
+    await page.locator('#mu-context-probe').evaluate((element) => { element.classList.add('mu-quick-form') })
+    await expect(active).toHaveCount(1)
+  } finally {
+    await page.locator('#mu-context-probe').evaluate((element) => { element.remove() })
+  }
+  await expect(active).toHaveCount(0)
+})
+
+test('page contexts follow checkbox properties without events and stop when the theme is off', async ({ page }) => {
+  await page.goto(LIST)
+  await waitForShell(page)
+  const id = await page.evaluate(() => {
+    for (const sheet of document.styleSheets) {
+      if (!sheet.href?.includes('/ModernUI/resources/dist/')) { continue }
+      for (const rule of sheet.cssRules) {
+        if (!(rule instanceof CSSMediaRule) || rule.media.mediaText !== 'mu-page-contexts') { continue }
+        const data = rule.cssRules[0]
+        if (!(data instanceof CSSStyleRule)) { continue }
+        const value = data.style.getPropertyValue('--mu-page-contexts').trim()
+        const definitions = JSON.parse(decodeURIComponent(value.slice(1, -1))) as [string, string, unknown][]
+        const condition = definitions.find((entry) => entry[1] === ':root' && JSON.stringify(entry[2]).includes('.listViewEntriesCheckBox:checked'))
+        if (condition) { return condition[0] }
+      }
+    }
+    return null
+  })
+  expect(id).not.toBeNull()
+  const active = page.locator(`html[data-mu-context-${String(id)}]`)
+  await expect(active).toHaveCount(0)
+  try {
+    await page.locator('#listview-table').evaluate((table) => {
+      const input = document.createElement('input')
+      input.type = 'checkbox'; input.hidden = true; input.id = 'mu-checkbox-probe'; input.className = 'listViewEntriesCheckBox'
+      table.append(input)
+    })
+    await page.locator('#mu-checkbox-probe').evaluate((input) => { (input as HTMLInputElement).checked = true })
+    await expect(active).toHaveCount(1)
+    await page.locator('#mu-checkbox-probe').evaluate((input) => { (input as HTMLInputElement).checked = false })
+    await expect(active).toHaveCount(0)
+    await page.locator('html').evaluate((html) => { html.classList.add('mu-off') })
+    await page.locator('#mu-checkbox-probe').evaluate((input) => { (input as HTMLInputElement).checked = true })
+    await expect(active).toHaveCount(0)
+  } finally {
+    await page.locator('#mu-checkbox-probe').evaluate((input) => { input.remove() })
+  }
+})
+
 test('security: every changing action of ModernUI needs POST, the CSRF token of the page and a CRM Referer', async ({ page }) => {
   await page.goto(SETTINGS_FORMS)
   const before = await globalScope(page)

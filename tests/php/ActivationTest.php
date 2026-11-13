@@ -73,6 +73,28 @@ test('activation: evaluate() stops at module, version, schema and safe mode befo
 	assert_same('MU_SAFE_MODE', ModernUI_Activation_Model::evaluate(array('modernui' => 'off'))['reason']);
 });
 
+test('skin presets are presentation hints for native routes, never arbitrary asset paths', function () {
+	$previous = $_REQUEST;
+	try {
+		foreach (array(
+			array(array('module' => 'Accounts', 'view' => 'List'), 'list'),
+			array(array('module' => 'Vtiger', 'parent' => 'Settings', 'view' => 'Index'), 'settings-home'),
+			array(array('module' => 'Users', 'parent' => 'Settings', 'view' => 'List'), 'settings'),
+			array(array('module' => 'ModernUI', 'parent' => 'Settings', 'view' => 'Index'), 'settings-own'),
+			array(array('module' => 'Users', 'view' => 'PreferenceDetail'), 'settings'),
+			array(array('module' => 'AnyExtension', 'view' => 'Detail'), 'default'),
+			array(array('module' => array('Accounts'), 'view' => '../skin-list', 'parent' => array('Settings')), 'default'),
+		) as $case) {
+			$_REQUEST = $case[0];
+			assert_same($case[1], ModernUI_LinkHandler_Model::skinPreset());
+			assert_true(is_file(ModernUI_Assets_Model::skinUrl($case[1])), 'preset asset exists');
+		}
+		assert_same(ModernUI_Assets_Model::skinUrl(), ModernUI_Assets_Model::skinUrl('../../other'));
+	} finally {
+		$_REQUEST = $previous;
+	}
+});
+
 test('link handler: active theme rewrites the three links to the current build and settings; inactive theme hides them', function () {
 	if (!ModernUI_Assets_Model::isAvailable()) {
 		fail_test('no production build in src/: run task build');

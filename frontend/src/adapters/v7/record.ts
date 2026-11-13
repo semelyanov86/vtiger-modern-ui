@@ -97,6 +97,26 @@ export function hidePageOverlay(): void {
   method(helper(), 'hidePageContentOverlay')()
 }
 
+/**
+ * The native PJAX popstate handler reloads even the same list state underneath our overlay. Cancel only that duplicate
+ * history request before another list action starts: v7's shared pjax:error handler would otherwise resolve the new
+ * search with an undefined result when it aborts the previous request. Genuine list-history changes remain native.
+ */
+export function cancelOverlayHistoryLoad(destination: unknown, listState: unknown): void {
+  if (!isRecord(destination) || !isRecord(listState) || destination['id'] == null
+    || destination['id'] !== listState['id'] || destination['url'] !== listState['url']
+    || destination['container'] !== listState['container']) return
+  const jq = window.jQuery
+  const pjax: unknown = typeof jq === 'function' ? Reflect.get(jq, 'pjax') : undefined
+  if (typeof pjax !== 'function') return
+  const options: unknown = Reflect.get(pjax, 'options')
+  const xhr: unknown = Reflect.get(pjax, 'xhr')
+  if (!isRecord(options) || !isRecord(xhr) || options['push'] !== false
+    || options['id'] !== destination['id'] || options['url'] !== destination['url']) return
+  const ready = xhr['readyState']
+  if (typeof ready === 'number' && ready > 0 && ready < 4) method(xhr, 'abort')()
+}
+
 export function notifyError(message: string): void {
   method(helper(), 'showErrorNotification')({ message })
 }
@@ -160,9 +180,12 @@ export async function ensureDetailDependencies(html: string): Promise<void> {
     throw new Error('v7: invalid record styles')
   }
   const loadedStyles = new Set(Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]')).map((link) => new URL(link.href).pathname))
+  const skin = /\/ModernUI\/resources\/dist\/assets\/skin-[A-Za-z0-9_-]+\.css$/
   for (const href of styles) {
     const url = new URL(href, document.baseURI)
     if (loadedStyles.has(url.pathname)) continue
+    // Every skin preset has the same actual rules; only the first-paint hints differ. An overlay needs no second skin.
+    if (skin.test(url.pathname) && [...loadedStyles].some((path) => skin.test(path))) continue
     if (url.origin !== location.origin || !url.pathname.endsWith('.css')) throw new Error('v7: unsupported record style')
     await new Promise<void>((resolve, reject) => {
       const link = document.createElement('link')
@@ -297,6 +320,18 @@ export function startCloudDetail(module: string, container: unknown, failed: (er
   })
   const loadContents = method(detail, 'loadContents')
   const requests = Reflect.get(host, 'request') as Record<string, unknown>
+  const countRecords = method(detail, 'getRelatedRecordsCount')
+  Reflect.set(detail as object, 'getRelatedRecordsCount', (...args: unknown[]): unknown => {
+    const get = requests['get']
+    requests['get'] = (params: unknown): unknown => {
+      const data = isRecord(params) ? params['data'] : null
+      if (isRecord(params) && isRecord(data) && data['action'] === 'RelatedRecordsAjax' && data['mode'] === 'getRelatedRecordsCount') {
+        params = { ...params, data: { module: 'ModernUI', action: 'RecordCounts', sourceModule: data['module'], record: data['recordId'] } }
+      }
+      return Reflect.apply(get as Callable, requests, [params])
+    }
+    try { return countRecords(...args) } finally { requests['get'] = get }
+  })
   // Native tabs use PJAX for a full-page Detail. In an overlay that would replace the list URL/history and bind global
   // pjax handlers on each click. Only during this synchronous native call, use its ordinary AJAX transport instead.
   Reflect.set(detail as object, 'loadContents', (...args: unknown[]) => {
@@ -551,6 +586,57 @@ export function disposeWidgets(root: Element | null): void {
       }
     }
   }
+}
+
+/**
+ * BootstrapSwitch 3.3 waits for a visible wrapper in a private 50 ms interval; its destroy() does not clear that
+ * interval. Native Detail can initialize a switch in a hidden comments panel, then replace the panel without ever
+ * showing it. Let the original initializer finish in an invisible measurement box before calling the native destroy.
+ * Only retiring widgets are moved: live fields, values, delegated handlers and global plugin methods stay untouched.
+ * Remember the wrapper at init, since jQuery.html() removes instance data before an observer sees the old panel.
+ */
+export function watchBootstrapSwitches(root: HTMLElement): () => void {
+  const switches = new Map<HTMLElement, HTMLElement>()
+  let active = true
+  const retire = (element: HTMLElement, wrapper: HTMLElement): void => {
+    switches.delete(element)
+    const instance: unknown = method($(element), 'data')('bootstrap-switch')
+    const box = document.createElement('div')
+    box.setAttribute('aria-hidden', 'true')
+    box.inert = true
+    box.style.cssText = 'position:fixed;left:-10000px;top:0;width:100px;height:100px;overflow:hidden;visibility:hidden;pointer-events:none'
+    wrapper.style.setProperty('display', 'inline-block', 'important')
+    box.appendChild(wrapper)
+    document.body.appendChild(box)
+    // The next native tick sees a measurable wrapper and clears its own interval. Its position callback is another
+    // bounded 50 ms timeout; neither it nor the disposal box survives subsequent record cycles.
+    window.setTimeout(() => {
+      try {
+        // With jQuery.html() the instance data and handlers are already gone. Calling the plugin then would create
+        // another instance. The old private initializer still finishes against the remembered original wrapper.
+        if (isRecord(instance)) method(instance, 'destroy')()
+      } finally { method($(box), 'remove')() }
+    }, 100)
+  }
+  const collect = (): void => {
+    for (const [element, wrapper] of switches) {
+      if (!active || !root.contains(element)) retire(element, wrapper)
+    }
+  }
+  const off = onJQuery(root, 'init.bootstrapSwitch', (event) => {
+    const element: unknown = isRecord(event) ? event['target'] : null
+    if (!(element instanceof HTMLElement)) return
+    const container = element.parentElement
+    const wrapper = container?.parentElement
+    if (container?.classList.contains('bootstrap-switch-container') !== true || wrapper?.classList.contains('bootstrap-switch') !== true) return
+    switches.set(element, wrapper)
+    queueMicrotask(collect)
+  })
+  const observer = new MutationObserver((records) => {
+    if (records.some((record) => record.removedNodes.length > 0)) collect()
+  })
+  observer.observe(root, { childList: true, subtree: true })
+  return () => { active = false; off(); observer.disconnect(); collect() }
 }
 
 /** The element of the event bus of v7 (app.event), or null. */

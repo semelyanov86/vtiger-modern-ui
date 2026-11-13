@@ -134,6 +134,7 @@ cyrillic-ext). Lint PHP 8.1 — `php:8.1-cli@sha256:76e563191d1ade120313a8736df2
 | `eslint-plugin-vue` | 10.12.0 | MIT | правила SFC (`flat/recommended`) |
 | `@vue/eslint-config-typescript` | 14.9.0 | MIT | связка Vue + typescript-eslint |
 | `sass-embedded` | 1.107.1 | MIT | SCSS для skin |
+| `postcss` / `postcss-selector-parser` | 8.5.32 / 7.1.7 | MIT | компиляция структурных условий skin с сохранением специфичности; этап 20 закрепляет уже установленные транзитивные версии как прямые dev-зависимости; в JS продукта не входят |
 | `vitest` | 5.1.0 | MIT | unit-тесты (локали, слияние настроек на клиенте, адаптеры) |
 | `happy-dom` | 21.0.4 | MIT | DOM для unit-тестов runtime островов (`// @vitest-environment happy-dom`, этап 04); в сборку не попадает |
 | `@playwright/test` / `playwright` | 1.63.0 | Apache-2.0 | e2e; 1.63.0 использует Chromium build 1243 (1.64.x требует 1248) |

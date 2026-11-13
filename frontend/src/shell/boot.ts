@@ -295,8 +295,8 @@ export async function boot(): Promise<void> {
   html.setAttribute(RUNTIME_ATTRIBUTE, '1')
   const expectedBuild = html.dataset['muBuild'] ?? ''
   try {
-    await hostReady()
-    const data = await fetchBootstrap()
+    // The read-only configuration can travel while native ready handlers initialise their widgets.
+    const [data] = await Promise.all([fetchBootstrap(), hostReady()])
     if (data.build === '' || data.build !== expectedBuild) {
       throw new BootError('build-mismatch')
     }

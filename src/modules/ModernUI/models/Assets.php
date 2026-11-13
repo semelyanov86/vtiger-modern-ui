@@ -103,9 +103,16 @@ class ModernUI_Assets_Model {
 	 * URL of the skin stylesheet (HEADERCSS), relative to index.php.
 	 * @return string|null
 	 */
-	public static function skinUrl() {
+	public static function skinUrl($preset = 'default') {
 		$manifest = self::manifest();
-		return $manifest === null ? null : self::DIST . '/' . $manifest[self::ENTRY_SKIN]['file'];
+		$entry = self::ENTRY_SKIN;
+		if (in_array($preset, array('list', 'settings', 'settings-home', 'settings-own'), true)) {
+			$candidate = 'src/skin/skin-' . $preset . '.scss';
+			if (isset($manifest[$candidate]['file'])) {
+				$entry = $candidate;
+			}
+		}
+		return $manifest === null ? null : self::DIST . '/' . $manifest[$entry]['file'];
 	}
 
 	/**

@@ -116,11 +116,13 @@ def main() -> int:
             shell_css = [dist + css for key in shell_keys for css in frontend_manifest[key].get('css', [])]
             check(not any('/editor-' in name for name in shell_js), 'the shell imports no editor chunk')
             page_js = gz('layouts/v7/modules/ModernUI/resources/loader.js') + sum(gz(name) for name in shell_js)
-            skin_css = gz(dist + frontend_manifest['src/skin/skin.scss']['file'])
+            # Every first-paint preset has the same budgets; selecting a route must not hide a larger stylesheet.
+            skin_files = [dist + entry['file'] for key, entry in frontend_manifest.items() if key.startswith('src/skin/skin')]
+            skin_css = max(gz(name) for name in skin_files)
             page_css = skin_css + sum(gz(name) for name in shell_css)
             budgets = {'page JavaScript (loader + shell + chunks), KB gzip': (page_js, 125 * 1024),
                        'page stylesheets (skin + island CSS), KB gzip': (page_css, 50 * 1024),
-                       'skin stylesheet, KB uncompressed': (len(archive.read(dist + frontend_manifest['src/skin/skin.scss']['file'])), 520 * 1024)}
+                       'skin stylesheet, KB uncompressed': (max(len(archive.read(name)) for name in skin_files), 520 * 1024)}
             for label, (size, budget) in budgets.items():
                 check(size <= budget, f'budget {label}: {size / 1024:.1f} of {budget / 1024:.0f}')
                 print(f'  budget {label}: {size / 1024:.1f} / {budget / 1024:.0f}')

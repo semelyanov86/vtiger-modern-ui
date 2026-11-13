@@ -104,7 +104,6 @@ function select(event: Event): void {
 @use '../styles/tokens' as *;
 // The geometry of the shell comes with the skin (render-blocking, first paint) and again with the shell: when the
 // skin stylesheet failed to load, the bar still gets its space instead of covering the header.
-@use '../skin/shell';
 
 // Fixed to the viewport (not to the v7 header: on narrow screens the header of v7 starts 20 px left of the window). Under
 // the main row of the header (z-index 0 in its stacking context): the row covers the last 2 px of the bar, as in the cloud.

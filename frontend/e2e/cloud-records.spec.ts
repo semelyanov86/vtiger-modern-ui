@@ -67,6 +67,37 @@ test.afterAll(async ({ browser }) => {
   }
 })
 
+async function recordCounts(page: Page, module: string, record: string, native = false): Promise<unknown> {
+  const params = native
+    ? { module, action: 'RelatedRecordsAjax', mode: 'getRelatedRecordsCount', recordId: record }
+    : { module: 'ModernUI', action: 'RecordCounts', sourceModule: module, record }
+  const response = await page.request.get('index.php', { params, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+  return response.json() as Promise<unknown>
+}
+
+test('related counts match native results and permissions and retain the authenticated configuration', async ({ page }) => {
+  await page.goto('index.php?module=Accounts&view=List&modernui=on')
+  const native = await recordCounts(page, 'Accounts', id, true)
+  expect(native).toHaveProperty('success', true)
+  expect(await recordCounts(page, 'Accounts', id)).toEqual(native)
+  // Closing a read-only session must leave authentication and the user's configuration intact.
+  const before = await bootstrap(page)
+  await recordCounts(page, 'Accounts', id)
+  expect(await bootstrap(page)).toEqual(before)
+  for (const params of [
+    { sourceModule: 'Users', record: '1' }, { sourceModule: 'Accounts/../../Users', record: id },
+    { sourceModule: 'Accounts', record: '0' }, { sourceModule: 'Accounts', record: `${id} OR 1=1` },
+  ]) {
+    const response = await page.request.get('index.php', { params: { module: 'ModernUI', action: 'RecordCounts', ...params }, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    expect(await response.text()).not.toMatch(/"success"\s*:\s*true|SQLSTATE|Stack trace|Fatal error|Warning: /)
+  }
+  const post = await page.request.post('index.php', {
+    form: { module: 'ModernUI', action: 'RecordCounts', sourceModule: 'Accounts', record: id, __vtrftk: await token(page) },
+    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+  })
+  expect(await post.text()).not.toMatch(/"success"\s*:\s*true/)
+})
+
 test('Summary, Details, search, related tabs and history preserve the list URL and native fields', async ({ page }) => {
   const errors = watchErrors(page)
   // Previous/next are a native ListViewSession contract: compare both views with the same source filter.
@@ -372,6 +403,12 @@ test('restricted user: private records are refused; hidden and read-only fields 
     expect(await recordContract(page)).toEqual(baseline)
     await expect(page.locator('#Accounts_detailView_fieldValue_annual_revenue')).toHaveCount(0)
     await expect(page.locator('#Accounts_detailView_fieldValue_phone .editAction')).toHaveCount(0)
+    expect(await recordCounts(page, 'Accounts', own)).toEqual(await recordCounts(page, 'Accounts', own, true))
+    const counts = await page.request.get('index.php', {
+      params: { module: 'ModernUI', action: 'RecordCounts', sourceModule: 'Accounts', record: id },
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    })
+    expect(await counts.text()).not.toMatch(/"success"\s*:\s*true/)
     const response = await page.request.get(`index.php?module=ModernUI&view=Record&sourceModule=Accounts&record=${id}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
     expect(await response.text()).not.toContain(NAME)
     expect(await response.text()).not.toContain('class="overlayDetail mu-cloud-record')

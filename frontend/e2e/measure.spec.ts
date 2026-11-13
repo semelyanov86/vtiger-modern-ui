@@ -132,6 +132,7 @@ test('cost of the theme: timings, layout shift, bytes, Bootstrap', async ({ brow
     }
   }
   report['summary'] = summary
+  report['samples'] = results
 
   // Bootstrap: server time (requestStart → responseStart) of fresh answers and of 304 revalidations.
   const context = await browser.newContext({
@@ -173,6 +174,8 @@ test('cost of the theme: timings, layout shift, bytes, Bootstrap', async ({ brow
     status304: bootstrap.status304,
     etag: bootstrap.etag !== '',
     tokensFromCacheOnRepeat: bootstrap.tokensFromCache,
+    freshMs: bootstrap.fresh,
+    revalidatedMs: bootstrap.revalidated,
   }
 
   // Size of every theme resource of a page (decoded and transferred; the server may compress).
@@ -287,7 +290,7 @@ test('transitions: record from the list and back, another list, settings — wit
     }
   }
   mkdirSync(reportDir(), { recursive: true })
-  writeFileSync(resolve(reportDir(), `transitions-${label}.json`), `${JSON.stringify({ target, runs, medians }, null, 2)}\n`)
+  writeFileSync(resolve(reportDir(), `transitions-${label}.json`), `${JSON.stringify({ target, runs, warmupSamplesPerMode: 1, medians, samples: results }, null, 2)}\n`)
   // Budgets: the window over the list loads the same native view through AJAX plus its presentation (+250 ms at most), and
   // the way back is immediate, so the round trip record and back must not be slower than with v7; the rest stays within a
   // fixed margin of the same page without the theme.

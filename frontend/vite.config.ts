@@ -14,6 +14,7 @@ import vue from '@vitejs/plugin-vue'
 import vueI18n from '@intlify/unplugin-vue-i18n/vite'
 import { atomicManifest } from './build/atomic-manifest.ts'
 import { thirdPartyLicenses } from './build/third-party-licenses.ts'
+import { pageContexts } from './build/page-contexts.ts'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const outDir = resolve(here, '../src/layouts/v7/modules/ModernUI/resources/dist')
@@ -33,6 +34,7 @@ export default defineConfig({
   // and in a sub-directory (/vtigercrm/) without knowing the base URL of the CRM.
   base: './',
   publicDir: false,
+  css: { postcss: { plugins: [pageContexts()] } },
   plugins: [
     vue(),
     vueI18n({
@@ -80,6 +82,11 @@ export default defineConfig({
         settings: resolve(here, 'src/settings/main.ts'),
         preferences: resolve(here, 'src/preferences/main.ts'),
         skin: resolve(here, 'src/skin/skin.scss'),
+        'skin-list': resolve(here, 'src/skin/skin-list.scss'),
+        'skin-settings': resolve(here, 'src/skin/skin-settings.scss'),
+        'skin-settings-home': resolve(here, 'src/skin/skin-settings-home.scss'),
+        'skin-settings-own': resolve(here, 'src/skin/skin-settings-own.scss'),
+        'shell-fallback': resolve(here, 'src/skin/shell-fallback.scss'),
         auth: resolve(here, 'src/auth/auth.scss'),
         ...adapterStyles,
       },

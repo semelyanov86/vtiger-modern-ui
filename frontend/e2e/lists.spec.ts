@@ -116,6 +116,35 @@ test('cloud geometry, filter disclosure, native filter search/create/edit and sp
   writeFileSync(resolve(reportDir(), 'lists-geometry.json'), JSON.stringify({ sizes, panel }, null, 2))
 })
 
+test('search keeps keyboard focus across native header reflow and does not reclaim focus from another control', async ({ page }) => {
+  await open(page)
+  const all = await page.locator('.lists-menu a.filterName').filter({ hasText: /^(All|Все|Alle)$/ }).first().getAttribute('href')
+  await open(page, 'on', `${all ?? LIST}&search_params=[]`)
+  await expect(page.locator('tr.listViewEntries').first()).toBeVisible()
+  await openListSearch(page)
+  const input = page.locator('.searchRow input.listSearchContributor:visible').first()
+  // The native resize handler is debounced and reparents the focused thead after the disclosure click.
+  await page.waitForTimeout(100)
+  await expect(input).toBeFocused()
+  await page.keyboard.type('MU12-no-such-record')
+  await page.evaluate(() => window.dispatchEvent(new Event('resize')))
+  await page.waitForTimeout(100)
+  await expect(input).toBeFocused()
+  await expect(input).toHaveValue('MU12-no-such-record')
+  expect(await input.evaluate((element: HTMLInputElement) => element.selectionStart)).toBe('MU12-no-such-record'.length)
+  await page.keyboard.press('Enter')
+  await expect(page.locator('.emptyRecordsDiv')).toBeVisible()
+
+  const trigger = page.locator('.mu-list-search')
+  await trigger.focus()
+  await page.evaluate(() => window.dispatchEvent(new Event('resize')))
+  await page.waitForTimeout(100)
+  await expect(trigger).toBeFocused()
+  await page.locator('[data-trigger="clearListSearch"]:visible').first().click()
+  await expect(page.locator('tr.listViewEntries').first()).toBeVisible()
+  await trigger.click()
+})
+
 test('sort, search, pagination and selection send identical full native parameters with and without the theme', async ({ page }) => {
   const results: unknown[] = []
   for (const mode of ['off', 'on']) {

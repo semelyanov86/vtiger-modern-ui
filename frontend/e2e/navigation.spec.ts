@@ -629,11 +629,16 @@ test('lists: search → record → back, empty result, loading indicator, row me
     expect(page.url()).toBe(url)
     await page.goBack()
     await expect(page.locator('html')).not.toHaveAttribute('data-mu-record')
+    await page.goForward()
+    await expect(page.locator('html')).toHaveAttribute('data-mu-record')
+    await page.goBack()
+    await expect(page.locator('html')).not.toHaveAttribute('data-mu-record')
   }
   // v7 keeps the search in the history (pushState): back is the searched list.
   expect(page.url()).toContain('search_params=')
   await expect(page.locator('#listview-table tr.listViewEntries').first()).toBeVisible()
 
+  // Search immediately after Back: an obsolete PJAX history request must not resolve this new search as an error.
   // Nothing found: the empty state of v7 in the theme's colours.
   await page.locator('tr.searchRow input.listSearchContributor:visible').first().fill('zzz-ModernUI-no-such-record')
   await page.locator('tr.searchRow input.listSearchContributor:visible').first().press('Enter')

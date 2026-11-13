@@ -90,6 +90,17 @@ export function startLists(scope: IslandScope, texts: ListTexts): void {
     disclosure('filters', filter, false)
     if (focus) filter.focus()
   }
+  // floatThead reparents the original thead on resize, including the resize caused by opening search.
+  // Preserve focus on that same input across the move; otherwise a following Enter can target body.
+  let searchFocus: HTMLElement | null = null
+  scope.listen(document, 'focusin', (event) => {
+    const target = event.target
+    searchFocus = target instanceof HTMLElement && content.contains(target)
+      && target.closest('.searchRow') !== null ? target : null
+  })
+  scope.listen(document, 'pointerdown', (event) => {
+    if (!(event.target instanceof Node) || !searchFocus?.contains(event.target)) searchFocus = null
+  }, { capture: true })
   if (sidebar !== null) {
     attribute(sidebar, 'role', 'region')
     attribute(sidebar, 'aria-label', texts.filters)
@@ -225,7 +236,17 @@ export function startLists(scope: IslandScope, texts: ListTexts): void {
       event.target.click()
     }
   })
-  scope.observe(content, { childList: true, subtree: true }, schedule)
+  scope.observe(content, { childList: true, subtree: true }, (records) => {
+    const focused = searchFocus
+    if (focused !== null) {
+      if (!focused.isConnected || !html.hasAttribute('data-mu-list-search')) searchFocus = null
+      else if (document.activeElement === document.body
+        && records.some((record) => Array.from(record.removedNodes).some((node) => node.contains(focused)))) {
+        focused.focus({ preventScroll: true })
+      }
+    }
+    schedule()
+  })
   if (sidebar !== null) scope.observe(sidebar, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] }, schedule)
   scope.onAppEvent('post.listViewFilter.click', schedule)
   scope.onAppEvent('Post.ListRow.Checked', schedule)
@@ -239,6 +260,7 @@ export function startLists(scope: IslandScope, texts: ListTexts): void {
   refresh()
   window.dispatchEvent(new Event('resize'))
   scope.onDispose(() => {
+    searchFocus = null
     if (frame !== null) window.cancelAnimationFrame(frame)
     controls.remove()
     for (const [element, attributes] of changed) {

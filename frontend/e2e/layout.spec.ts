@@ -202,16 +202,23 @@ test('record over the list: open, Escape, Back/Forward, close button, double cli
   expect(await page.evaluate(() => (history.state as { muRecord?: unknown } | null)?.muRecord ?? null)).toBeNull()
   expect(navigations, 'still no page load').toEqual([])
 
-  // Two rows clicked one after the other: the first record opens, the second click is swallowed while it loads.
-  overlayRequests.length = 0
-  await recordLink(page, created[1] ?? '').click()
-  await recordLink(page, created[0] ?? '').click({ timeout: 2000 }).catch(() => undefined)
-  await expect(overlayOpen(page)).toHaveAttribute('data-mu-record', created[1] ?? '')
-  await page.waitForTimeout(1000)
-  expect(overlayRequests.filter((request) => request.includes('view=Record')).length, 'one record request').toBe(1)
-  expect(navigations, 'no page load').toEqual([])
-  await page.keyboard.press('Escape')
-  await expect(overlayOpen(page)).toHaveCount(0)
+  // Both native link timers (500 ms) and anonymous cell timers (300 ms) must consume only the first navigation.
+  for (const kind of ['link', 'cell']) {
+    overlayRequests.length = 0
+    const item = (id: string) => kind === 'link' ? recordLink(page, id)
+      : page.locator(`#listViewContent tr.listViewEntries[data-id="${id}"] td`).nth(2)
+    await item(created[1] ?? '').click()
+    // Both clicks precede the first timer, while a cached record can finish before the second timer fires.
+    await page.waitForTimeout(200)
+    await item(created[0] ?? '').click({ timeout: 2000 }).catch(() => undefined)
+    await expect(overlayOpen(page)).toHaveAttribute('data-mu-record', created[1] ?? '')
+    await page.waitForTimeout(1000)
+    await expect(overlayOpen(page)).toHaveAttribute('data-mu-record', created[1] ?? '')
+    expect(overlayRequests.filter((request) => request.includes('view=Record')).length, `${kind}: one record request`).toBe(1)
+    expect(navigations, 'no page load').toEqual([])
+    await page.keyboard.press('Escape')
+    await expect(overlayOpen(page)).toHaveCount(0)
+  }
   // A double click stays the inline edit of the row of v7 (List.js): no record opens.
   if ((await page.locator('#isExcelEditSupported').inputValue().catch(() => 'no')) !== 'no') {
     await page.locator(`#listViewContent tr.listViewEntries[data-id="${created[1] ?? ''}"] td:nth-child(3)`).dblclick()

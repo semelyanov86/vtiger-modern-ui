@@ -14,8 +14,8 @@
 // row is fixed, and the toolbar is reserved when the module header has a button (:has), so nothing moves when the shell
 // mounts. Everything applies only when the shell can run: scripting enabled, not in the standard view, not after a failed
 // start of the shell (html[data-mu-failed]) and not on pages the shell only skins (html[data-mu-level="skin"]); then the
-// v7 header is back as it was. The same file is part of the stylesheet of the shell (FavoritesBar.vue), so the layout
-// still holds when the skin stylesheet failed to load.
+// v7 header is back as it was. The loader requests shell-fallback.scss if the skin failed; successful pages load this
+// geometry once, so native widget measurements do not reapply it when the island stylesheet arrives.
 @use '../styles/tokens' as *;
 
 // The gate of the layout (see above).

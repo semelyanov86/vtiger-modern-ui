@@ -247,3 +247,53 @@ test('40 cycles of list, record, edit, related tab, history and menu in one docu
   const perCycle = samples.slice(1).map((entry) => entry.requests)
   expect(Math.max(...perCycle) - Math.min(...perCycle), 'requests of a cycle').toBeLessThanOrEqual(2)
 })
+
+test('hidden BootstrapSwitch finishes its native initializer when a record panel is removed', async ({ page }) => {
+  // Observe the actual host plugin's timers, not a reimplementation. This instrumentation belongs only to this test.
+  await page.addInitScript(() => {
+    const active = new Set<number>()
+    Reflect.set(window, '__muSwitchTimers', active)
+    const start = window.setInterval.bind(window)
+    const stop = window.clearInterval.bind(window)
+    Reflect.set(window, 'setInterval', (callback: TimerHandler, delay?: number, ...args: unknown[]): number => {
+      const id = start(callback, delay, ...args)
+      if (new Error().stack?.includes('/bootstrapswitch/') === true) active.add(id)
+      return id
+    })
+    Reflect.set(window, 'clearInterval', (id?: number): void => { if (id !== undefined) active.delete(id); stop(id) })
+  })
+  await page.goto(`${LIST}&modernui=on`)
+  await waitForShell(page)
+  await page.locator(RECORD_LINK).filter({ visible: true }).first().click()
+  await recordOpen(page)
+  const create = async (hidden: boolean, removeImmediately: boolean): Promise<{ checked: boolean; serialized: string; pending: number }> => page.evaluate(({ hidden, removeImmediately }) => {
+    interface JQuery { bootstrapSwitch: (...args: unknown[]) => JQuery; serialize: () => string; remove: () => void }
+    const jq = Reflect.get(window, 'jQuery') as (element: unknown) => JQuery
+    const root = document.querySelector('#overlayPageContent .overlayDetail')
+    if (root === null) throw new Error('missing record')
+    const form = document.createElement('form')
+    form.id = 'mu-switch-probe'
+    form.hidden = hidden
+    const input = document.createElement('input')
+    input.type = 'checkbox'; input.name = 'switchProbe'; input.value = '1'; input.className = 'bootstrap-switch'
+    form.appendChild(input); root.appendChild(form)
+    jq(input).bootstrapSwitch({ animate: false }).bootstrapSwitch('state', true, true)
+    const result = { checked: input.checked, serialized: jq(form).serialize(), pending: (Reflect.get(window, '__muSwitchTimers') as Set<number>).size }
+    // Same synchronous path as a tab's jQuery.html(): instance data disappear before the observer can read them.
+    if (removeImmediately) jq(form).remove()
+    return result
+  }, { hidden, removeImmediately })
+  const hidden = await create(true, true)
+  expect(hidden.checked).toBe(true)
+  expect(hidden.serialized).toBe('switchProbe=1')
+  expect(hidden.pending).toBeGreaterThan(0)
+  await expect.poll(() => page.evaluate(() => (Reflect.get(window, '__muSwitchTimers') as Set<number>).size)).toBe(0)
+
+  const visible = await create(false, false)
+  expect(visible.checked).toBe(true)
+  expect(visible.pending).toBe(0)
+  await page.locator('#mu-switch-probe .bootstrap-switch-handle-on').click()
+  await expect(page.locator('#mu-switch-probe input')).not.toBeChecked()
+  await closeRecord(page)
+  await expect.poll(() => page.evaluate(() => (Reflect.get(window, '__muSwitchTimers') as Set<number>).size)).toBe(0)
+})
