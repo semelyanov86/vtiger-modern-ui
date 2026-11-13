@@ -126,6 +126,10 @@
     border-top: 1px solid tok(border);
     color: tok(text-2);
     font-size: fs(12);
+
+    // Links inside the footer sentence are told apart by more than their colour (WCAG 1.4.1, stage 19): the theme gives
+    // the sentence its grey, and some builds of v7 remove underlines with a global a { text-decoration: none !important }.
+    a { text-decoration: underline !important; }
   }
 
   // Badges and labels keep the colour of their meaning, only the shape follows the cloud badges (radius 4, regular).

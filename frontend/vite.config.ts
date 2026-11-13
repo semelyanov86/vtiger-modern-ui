@@ -65,7 +65,10 @@ export default defineConfig({
     emptyOutDir: false,
     manifest: tempManifest,
     target: 'es2020',
-    cssTarget: 'es2020',
+    // The skin and the islands rely on :has(), so the supported browsers start where :has() does (docs/compatibility.md
+    // §11). An older CSS target made Lightning CSS repeat every :is() rule as :-webkit-any() (40 % of the skin) whose
+    // specificity differs from :is() — Chromium and WebKit applied both copies, Firefox only one (stage 19).
+    cssTarget: ['chrome105', 'edge105', 'firefox121', 'safari15.4'],
     sourcemap: false,
     // The loader adds <script type="module"> itself; no polyfill is injected into the entries.
     modulePreload: { polyfill: false },

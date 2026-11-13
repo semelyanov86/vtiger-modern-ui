@@ -11,6 +11,7 @@ export interface ListTexts {
   search: string
   more: string
   close: string
+  rowActions: string
 }
 
 export function startLists(scope: IslandScope, texts: ListTexts): void {
@@ -47,6 +48,12 @@ export function startLists(scope: IslandScope, texts: ListTexts): void {
     return element
   }
   const filter = button('filter', 'filter', texts.filters)
+  // The accessible name contains the visible name of the current list (WCAG 2.5.3): "Select list or tag: All".
+  filter.removeAttribute('aria-label')
+  const purpose = document.createElement('span')
+  purpose.className = 'sr-only'
+  purpose.textContent = `${texts.filters}: `
+  filter.appendChild(purpose)
   const label = document.createElement('span')
   label.className = 'mu-list-filter-label'
   filter.appendChild(label)
@@ -169,12 +176,26 @@ export function startLists(scope: IslandScope, texts: ListTexts): void {
     for (const cell of content.querySelectorAll<HTMLElement>('td.listViewEntryValue:not([title])')) {
       attribute(cell, 'title', cell.textContent.trim())
     }
+    // Icon-only buttons of the action bar (mass Edit, Delete, Tags …) are icon buttons in one white box. Marked here instead
+    // of :has(> .fa:only-child) in the stylesheet: that :has() made every insertion of an element with a class restyle the
+    // page (stage 19). Undone on teardown.
+    for (const button of content.querySelectorAll<HTMLElement>('.listViewActionsContainer .btn-default')) {
+      const only = button.children.length === 1 ? button.children[0] : undefined
+      if (only !== undefined && button.textContent.trim() === '' && (only.classList.contains('fa') || only.className.startsWith('vicon-'))) {
+        attribute(button, 'data-mu-icon-only', '')
+        if (only.classList.contains('fa') && button.parentElement?.classList.contains('btn-group') === true) {
+          attribute(button.parentElement, 'data-mu-icon-group', '')
+        }
+      }
+    }
     // Keyboard equivalents for the non-semantic controls of v7 (native handlers still receive their click).
     for (const control of document.querySelectorAll<HTMLElement>('#sidebar-essentials [data-toggle="popover"], #listViewContent .listColumnFilter:not(.disabled), #listViewContent .table-actions span[data-toggle="dropdown"]')) {
       attribute(control, 'tabindex', '0')
       attribute(control, 'role', 'button')
       const title = control.getAttribute('title')
       if (title !== null) attribute(control, 'aria-label', title)
+      // The "more" menu of a row is an icon only in v7; the cloud layout shows it on every row, so it needs a name.
+      else if (control.matches('.table-actions span[data-toggle="dropdown"]')) attribute(control, 'aria-label', texts.rowActions)
     }
     // Extension output before the native action bar is a separate summary region. No module names or business fields.
     const parent = tail?.parentElement

@@ -153,6 +153,9 @@
 
 .modernui-classic-link {
   margin: 8px 16px;
+
+  // A link inside a sentence is told apart by more than its colour (WCAG 1.4.1, stage 19).
+  a { text-decoration: underline; }
 }
 
 // The page of the personal preferences: no sidebar of v7 (its content area kept 283 px for one), a column of a readable

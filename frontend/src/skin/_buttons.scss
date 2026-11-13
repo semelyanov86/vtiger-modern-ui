@@ -194,13 +194,13 @@ $add-record: ".btn:is(#{$add-record-ids})";
       @include button-toolbar;
     }
 
-    .listViewActionsContainer .btn-group:has(> .btn-default > .fa:only-child) {
+    // data-mu-icon-only / data-mu-icon-group: set by the lists adapter (a :has() here restyled whole pages, stage 19).
+    .listViewActionsContainer .btn-group[data-mu-icon-group] {
       border-radius: tok(radius-sm);
       background-color: tok(surface);
     }
 
-    .listViewActionsContainer .btn-default:has(> .fa:only-child),
-    .listViewActionsContainer .btn-default:has(> [class^='vicon-']:only-child) {
+    .listViewActionsContainer .btn-default[data-mu-icon-only] {
       @include icon-button;
     }
   }

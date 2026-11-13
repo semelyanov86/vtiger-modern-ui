@@ -192,4 +192,115 @@ test('cost of the theme: timings, layout shift, bytes, Bootstrap', async ({ brow
   writeFileSync(resolve(reportDir(), `measure-${label}.json`), `${JSON.stringify(report, null, 2)}\n`)
   expect(Object.keys(summary)).toHaveLength(screens.length)
   expect([...new Set(external)], 'requests to other hosts').toEqual([])
+
+  // Budgets of a page with the theme against the same page without it (stage 19, docs/verification.md): medians of the
+  // cold loads, the requests and bytes of the theme. Generous enough for a loaded laptop, tight enough to catch a
+  // render-blocking regression or a theme that waits for the network.
+  const budgets: string[] = []
+  for (const [url, modes] of Object.entries(summary)) {
+    const standard = modes['standard/cold']
+    const theme = modes['theme/cold']
+    const warm = modes['theme/warm']
+    if (standard === undefined || theme === undefined || warm === undefined) continue
+    const over = (name: string, value: number | null | undefined, limit: number): void => {
+      if (value !== null && value !== undefined && value > limit) budgets.push(`${url}: ${name} ${String(value)} > ${String(limit)}`)
+    }
+    over('first contentful paint +ms', (theme['fcp'] ?? 0) - (standard['fcp'] ?? 0), 80)
+    over('shell ready after load, ms', (theme['ready'] ?? 0) - (theme['load'] ?? 0), 250)
+    over('layout shift', theme['cls'], 0.1)
+    over('requests of the theme (cold)', theme['themeRequests'], 12)
+    over('transfer of the theme (warm), KB', warm['themeTransferKb'], 5)
+  }
+  expect(budgets, 'budgets of the theme').toEqual([])
+})
+
+/**
+ * Stage 19: delays of the usual transitions with and without the theme (medians of MU_MEASURE_RUNS): a record from the
+ * list (v7: the full page; theme: the window over the list), back to the list, another list, the settings of the CRM.
+ * Each ends when the screen can be used: the fields of the record, the rows of the list, the catalog of the settings.
+ */
+test('transitions: record from the list and back, another list, settings — with and without the theme', async ({ browser }) => {
+  test.setTimeout(900_000)
+  const link = '#listViewContent tr.listViewEntries[data-id] a[href*="view=Detail"]:not([href*="mode="])'
+  const rows = '#listview-table tr.listViewEntries'
+  const results: Record<string, Record<string, number[]>> = {}
+  for (const mode of ['standard', 'theme'] as const) {
+    const context = await browser.newContext({
+      storageState: resolve(repoRoot, target === 'dev' ? '.local/e2e-admin-state.json' : `.local/e2e-${target}-admin-state.json`),
+      viewport: { width: 1440, height: 900 },
+    })
+    const page = await context.newPage()
+    await page.goto(mode === 'standard' ? 'index.php?modernui=off' : 'index.php?modernui=on')
+    const time = async (name: string, action: () => Promise<unknown>): Promise<void> => {
+      const started = Date.now()
+      await action()
+      ;((results[mode] ??= {})[name] ??= []).push(Date.now() - started)
+    }
+    const listReady = async (): Promise<void> => {
+      if (mode === 'theme') await waitForShell(page)
+      await page.locator(rows).first().waitFor()
+    }
+    for (let run = 0; run < runs + 1; run++) {
+      await page.goto(screens[1] ?? '')
+      await listReady()
+      await page.waitForTimeout(300)
+      await time('list → record', async () => {
+        await page.locator(link).filter({ visible: true }).first().click()
+        if (mode === 'theme') {
+          await page.locator('#overlayPageContent.in .overlayDetail td.fieldValue').first().waitFor()
+        } else {
+          await page.waitForURL(/view=Detail/)
+          await page.locator('.detailview-content td.fieldValue, #detailView td.fieldValue').first().waitFor()
+          await page.waitForLoadState('load')
+        }
+      })
+      await time('record → list', async () => {
+        if (mode === 'theme') {
+          await page.keyboard.press('Escape')
+          await page.locator('html[data-mu-record]').waitFor({ state: 'detached' })
+        } else {
+          await page.goBack()
+          await page.waitForLoadState('load')
+        }
+        await page.locator(rows).first().waitFor()
+      })
+      await time('list → another list', async () => {
+        await page.goto(screens[2] ?? '')
+        await listReady()
+      })
+      await time('settings of the CRM', async () => {
+        await page.goto('index.php?module=Vtiger&parent=Settings&view=Index')
+        if (mode === 'theme') await waitForShell(page)
+        await page.locator('#accordion, .settingsIndexPage').first().waitFor()
+        await page.waitForLoadState('load')
+      })
+    }
+    await page.goto('index.php?modernui=on')
+    await context.close()
+  }
+  // The first run warms the caches of both modes and is left out.
+  const medians: Record<string, Record<string, number>> = {}
+  for (const [mode, names] of Object.entries(results)) {
+    for (const [name, values] of Object.entries(names)) {
+      (medians[name] ??= {})[mode] = median(values.slice(1))
+    }
+  }
+  mkdirSync(reportDir(), { recursive: true })
+  writeFileSync(resolve(reportDir(), `transitions-${label}.json`), `${JSON.stringify({ target, runs, medians }, null, 2)}\n`)
+  // Budgets: the window over the list loads the same native view through AJAX plus its presentation (+250 ms at most), and
+  // the way back is immediate, so the round trip record and back must not be slower than with v7; the rest stays within a
+  // fixed margin of the same page without the theme.
+  const limits: Record<string, number> = { 'list → record': 250, 'record → list': 100, 'list → another list': 250, 'settings of the CRM': 300 }
+  const over: string[] = []
+  const trip = (mode: string): number => (medians['list → record']?.[mode] ?? 0) + (medians['record → list']?.[mode] ?? 0)
+  if (trip('theme') > trip('standard')) {
+    over.push(`record and back: ${String(trip('theme'))} ms with the theme, ${String(trip('standard'))} ms without`)
+  }
+  for (const [name, limit] of Object.entries(limits)) {
+    const value = medians[name]
+    if (value?.['theme'] !== undefined && value['standard'] !== undefined && value['theme'] > value['standard'] + limit) {
+      over.push(`${name}: ${String(value['theme'])} ms with the theme, ${String(value['standard'])} ms without (+${String(limit)} allowed)`)
+    }
+  }
+  expect(over, 'transition budgets').toEqual([])
 })

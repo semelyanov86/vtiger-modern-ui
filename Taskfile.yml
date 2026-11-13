@@ -106,7 +106,7 @@ tasks:
     desc: Browser checks on the dev instance (CRM_URL) - loader, settings, switching on and off, network; run task crm:install first
     deps: [fe:install]
     dir: frontend
-    cmd: MU_E2E_TARGET=dev npx playwright test --config e2e/playwright.config.ts --project modernui --project settings --project navigation --project records --project special --project layout --project foundation --project lists --project cloud-records --project cloud-forms --project cloud-settings --project settings-page --project auth-pages --project special-screens {{.CLI_ARGS}}
+    cmd: MU_E2E_TARGET=dev npx playwright test --config e2e/playwright.config.ts --project modernui --project settings --project navigation --project records --project special --project layout --project foundation --project lists --project cloud-records --project cloud-forms --project cloud-settings --project settings-page --project auth-pages --project special-screens --project quality {{.CLI_ARGS}}
 
   test:e2e:clean:
     desc: Browser checks on the clean stand (both instances) after task clean:import-zip - pilot, other users, languages, Module Manager switch, network
@@ -114,7 +114,7 @@ tasks:
     dir: frontend
     cmds:
       - for: [c81, c85]
-        cmd: MU_E2E_TARGET={{.ITEM}} npx playwright test --config e2e/playwright.config.ts --project clean --project modernui --project settings --project navigation --project records --project special --project layout --project foundation --project lists --project cloud-records --project cloud-forms --project cloud-settings --project settings-page --project auth-pages --project special-screens {{.CLI_ARGS}}
+        cmd: MU_E2E_TARGET={{.ITEM}} npx playwright test --config e2e/playwright.config.ts --project clean --project modernui --project settings --project navigation --project records --project special --project layout --project foundation --project lists --project cloud-records --project cloud-forms --project cloud-settings --project settings-page --project auth-pages --project special-screens --project quality {{.CLI_ARGS}}
 
   test:layout:
     desc: 'Stage 09 prototype of the cloud layout (Accounts): no permanent module rail, record and edit form over the list, history, failures; MU_E2E_TARGET=dev|c81|c85 (default dev); writes and deletes synthetic organizations MU09'
@@ -170,6 +170,24 @@ tasks:
     dir: frontend
     cmd: MU_E2E_TARGET=${MU_E2E_TARGET:-dev} npx playwright test --config e2e/playwright.config.ts --project special-screens {{.CLI_ARGS}}
 
+  test:quality:
+    desc: 'Stage 19 quality - POST/CSRF/Referer of every changing action, errors without leaks, uploads, import, isolation of users, strict CSP, failures and recovery, axe-core, keyboard, reduced motion, German; MU_E2E_TARGET=dev|c81|c85'
+    deps: [fe:install]
+    dir: frontend
+    cmd: MU_E2E_TARGET=${MU_E2E_TARGET:-dev} npx playwright test --config e2e/playwright.config.ts --project quality {{.CLI_ARGS}}
+
+  test:stability:
+    desc: 'Stage 19 - 40 cycles of list, record, edit, related tab, history and menu in one document; AJAX list reloads against v7 (MU_STABILITY_CYCLES); MU_E2E_TARGET=dev|c81|c85'
+    deps: [fe:install]
+    dir: frontend
+    cmd: MU_E2E_TARGET=${MU_E2E_TARGET:-dev} npx playwright test --config e2e/playwright.config.ts --project stability {{.CLI_ARGS}}
+
+  test:browsers:
+    desc: 'Stage 19 - the core scenarios of the theme in Chromium, Firefox and WebKit of the pinned Playwright (npx playwright install firefox webkit once); clean stand, MU_E2E_TARGET=c81|c85'
+    deps: [fe:install]
+    dir: frontend
+    cmd: MU_E2E_TARGET=${MU_E2E_TARGET:-c81} npx playwright test --config e2e/playwright.config.ts --project browsers-chromium --project browsers-firefox --project browsers-webkit {{.CLI_ARGS}}
+
   visual:pairs:
     desc: 'Screens and measurements of ModernUI for the states of dev/visual/states.json into MU_VISUAL_DIR (dev instance - a private directory), read-only; MU_E2E_TARGET=dev|c81|c85'
     deps: [fe:install]
@@ -215,7 +233,7 @@ tasks:
     cmd: MU_E2E_TARGET=${MU_E2E_TARGET:-dev} npx playwright test --config e2e/playwright.config.ts --project visual {{.CLI_ARGS}}
 
   measure:
-    desc: 'Cost of the theme against safe mode (timings, CLS, bytes, Bootstrap time and 304) into .local/e2e-reports/<target>/measure-<label>.json'
+    desc: 'Cost of the theme against safe mode (timings, CLS, bytes, Bootstrap time and 304) and transition delays, with the budgets of stage 19, into .local/e2e-reports/<target>/measure-<label>.json and transitions-<label>.json'
     deps: [fe:install]
     dir: frontend
     cmd: MU_E2E_TARGET=${MU_E2E_TARGET:-dev} npx playwright test --config e2e/playwright.config.ts --project measure {{.CLI_ARGS}}

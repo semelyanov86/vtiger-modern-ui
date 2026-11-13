@@ -12,6 +12,7 @@ Needs a production build (task build). Writes only to a temporary directory.
 """
 from __future__ import annotations
 
+import gzip
 import hashlib
 import importlib.util
 import json
@@ -96,6 +97,33 @@ def main() -> int:
             for package in ('vue ', 'reka-ui ', 'vue-i18n ', '@lucide/vue ', '@fontsource/poppins ', '@fontsource/arimo ', '@fontsource/open-sans ', '@fontsource-variable/inter '):
                 check(f'\n{package}' in licences, f'licence text of {package.strip()}')
             check(first.stat().st_size < 2_000_000, f'archive size {first.stat().st_size} bytes')
+
+            # Budgets of every CRM page (stage 19, docs/verification.md): the loader, the shell entry with the chunks it
+            # imports statically, the skin. gzip -9 sizes; the editor chunk is never part of the shell.
+            def gz(name: str) -> int:
+                return len(gzip.compress(archive.read(name), 9))
+
+            def chunk_files(key: str, seen: set) -> None:
+                if key in seen or key not in frontend_manifest:
+                    return
+                seen.add(key)
+                for imported in frontend_manifest[key].get('imports', []):
+                    chunk_files(imported, seen)
+
+            shell_keys: set = set()
+            chunk_files('src/shell/main.ts', shell_keys)
+            shell_js = [dist + frontend_manifest[key]['file'] for key in shell_keys]
+            shell_css = [dist + css for key in shell_keys for css in frontend_manifest[key].get('css', [])]
+            check(not any('/editor-' in name for name in shell_js), 'the shell imports no editor chunk')
+            page_js = gz('layouts/v7/modules/ModernUI/resources/loader.js') + sum(gz(name) for name in shell_js)
+            skin_css = gz(dist + frontend_manifest['src/skin/skin.scss']['file'])
+            page_css = skin_css + sum(gz(name) for name in shell_css)
+            budgets = {'page JavaScript (loader + shell + chunks), KB gzip': (page_js, 125 * 1024),
+                       'page stylesheets (skin + island CSS), KB gzip': (page_css, 50 * 1024),
+                       'skin stylesheet, KB uncompressed': (len(archive.read(dist + frontend_manifest['src/skin/skin.scss']['file'])), 520 * 1024)}
+            for label, (size, budget) in budgets.items():
+                check(size <= budget, f'budget {label}: {size / 1024:.1f} of {budget / 1024:.0f}')
+                print(f'  budget {label}: {size / 1024:.1f} / {budget / 1024:.0f}')
 
         vtiger_repo = os.environ.get('VTIGER_SRC_REPO', '')
         if not vtiger_repo:

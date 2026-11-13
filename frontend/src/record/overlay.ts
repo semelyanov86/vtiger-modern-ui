@@ -30,7 +30,7 @@ import type { IslandScope } from '../boot/runtime'
 import { createScope } from '../boot/runtime'
 import { presentRecord, type RecordTexts } from './presentation'
 import {
-  $, ensureRecordScripts, ensureDetailDependencies, installRecordMeta, handlerCount, hidePageOverlay, hideProgress, notifyError, onJQuery, release, reloadList, request, resetRowTimers,
+  $, busHandlers, disposeWidgets, paginationSince, ensureRecordScripts, ensureDetailDependencies, installRecordMeta, handlerCount, hidePageOverlay, hideProgress, notifyError, onJQuery, release, reloadList, request, resetRowTimers,
   showPageOverlay, startCloudDetail, startEdit, tracked, trackedFocus, trigger, urlParams, submitNativeForm, resetFormSubmit, type AddedHandler,
 } from '../adapters/v7/record'
 import { recordTarget, recordUrl, stateRecord, withRecord, type RecordTarget } from './target'
@@ -87,6 +87,8 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
   let detail: unknown = null
   /** Handlers the current record view of v7 added to persistent elements. */
   let added: readonly AddedHandler[] = []
+  /** Handlers of the event bus when the current record view started (its related lists add pagination later). */
+  let busKnown: ReadonlySet<unknown> | null = null
   /** focusin handlers the shows of the page overlay added (released when the overlay closes). */
   let focusHandlers: AddedHandler[] = []
   /** window.onbeforeunload before the edit form set its own. */
@@ -100,6 +102,13 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
   let ownEntry = false
   /** history.back() issued by the overlay itself: the popstate it causes is not a user action. */
   let ownBack = false
+  /**
+   * The overlay is closing because the history already left the entry of its record (Back): finish() must not touch the
+   * history — a quick Forward during the fade-out is the current entry by then (stage 19).
+   */
+  let closingByHistory = false
+  /** A record entry the history reached while the overlay was still closing (Forward): opened once it is hidden. */
+  let pending: string | null = null
   let restore: Restore | null = null
   let restoreController: (() => void) | null = null
   let restoreMetadata: (() => void) | null = null
@@ -134,10 +143,15 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
 
   /** The record view of v7 goes (another view replaces it or the overlay closed). */
   const leaveView = (): void => {
+    disposeWidgets(overlay)
     presentation?.dispose()
     presentation = null
     release(added)
     added = []
+    if (busKnown !== null) {
+      release(paginationSince(busKnown))
+      busKnown = null
+    }
     restoreController?.()
     restoreController = null
     if (beforeUnload !== undefined) {
@@ -201,6 +215,7 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
       })
       detail = started.result
       added = started.added
+      busKnown = busHandlers()
       presentation = createScope('record-presentation')
       presentRecord(presentation, root, texts, () => { hidePageOverlay() })
       if (push) {
@@ -254,6 +269,7 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
       added = tracked(() => {
         startEdit(instance, module, container)
       }).added
+      busKnown = busHandlers()
       editBeforeUnload = window.onbeforeunload
       state = 'edit'
       overlay.querySelector<HTMLElement>('form#EditView input:not([type=hidden]), form#EditView select, form#EditView textarea')?.focus({ preventScroll: true })
@@ -280,7 +296,9 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
     dirty = false
     restore = null
     mark(false)
-    if (stateRecord(history.state, module) !== null) {
+    if (closingByHistory) {
+      closingByHistory = false
+    } else if (stateRecord(history.state, module) !== null) {
       if (ownEntry) {
         ownBack = true
         history.back()
@@ -289,6 +307,13 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
       }
     }
     ownEntry = false
+    const next = pending
+    pending = null
+    if (next !== null && stateRecord(history.state, module) === next && listRow(next) !== null) {
+      ownEntry = true
+      open({ module, record: next }, listRow(next), false)
+      return
+    }
     const back = (): void => {
       if (was === null) {
         return
@@ -444,7 +469,12 @@ export function startRecordOverlay(scope: IslandScope, module: string, texts: Re
     const wanted = stateRecord((event as PopStateEvent).state, module)
     if (state !== 'closed' && wanted === null) {
       ownEntry = false
+      closingByHistory = true
+      pending = null
       close()
+    } else if (state !== 'closed' && closingByHistory) {
+      // Forward while the window is still fading out: open it again once it is hidden.
+      pending = wanted
     } else if (state === 'closed' && wanted !== null && listRow(wanted) !== null) {
       ownEntry = true
       open({ module, record: wanted }, listRow(wanted), false)

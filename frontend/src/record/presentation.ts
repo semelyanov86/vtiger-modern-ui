@@ -5,6 +5,7 @@ import type { IslandScope } from '../boot/runtime'
 import RecordSections from './RecordSections.vue'
 import RecordControls from './RecordControls.vue'
 import RecordTabs, { type OverflowTab } from './RecordTabs.vue'
+import { scrollBehavior } from '../boot/motion'
 
 export interface RecordTexts {
   readonly sections: string
@@ -181,7 +182,7 @@ export function presentRecord(scope: IslandScope, root: HTMLElement, texts: Reco
       sections, label: texts.sections, search: texts.search, empty: texts.empty,
       onSelect: (id: string) => {
         const block = blocks.find((item) => item.id === id)
-        block?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+        block?.scrollIntoView({ block: 'start', behavior: scrollBehavior() })
       },
       filter: (value: string): number => {
         const query = value.trim().toLocaleLowerCase()

@@ -22,6 +22,7 @@ import ConfirmDialog from '../settings/components/ConfirmDialog.vue'
 import { ask } from '../settings/confirm'
 import { describeValue } from '../settings/fields'
 import { clone, same } from '../settings/state'
+import { reorderAnimation } from '../boot/motion'
 
 const props = defineProps<{ bootstrap: Bootstrap }>()
 
@@ -325,7 +326,7 @@ const showMenu = computed(() => (allowed.value.has('navigation.favorites') && da
             <h4 class="mu-column__title mu-column__title--tiles">{{ t('fields.navigation_favorites') }}</h4>
             <p class="mu-help">{{ t('prefs.favoritesHelp', { count: favorites.length }) }}</p>
             <p class="mu-visually-hidden" role="status" aria-live="polite">{{ favoriteStatus }}</p>
-            <VueDraggable v-model="favoriteList" tag="ol" class="mu-favorites" handle=".mu-favorite__drag" :animation="150" data-mu-list="favorites" @end="setFavorites([...favoriteList])">
+            <VueDraggable v-model="favoriteList" tag="ol" class="mu-favorites" handle=".mu-favorite__drag" :animation="reorderAnimation()" data-mu-list="favorites" @end="setFavorites([...favoriteList])">
               <li
                 v-for="(module, index) in favoriteList" :key="module" class="mu-favorite" tabindex="0" :data-mu-favorite="module"
                 :aria-label="t('prefs.favoriteAria', { name: labelOf(module), position: index + 1, count: favoriteList.length })"

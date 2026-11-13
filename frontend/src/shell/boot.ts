@@ -322,7 +322,7 @@ export async function boot(): Promise<void> {
         lists = createScope('lists')
         startLists(lists, {
           filters: i18n.global.t('lists.filters'), search: i18n.global.t('lists.search'),
-          more: i18n.global.t('lists.more'), close: i18n.global.t('lists.close'),
+          more: i18n.global.t('lists.more'), close: i18n.global.t('lists.close'), rowActions: i18n.global.t('lists.rowActions'),
         })
       }
       html.classList.add(READY_CLASS)

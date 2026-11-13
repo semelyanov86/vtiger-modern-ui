@@ -63,6 +63,36 @@ check($context['roleSource'] === 'H5' && count($context['values']['theme.exclude
 ModernUI_Settings_Model::reset('user', '5');
 check(ModernUI_Settings_Model::getRow('user', '5') === null, 'reset removes the personal scope');
 
+// 4a. Damaged documents (stage 19): a broken global document means the defaults — the theme is off for everybody,
+// the standard interface stays — and the administrator repairs it with a normal save on the current revision.
+// Invalid values inside a readable document are dropped one by one; the valid ones keep working.
+$globalRevision = (int) q("SELECT revision FROM vtiger_modernui_settings WHERE scope = 'global'")[0]['revision'];
+q("UPDATE vtiger_modernui_settings SET data = '{\"v\":1,\"theme\":{\"mode\":' WHERE scope = 'global'");
+$broken = ModernUI_Settings_Model::decodeRow(ModernUI_Settings_Model::getRow('global', ''), 'global');
+check($broken['values'] === array() && $broken['errors'][0]['code'] === 'MU_INVALID_DOCUMENT' && $broken['revision'] === $globalRevision,
+	'a broken global document reads as no values with MU_INVALID_DOCUMENT: ' . json_encode($broken));
+$brokenUser = ModernUI_Settings_Model::forUser(5, 'H7', array('H5', 'H2', 'H1'));
+check($brokenUser['values']['theme.mode'] === 'off', 'broken global document: the theme is off (defaults), nothing else breaks');
+$repaired = ModernUI_Settings_Model::save('global', '', array('theme.mode' => 'pilot', 'theme.pilot.users' => array(1)), $globalRevision, 1);
+check($repaired['ok'] === true && $repaired['revision'] === $globalRevision + 1, 'a normal save on the current revision repairs it: ' . json_encode($repaired));
+q("UPDATE vtiger_modernui_settings SET data = '{\"v\":1,\"theme\":{\"mode\":\"pilot\",\"pilot\":{\"users\":[1]},\"customCss\":\"body{display:none}\"},"
+	. "\"appearance\":{\"primaryColor\":\"javascript:alert(1)\",\"density\":\"compact\"},\"branding\":{\"logo\":\"../../config.inc.php\"}}' WHERE scope = 'global'");
+$mixed = ModernUI_Settings_Model::decodeRow(ModernUI_Settings_Model::getRow('global', ''), 'global');
+$mixedKeys = array_column($mixed['errors'], 'key');
+sort($mixedKeys);
+check($mixed['values'] === array('theme.mode' => 'pilot', 'theme.pilot.users' => array(1), 'appearance.density' => 'compact')
+	&& $mixedKeys === array('appearance.primaryColor', 'branding.logo', 'theme.customCss'),
+	'invalid stored values are dropped key by key, the valid ones stay: ' . json_encode($mixed));
+foreach (array('5' => '[1,2,3]', '6' => 'null') as $brokenUserId => $brokenData) {
+	q("INSERT INTO vtiger_modernui_settings (scope, scope_key, data, doc_version, revision, updated_by, updated_at) VALUES ('user', '{$brokenUserId}', '{$brokenData}', 1, 1, {$brokenUserId}, NOW())");
+	$brokenPersonal = ModernUI_Settings_Model::forUser((int) $brokenUserId, 'H7', array('H5', 'H2', 'H1'));
+	check($brokenPersonal['values']['theme.mode'] === 'pilot' && $brokenPersonal['values']['appearance.density'] === 'compact',
+		"a broken personal document ({$brokenData}) falls back to the global values: " . json_encode($brokenPersonal['errors']));
+	ModernUI_Settings_Model::reset('user', $brokenUserId);
+}
+$restore = ModernUI_Settings_Model::save('global', '', array('theme.mode' => 'pilot', 'theme.pilot.users' => array(1)), $mixed['revision'], 1);
+check($restore['ok'] === true, 'the damaged global document is replaced by a valid one');
+
 // Core tables the lifecycle reads or changes (minimal columns of Vtiger 8.4).
 q("CREATE TABLE vtiger_tab (tabid INT PRIMARY KEY, name VARCHAR(25), version VARCHAR(10))");
 q("INSERT INTO vtiger_tab VALUES (99, 'ModernUI', '0.1.0')");

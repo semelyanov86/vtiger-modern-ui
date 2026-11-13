@@ -527,6 +527,72 @@ export function release(handlers: readonly AddedHandler[]): void {
   }
 }
 
+/**
+ * Widgets of v7 inside a record view that outlive their elements (stage 19). On a full page the next page load ends them;
+ * over the list they piled up with every record: mCustomScrollbar (the menu of the further related tabs) runs an update
+ * loop every 60 ms that kept each closed record in memory; Select2 leaves its live region and drop-down in <body> and keeps
+ * a MutationObserver; the jQuery UI autocomplete of reference fields leaves its menu in <body>. Destroyed with their own
+ * API when the view goes — the same calls v7 makes when it removes such a widget itself.
+ */
+const DISPOSABLE: readonly (readonly [selector: string, plugin: string])[] = [
+  ['.mCustomScrollbar', 'mCustomScrollbar'],
+  ['.select2-offscreen', 'select2'],
+  ['.ui-autocomplete-input', 'autocomplete'],
+]
+
+export function disposeWidgets(root: Element | null): void {
+  if (root === null) return
+  for (const [selector, plugin] of DISPOSABLE) {
+    for (const element of root.querySelectorAll(selector)) {
+      try {
+        method($(element), plugin)('destroy')
+      } catch {
+        // the plugin is not loaded or the element has no instance: nothing runs
+      }
+    }
+  }
+}
+
+/** The element of the event bus of v7 (app.event), or null. */
+function busElement(): object | null {
+  try {
+    const bus = Reflect.get(Reflect.get(app() as object, 'event') as object, 'el')
+    const element: unknown = isRecord(bus) || Array.isArray(bus) ? Reflect.get(bus as object, 0) : undefined
+    return typeof element === 'object' && element !== null ? element : null
+  } catch {
+    return null
+  }
+}
+
+/** The jQuery handlers of the event bus now (identities), to tell later which ones a record view added. */
+export function busHandlers(): Set<unknown> {
+  const bus = busElement()
+  return new Set(bus === null ? [] : [...jqueryData(bus).values()].flat())
+}
+
+/**
+ * Subscriptions of Vtiger_Pagination_Js ("Post.NextPage.Click<random>" …) that the related lists of a record view added to
+ * the bus while it was open (a related tab opened by the user, after the start of the view). A full page drops them with
+ * the next page load; over the list they piled up with each related tab (stage 19). Only these: other subscriptions of the
+ * bus may belong to the page or to extensions.
+ */
+export function paginationSince(known: ReadonlySet<unknown>): AddedHandler[] {
+  const bus = busElement()
+  const added: AddedHandler[] = []
+  if (bus === null) return added
+  for (const [, list] of jqueryData(bus)) {
+    for (const handleObj of list) {
+      if (known.has(handleObj) || !isRecord(handleObj)) continue
+      const origType = handleObj['origType']
+      const namespace = handleObj['namespace']
+      if (origType === 'Post' && typeof namespace === 'string' && /(?:^|\.)Click\d+(?:\.|$)/.test(namespace)) {
+        added.push({ target: bus, type: `${origType}.${namespace}`, selector: undefined, handler: handleObj['handler'] })
+      }
+    }
+  }
+  return added
+}
+
 /** Number of jQuery handlers on the persistent elements (diagnostics: html[data-mu-record-handlers], e2e). */
 export function handlerCount(): number {
   return persistentTargets().reduce((sum, target) => sum + [...jqueryData(target).values()].reduce((count, list) => count + list.length, 0), 0)

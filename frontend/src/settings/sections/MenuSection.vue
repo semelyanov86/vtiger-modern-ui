@@ -35,6 +35,7 @@ import ItemDialog from '../components/ItemDialog.vue'
 import type { ItemDialogValue } from '../dialogs'
 import ScopedField from '../components/ScopedField.vue'
 import { pathLabel } from '../fields'
+import { reorderAnimation } from '../../boot/motion'
 
 const props = defineProps<{ editor: Editor; problems: readonly Problem[]; locale: ThemeLocale }>()
 
@@ -587,7 +588,7 @@ const stateText = computed(() => {
       <div class="mu-menu-editor">
         <nav class="mu-menu-groups" :aria-label="t('editor.menu.groupsTitle')">
           <p class="mu-menu-groups__caption">{{ t('editor.menu.groupsTitle') }}</p>
-          <VueDraggable v-model="groups" :disabled="readonly" handle=".mu-group-item__drag" :animation="150" tag="ul" class="mu-menu-groups__list" @end="commit">
+          <VueDraggable v-model="groups" :disabled="readonly" handle=".mu-group-item__drag" :animation="reorderAnimation()" tag="ul" class="mu-menu-groups__list" @end="commit">
             <li v-for="(group, groupIndex) in groups" :key="group.id" class="mu-group-item" :class="{ 'mu-group-item--active': selected === group.id }" :data-mu-group-item="group.id">
               <button
                 type="button" class="mu-group-item__button" :aria-current="selected === group.id ? 'true' : undefined" :data-mu-row="`group/${group.id}`"
@@ -653,7 +654,7 @@ const stateText = computed(() => {
             <p v-if="!readonly" class="mu-help">{{ t('editor.menu.keys') }}</p>
             <p v-if="selectedGroup.items.length === 0" class="mu-empty" data-mu-empty="group">{{ t('editor.menu.emptyGroup') }}</p>
             <VueDraggable
-              v-model="selectedGroup.items" :disabled="readonly" group="mu-menu-items" handle=".mu-tile__drag" :animation="150" tag="ul" class="mu-tiles"
+              v-model="selectedGroup.items" :disabled="readonly" group="mu-menu-items" handle=".mu-tile__drag" :animation="reorderAnimation()" tag="ul" class="mu-tiles"
               @start="dragging = true" @end="afterDrag"
             >
               <li

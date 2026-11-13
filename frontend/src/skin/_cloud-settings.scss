@@ -879,7 +879,9 @@ $icon-modules: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
     }
   }
 
-  #{$layout} .settingsgroup:has(#settingsMenuSearch:not(:placeholder-shown)):not(:has(.instaSearch:not([style*='display: none']))) > .mu-settings-empty {
+  // The state of the native search is kept by the settings adapter (data-mu-search-empty): a :has() over the inline style of
+  // every item made each style change of the page restyle the whole document (stage 19, list pages 2x slower).
+  #{$layout} .settingsgroup[data-mu-search-empty] > .mu-settings-empty {
     display: block;
   }
 }
@@ -1333,7 +1335,7 @@ $icon-modules: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
     }
 
     // While searching, the catalog is the result: no shortcuts.
-    .main-container:has(#settingsMenuSearch:not(:placeholder-shown)) :is(.settingsIndexPage > h4, #settingsShortCutsContainer) {
+    .main-container[data-mu-settings-searching] :is(.settingsIndexPage > h4, #settingsShortCutsContainer) {
       display: none;
     }
   }

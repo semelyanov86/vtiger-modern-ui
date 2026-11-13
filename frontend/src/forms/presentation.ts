@@ -7,6 +7,7 @@ import FormSections from './FormSections.vue'
 import type { Section } from '../record/RecordSections.vue'
 import type { MenuItem } from '../api/types'
 import ModuleIcon from '../menu/ModuleIcon.vue'
+import { scrollBehavior } from '../boot/motion'
 
 export interface FormTexts {
   readonly sections: string
@@ -105,7 +106,7 @@ function presentForm(scope: IslandScope, form: HTMLFormElement, texts: FormTexts
         const block = blocks().find((item) => item.id === id)
         if (block !== undefined) {
           // scrollIntoView also scrolls overflow:hidden ancestors and moves the pinned header/footer.
-          contents.scrollTo({ top: contents.scrollTop + block.getBoundingClientRect().top - contents.getBoundingClientRect().top - 16, behavior: 'smooth' })
+          contents.scrollTo({ top: contents.scrollTop + block.getBoundingClientRect().top - contents.getBoundingClientRect().top - 16, behavior: scrollBehavior() })
         }
       },
     }) })

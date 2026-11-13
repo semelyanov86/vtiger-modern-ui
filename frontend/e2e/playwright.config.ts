@@ -31,7 +31,12 @@
  * - devrecord — a synthetic record through the standard form with the theme on, then its deletion (task test:devrecord);
  * - visual   — screenshots of the main screens with and without the theme for the visual review (task shots); the
  *              only project that writes images, into MU_SHOTS_DIR (private directory on the dev instance);
- * - measure  — cost of the theme against the same CRM in safe mode: timings, layout shift, bytes, Bootstrap (task measure).
+ * - measure  — cost of the theme against the same CRM in safe mode: timings, layout shift, bytes, Bootstrap, transitions and
+ *              their budgets (task measure);
+ * - quality  — stage 19: CSRF/method/Referer of every changing action, errors without leaks, uploads, import, isolation of
+ *              users, a strict Content-Security-Policy, failures and recovery, axe-core, keyboard, reduced motion, German;
+ * - stability — stage 19: 40 cycles of list, record, edit, related tab, history, menu and AJAX reload in one document;
+ * - browsers-chromium / browsers-firefox / browsers-webkit — stage 19: the core scenarios of the theme in each engine.
  *
  * The tests change the theme settings of the signed-in users, so they run one after another. No screenshots,
  * traces or videos (except the visual project): pages of a dev instance may show customer data.
@@ -84,5 +89,10 @@ export default defineConfig({
     { name: 'devrecord', testMatch: /devrecord\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'visual', testMatch: /visual\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'measure', testMatch: /measure\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
+    { name: 'quality', testMatch: /quality\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
+    { name: 'stability', testMatch: /stability\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
+    { name: 'browsers-chromium', testMatch: /browsers\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin, browserName: 'chromium' } },
+    { name: 'browsers-firefox', testMatch: /browsers\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin, browserName: 'firefox' } },
+    { name: 'browsers-webkit', testMatch: /browsers\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin, browserName: 'webkit' } },
   ],
 })

@@ -73,6 +73,12 @@
 		finished = true;
 		removePending();
 		root.setAttribute('data-mu-failed', code);
+		// The geometry reserved for the new interface is gone. Widgets of v7 that measured it in the meantime (the floating
+		// table header of lists, scroll bars) measure again on a resize; otherwise the floating header of a list covers its
+		// first row (stage 19).
+		window.setTimeout(function () {
+			window.dispatchEvent(new Event('resize'));
+		}, 0);
 		warn('the new interface did not start (' + code + '), the standard interface stays');
 	}
 
