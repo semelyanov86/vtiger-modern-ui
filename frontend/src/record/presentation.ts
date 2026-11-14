@@ -16,6 +16,8 @@ export interface RecordTexts {
   readonly actions: string
   readonly context: string
   readonly more: string
+  readonly previous: string
+  readonly next: string
   readonly noRelated: string
 }
 
@@ -24,6 +26,20 @@ export function presentRecord(scope: IslandScope, root: HTMLElement, texts: Reco
   const added: HTMLElement[] = []
   const header = root.querySelector<HTMLElement>('.detailview-header')
   if (header !== null) {
+    // Name the native list-navigation buttons without replacing their handlers or disabled state.
+    const navigationLabels = new Map<HTMLElement, string | null>()
+    for (const [id, label] of [['detailViewPreviousRecordButton', texts.previous], ['detailViewNextRecordButton', texts.next]] as const) {
+      const button = header.querySelector<HTMLElement>(`#${id}`)
+      if (button === null) continue
+      navigationLabels.set(button, button.getAttribute('aria-label'))
+      button.setAttribute('aria-label', label)
+    }
+    scope.onDispose(() => {
+      for (const [button, label] of navigationLabels) {
+        if (label === null) button.removeAttribute('aria-label')
+        else button.setAttribute('aria-label', label)
+      }
+    })
     const controls = document.createElement('div')
     controls.dataset['muRoot'] = 'record-controls'
     header.appendChild(controls)

@@ -1,5 +1,6 @@
 // V05/V06. Native fields and handlers keep their nodes; only the presentation is different.
 @use '../styles/tokens' as *;
+@use '../styles/components' as *;
 
 :root:not(.mu-off)[data-mu-record] { overflow: hidden; }
 
@@ -52,13 +53,27 @@
   .mu-record-open { right: 16px; }
   .mu-record-actions-toggle { right: 56px; color: tok(text); }
   .mu-record-context-toggle { right: 96px; font-size: 20px; }
+  // The header creates a stacking context: its menu must also cover the related-tabs overflow control.
+  &.mu-record-actions-open .detailview-header-block { z-index: 6; }
   &.mu-record-actions-open .detailview-header :is(.btn-toolbar, .detailViewButtoncontainer > .btn-group) {
+    @include menu-panel;
     position: absolute; right: 56px; top: 58px; z-index: 6; width: 320px; max-width: calc(100vw - 100px);
-    max-height: 65vh; overflow: auto; padding: 8px; background: #fff; border: 1px solid tok(divider);
-    box-shadow: 0 8px 16px #0002; border-radius: 6px;
+    max-height: 65vh; overflow: auto; padding: 4px 0;
     .btn-group { display: block; width: 100%; }
-    .btn { display: block; width: 100% !important; height: auto; min-height: 36px; text-align: left; white-space: normal; border: 0; }
-    .dropdown-menu { position: static; float: none; box-shadow: none; width: 100%; }
+    .btn {
+      @include menu-item;
+      display: block; width: 100% !important; height: auto; min-height: 36px;
+      float: none; margin: 0 !important;
+      text-align: left; white-space: normal; border: 0; border-radius: 0 !important;
+      background-color: transparent; box-shadow: none;
+      &:hover, &:focus { background-color: tok(menu-hover); }
+    }
+    .open > .dropdown-toggle { background-color: tok(menu-hover); }
+    #detailViewPreviousRecordButton, #detailViewNextRecordButton {
+      display: flex; align-items: center; gap: 10px;
+      &::after { content: attr(aria-label); }
+    }
+    .dropdown-menu { position: static; float: none; box-shadow: none; width: 100%; border: 0; margin: 0; }
     .dropdown-menu a { white-space: normal; }
   }
   &.mu-record-context-open .recordBasicInfo {

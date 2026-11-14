@@ -228,6 +228,65 @@ test('inventory, documents and custom modules keep their native actions, authori
   }
 })
 
+test('record action menu and nested More remain usable in full page and overlay', async ({ page }) => {
+  test.setTimeout(180_000)
+  for (const overlay of [false, true]) {
+    for (const width of [1440, 1024, 768, 412]) {
+      await page.setViewportSize({ width, height: 1000 })
+      if (overlay) {
+        await openCloudRecord(page, 'Accounts', id, search)
+      } else {
+        await page.goto(`index.php?module=Accounts&view=Detail&record=${id}&modernui=on`)
+        await waitForShell(page)
+        await settle(page)
+      }
+      await page.locator('.mu-record-actions-toggle').click()
+      const menu = page.locator('.mu-record-actions-open .detailview-header .btn-toolbar, .mu-record-actions-open .detailview-header .detailViewButtoncontainer > .btn-group').first()
+      await expect(menu).toBeVisible()
+      // A centre-only click check misses the strip at the menu's right edge covered by the tab overflow button.
+      const hit = await menu.evaluate((element) => {
+        const more = element.closest('.mu-cloud-record')?.querySelector('.mu-record-tab-overflow > button')
+        if (!more) return null
+        const panel = element.getBoundingClientRect()
+        const tab = more.getBoundingClientRect()
+        const left = Math.max(panel.left, tab.left)
+        const right = Math.min(panel.right, tab.right)
+        const top = Math.max(panel.top, tab.top)
+        const bottom = Math.min(panel.bottom, tab.bottom)
+        return {
+          overlaps: right > left && bottom > top,
+          menuOnTop: element.contains(document.elementFromPoint((left + right) / 2, (top + bottom) / 2)),
+        }
+      })
+      expect(hit, `${overlay ? 'overlay' : 'full page'} at ${String(width)}px: overlapping More control`).toEqual({ overlaps: true, menuOnTop: true })
+      await page.locator('.detailViewButtoncontainer [id$="_LBL_EDIT"]').click({ trial: true })
+      const more = menu.locator('button.dropdown-toggle').first()
+      const nested = menu.locator('.dropdown-menu').first()
+      await more.click()
+      await expect(nested).toBeVisible()
+      const moreBox = await more.boundingBox()
+      const nestedBox = await nested.boundingBox()
+      expect(nestedBox?.y).toBeGreaterThanOrEqual((moreBox?.y ?? 0) + (moreBox?.height ?? 0) - 1)
+      // Native floated buttons used to leave the nested menu underneath the first action rows.
+      await page.locator('.detailViewButtoncontainer [id$="_LBL_EDIT"]').click({ trial: true })
+      expect(await menu.evaluate((element) => element.scrollWidth - element.clientWidth)).toBe(0)
+      await more.click()
+      await expect(nested).not.toBeVisible()
+      expect(await menu.evaluate((element) => element.scrollWidth - element.clientWidth)).toBe(0)
+      for (const navigation of await menu.locator('#detailViewPreviousRecordButton, #detailViewNextRecordButton').all()) {
+        const label = await navigation.getAttribute('aria-label')
+        expect(label).toBeTruthy()
+        expect(label).not.toMatch(/^record\./)
+        expect(await navigation.evaluate((element) => getComputedStyle(element, '::after').content)).toBe(JSON.stringify(label))
+        if (await navigation.isEnabled()) await navigation.click({ trial: true })
+      }
+      await page.keyboard.press('Escape')
+      await expect(menu).not.toBeVisible()
+      if (overlay) await page.locator('.mu-record-back').click()
+    }
+  }
+})
+
 test('RU/EN/DE, widths, zoom, keyboard focus and overflow actions', async ({ page }) => {
   test.setTimeout(180_000)
   for (const locale of ['ru-RU', 'en-US', 'de-DE']) {

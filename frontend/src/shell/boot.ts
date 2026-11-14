@@ -342,6 +342,7 @@ export async function boot(): Promise<void> {
         close: i18n.global.t('record.close'), open: i18n.global.t('record.open'),
         actions: i18n.global.t('record.actions'), context: i18n.global.t('record.context'), more: i18n.global.t('record.more'),
         noRelated: i18n.global.t('record.noRelated'),
+        previous: i18n.global.t('record.previous'), next: i18n.global.t('record.next'),
       }
       if (supportsRecordOverlay(page.module, page.view, data.layout.modules)) {
         recordOverlay = createScope('record-overlay')

@@ -113,6 +113,8 @@
     "actions": "Datensatzaktionen",
     "context": "Datensatzinformationen",
     "more": "Mehr",
+    "previous": "Vorheriger Datensatz",
+    "next": "Nächster Datensatz",
     "noRelated": "Noch keine verknüpften Datensätze"
   },
   "context": {

@@ -113,6 +113,8 @@
     "actions": "Record actions",
     "context": "Record information",
     "more": "More",
+    "previous": "Previous record",
+    "next": "Next record",
     "noRelated": "No related records yet"
   },
   "context": {
