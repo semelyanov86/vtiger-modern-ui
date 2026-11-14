@@ -1,37 +1,136 @@
 # ModernUI for Vtiger CRM 8.4
 
-ModernUI is an installable extension module that gives Vtiger CRM Open Source 8.4 a modern
-interface: a redesigned header, navigation, list views, record views and forms, a settings page
-for the theme and the menu, and personal preferences. The interface texts of the module are
-available in English, German and Russian.
+**A modern, customizable interface for your self-hosted Vtiger CRM.** ModernUI brings a layout
+inspired by Vtiger's cloud interface to **Vtiger CRM Open Source 8.4**: a compact header, searchable
+module menu, clearer lists, record windows and forms, and a visual editor for your theme and menu.
+Your records, permissions and business processes continue to use your existing CRM.
 
-The module installs as a regular Vtiger extension ZIP through *Settings → Module Manager →
-Import*. Installation leaves the Vtiger core untouched and does not replace global libraries
-(jQuery, Bootstrap, Select2). An optional administrator button installs the login and password
-recovery design by wrapping two native templates, with backups and a restore button. The standard
-v7 interface remains available as a fallback. See [authentication pages](docs/auth-pages.md).
+Install it through Vtiger's Module Manager, try it for yourself, then enable it for your team.
+The theme runs on your CRM server, with bundled fonts and assets and no cloud account or CDN
+required. ModernUI's own interface is available in **English, German and Russian**.
 
-**Version 1.0.0 passed release acceptance on Vtiger 8.4.0.** The same install ZIP was imported
-through Module Manager on two new official installations and the development instance, with
-separate visual and functional checks. Download the install ZIP, reproducible sources and
-SHA-256 files from this repository's **Releases**, tag **v1.0.0**.
-Evidence, supported versions and instructions are in [the release guide](docs/release.md).
+**[Download v1.0.0](../../releases/tag/v1.0.0)** ·
+[Install](#installation) · [Features](#features) · [Screenshots](#screenshots) ·
+[Personalize](#make-it-your-own) · [Develop](#development) · [MIT license](LICENSE)
 
-## Install and recover
+![ModernUI organization list with a favourites bar, compact toolbar and fictional demo records](docs/images/organization-list.png)
 
-Download **ModernUI-1.0.0.zip** from this repository's **Releases**, together with
-`ModernUI-1.0.0.SHA256SUMS`. Verify downloaded archives with
-`sha256sum --ignore-missing -c ModernUI-1.0.0.SHA256SUMS`.
-The separately attached `ModernUI-source-1.0.0.zip` is for developers; GitHub's automatic
-source archives are also not installable CRM modules.
+*Actual ModernUI interface on a clean Vtiger installation. All people, companies and contact
+details shown in this README are fictional test data.*
 
-Back up the CRM database and files. As an administrator, open *Settings → Module Manager →
-Import Module*, upload the install ZIP and confirm the name/version. No npm, Composer, Phinx
-or CLI is required. Open *Settings → Other settings → ModernUI* and enable the theme for
-yourself first. Installation leaves it off for everyone. Assets and all three theme languages
-load from your CRM, with no CDN or cloud-account dependency.
+## Features
 
-Relative to your CRM base URL (including its subdirectory, if any):
+| Area | What you get |
+|---|---|
+| Navigation | A searchable module menu with groups and icons, a favourites bar, and access to Vtiger's global search and quick create. |
+| Lists | A wide workspace with filters, column search, sorting, selection and bulk actions using the CRM's existing controls. |
+| Records and forms | Redesigned summaries, details, related records and edit forms. Supported lists open records in a window over the list; full-page views remain available. |
+| Everyday CRM screens | Consistent styling for the dashboard, calendar, reports, import screens and CRM settings, while retaining their native actions. |
+| Appearance | Accent, background and panel colours; compact, standard or comfortable density; text size and font choices; a logo and optional public notice. |
+| Menu editor | Reorder modules, create groups, change labels and icons, hide items and preview the result. Drag and drop also has keyboard controls. |
+| Team preferences | Organization defaults, role-specific settings and personal preferences within the administrator's policy. Roll out to selected users or roles before enabling everyone. |
+| Languages and screen sizes | English, German and Russian theme texts, layouts for smaller screens, keyboard navigation and support for browser zoom. Wide tables remain horizontally scrollable. |
+| Optional login design | Matching login, password recovery and password change pages, applied separately by an administrator with backup and restore. |
+| Recovery and portability | Switch back to the standard interface, keep settings through updates, and export/import theme and menu configuration as JSON. |
+
+ModernUI changes the presentation of your self-hosted CRM. Features exclusive to Vtiger's cloud
+service are outside its scope. Custom modules and extensions retain their native behaviour;
+the degree of styling depends on their markup and available adapters. See
+[compatibility](docs/compatibility.md) for tested integrations and limits.
+
+## Screenshots
+
+These are real browser captures, including cropped views of individual panels. They show the
+default appearance with synthetic records from an isolated test installation. Click an image to
+enlarge it.
+
+| Record details | Editing a record |
+|---|---|
+| [![Organization record window with related-record tabs, section navigation and field search](docs/images/record-details.png)](docs/images/record-details.png) | [![Organization edit window with grouped fields, section navigation and Save and Cancel buttons](docs/images/record-edit.png)](docs/images/record-edit.png) |
+| Keep the list behind the record while browsing details and related information. | Edit with the CRM's existing fields, validation and save action. |
+
+| Appearance and preview | Menu editor |
+|---|---|
+| [![ModernUI appearance settings with colour, density and font controls beside a live preview](docs/images/appearance.png)](docs/images/appearance.png) | [![ModernUI menu editor showing module groups and draggable module tiles](docs/images/menu-editor.png)](docs/images/menu-editor.png) |
+| Preview colours, density and typography before saving. | Organize modules into groups for everyone or for a particular role. |
+
+<details>
+<summary>See the searchable module menu</summary>
+
+![ModernUI module menu with search, module groups and shortcuts to preferences and settings](docs/images/module-menu.png)
+
+The menu includes only modules the current user is allowed to open. Favourites and search help
+users reach their regular workspace quickly.
+
+</details>
+
+Screenshot provenance and maintenance notes: [docs/images/README.md](docs/images/README.md).
+
+## Requirements
+
+| Component | Supported or verified version |
+|---|---|
+| Vtiger CRM Open Source | **8.4**, with the standard `v7` layout; release acceptance on **8.4.0** |
+| PHP | **8.1–8.5** for ModernUI; the CRM and other extensions must also support the chosen version |
+| Database | **MySQL 8.4.13** verified; MySQL 8.0 and MariaDB not verified |
+| Browser | Core scenarios tested in Chromium, Firefox and WebKit; see [release evidence](docs/release.md) |
+| Installation access | A Vtiger administrator account with access to Module Manager |
+
+The install ZIP includes the built frontend. End users and CRM administrators do not need Node.js,
+npm, Composer or a command line to install or use the theme.
+
+## Installation
+
+1. Back up your CRM database and files.
+2. Open [Releases](../../releases/tag/v1.0.0) and download
+   **`ModernUI-1.0.0.zip`**. This is the installable module; `ModernUI-source-1.0.0.zip` and GitHub's
+   automatic source archives are for developers.
+3. Sign in to Vtiger as an administrator. Open **Settings → Module Manager → Import Module**,
+   upload the ZIP and confirm the module name and version.
+4. Open **Settings → Other Settings → ModernUI** and choose **Enable for me**.
+5. Review the appearance and navigation. In **Switching on**, choose a pilot group or enable
+   the theme for everyone, then save. **Users and roles** controls which preferences users may change.
+
+**The theme is off for everyone after installation.** Installing the module does not switch the
+whole team to a new interface. Normal installation leaves Vtiger's core files and global libraries
+unchanged. The optional login design is a separate administrator action, described below.
+
+For download verification, the release includes `ModernUI-1.0.0.SHA256SUMS`. With both files in
+the same folder, run `sha256sum --ignore-missing -c ModernUI-1.0.0.SHA256SUMS`, or compare the ZIP's
+SHA-256 using your preferred checksum tool. Installation and acceptance evidence are in the
+[release guide](docs/release.md).
+
+## Make it your own
+
+**For everyday users:** open **Preferences** in the module menu to choose the theme language,
+text size and density where your administrator permits them. Add frequently used modules to the
+favourites bar with the star. Personal changes affect only your account.
+
+**For administrators:** open **ModernUI settings** and select the scope before editing: all users
+or a role. Set colours, fonts, density, branding and navigation, preview the changes, then save.
+The menu editor supports custom groups, ordering, labels and icons. Hiding a menu item changes
+navigation only; access is still controlled by Vtiger's permissions. The **Transfer** section
+exports/imports configuration as JSON; it is not a complete CRM backup.
+
+**Record windows:** open a record from a supported list to browse or edit it over that list.
+Direct links and unsupported screens use full-page views. Administrators who need to restrict
+this layout to particular modules can use the configuration described in [settings](docs/settings.md).
+
+**Login pages:** in **Service**, use **Apply sign-in pages** to install the optional design. This
+wraps only the native login and recovery templates, keeps backups and provides a restore button.
+Authentication and password recovery still run through Vtiger. See
+[authentication pages](docs/auth-pages.md) for the procedure and prerequisites.
+
+The theme's language setting does not change CRM dates, currencies or your profile language.
+Translations of business fields, core screens and other extensions come from their own language packs.
+
+## Updates and recovery
+
+Use **Standard view for this session** in the module menu to return to the original interface.
+If a page cannot load, append `index.php?modernui=off` to your CRM base URL. This keeps the normal
+Vtiger login and permissions in place.
+
+Useful links, relative to your CRM base URL (including its subdirectory, if any):
 
 | Purpose | URL |
 |---|---|
@@ -40,11 +139,6 @@ Relative to your CRM base URL (including its subdirectory, if any):
 | Standard interface for this session | `index.php?modernui=off` |
 | Leave safe mode | `index.php?modernui=on` |
 | Recovery without Vue | `index.php?module=ModernUI&parent=Settings&view=Index&editor=off&modernui=off` |
-
-The editor provides global/role scopes, inherited values, preview, appearance and menu changes,
-and versioned JSON import/export. Personal preferences affect only the current user. Theme
-language does not change CRM dates, currency or profile language, and does not translate core
-or extension strings without their language packs.
 
 Update through the same Module Manager with the new complete ZIP. Settings and favourites survive
 updates and disabling. Keep the previous ZIP, a consistent database/files backup, the two
@@ -61,7 +155,14 @@ Restore optional login templates first. Settings tables are retained; reinstall 
 off. The development helper `task crm:uninstall -- --purge` also deletes the module's settings
 and logos. Full procedures and limits: [release guide](docs/release.md).
 
-## Reproduce the release
+## Development
+
+ModernUI uses Vue 3, Vite and TypeScript for its own components, alongside PHP and Smarty for
+Vtiger integration. Vue mounts only into containers owned by ModernUI; the CRM's existing forms,
+permissions, validations and workflow handlers remain in use. The install ZIP is built from this
+repository and can be reproduced independently.
+
+### Reproduce the release
 
 Extract the attached source ZIP, enter `ModernUI-source-1.0.0`, then run `task release`
 (Node 24/npm, Python 3.10+, go-task 3). It builds twice in independent clean temporary directories
@@ -69,34 +170,7 @@ using `npm ci --ignore-scripts`, compares both complete ZIPs, and writes SHA-256
 and `ModernUI-1.0.0.build.json` to `dist/`. ZIP timestamps are pinned in `packaging/release.json`.
 Runtime allowlist: `packaging/allowlist.txt`; source allowlist: `packaging/source-allowlist.txt`.
 
-## Goals
-
-- Installs on a clean Vtiger Open Source 8.4 with the standard `v7` layout; no manual core edits.
-- The ZIP ships a production build. Servers need neither Node.js nor any build tooling.
-- Existing actions, permissions, validations, workflows and third-party extensions keep working.
-  Vue components mount only into containers owned by ModernUI; DOM managed by jQuery is left intact.
-- *Settings → ModernUI*: colours, density, font size, logo, menu editor (order, groups, labels,
-  icons, hidden items, favourites), pilot users and roles, preview, reset, JSON import/export.
-- *Appearance*: organization/theme logo and a configurable public notice; *Maintenance → Apply login
-  pages*: cloud-style login, recovery and password change. Authentication remains native Vtiger.
-  Run `task test:auth-pages` with `MU_E2E_TARGET=dev|c81|c85`; optional `MU_AUTH_MAIL_URL` enables
-  the full reset flow against the isolated clean stand's mail trap. Screenshots use `MU_AUTH_SHOTS_DIR`
-  (a private directory on the dev instance).
-- The menu is always limited by the current user's Vtiger permissions; hiding an item never grants
-  or removes access.
-- The theme is off after installation; administrators enable it for themselves first. A standard
-  view and a recovery path work even if the frontend fails to load.
-- Settings survive disable and update; uninstall follows a documented policy.
-
-## Requirements
-
-| | Version |
-|---|---|
-| Vtiger CRM Open Source | 8.4 (standard `v7` layout) |
-| PHP | 8.1 – 8.5 |
-| Database | MySQL 8.4.13 verified; MySQL 8.0 and MariaDB not verified |
-
-For development additionally:
+### Development requirements
 
 - Linux with `sudo` (the development link uses bind mounts and `nsenter`);
 - a local Vtiger 8.4 instance served by Apache + PHP-FPM;
@@ -105,7 +179,7 @@ For development additionally:
 - PHP CLI 8.5 and 8.4 with mysqli (PHP 8.1 runs in Docker);
 - Chromium for Playwright 1.63 (`npx playwright install chromium` in `frontend/`) for `task test:e2e`.
 
-## Repository layout
+### Repository layout
 
 ```
 src/            module files laid out exactly as they end up in a Vtiger installation:
@@ -123,7 +197,7 @@ dist/           ZIP, SHA-256 and file list, not committed
 VERSION         version of the module written into manifest.xml
 ```
 
-## Development setup
+### Development setup
 
 1. Clone the repository and create local settings:
 
@@ -154,6 +228,9 @@ VERSION         version of the module written into manifest.xml
 
 4. Edit files in `src/` and reload the page in the browser; keep `task dev` running for frontend changes.
 
+<details>
+<summary>Full command reference and development environment</summary>
+
 ### Commands
 
 | Command | Purpose |
@@ -176,15 +253,16 @@ VERSION         version of the module written into manifest.xml
 | `task test:e2e:clean` | The same plus pilot, restricted users, languages, Module Manager switch, and the settings of users with different permissions (menu by permissions, role profiles, personal keys, role change via `dev/clean/tools/set-role.php`, refused administrator actions, the navigation of a restricted user, hidden and read-only fields of a restricted user in forms, file upload and comments), and an unknown entity module installed after ModernUI (`tests/fixtures/gizmos`: menu by permissions also after a profile change, switched off and on, removed with `dev/clean/tools/remove-module.php`), on both clean instances; the list scenarios also star and unstar synthetic records there |
 | `task test:lifecycle` | Stage 20 on both clean instances: real 0.6.0 ZIP → candidate, all settings scopes, disable/enable, interrupted update, migration lock failure, recovery, missing asset, uninstall/reinstall; fields, forms, permissions and screenshots for default, upgraded and new-user profiles; restores settings; see [regression-lifecycle.md](docs/regression-lifecycle.md) |
 | `task test:release` | Stage 21: persisted native create/read/update/delete in RU/EN/DE, theme OFF and ON on the same CRM; synthetic MU21 records removed, personal preferences restored; `MU_E2E_TARGET=dev\|c81\|c85` |
-| `task test:lists` | Stage 12 cloud lists: native filters, column search, sorting, pagination, selection, columns and tags compared with v7; cloud geometry, RU/EN/DE, keyboard, narrow screens and restricted user; `MU_E2E_TARGET=dev|c81|c85`, private screenshots via `MU_LIST_SHOTS_DIR`; included in the e2e suites |
-| `task test:cloud-records` | Stage 13 cloud records: native field/action contracts, inline saves and comments, related quick create/select/unlink, pagination and row actions, languages, widths, rights and failure fallback; synthetic MU13 records are deleted and settings restored; `MU_E2E_TARGET=dev|c81|c85`, optional `MU_RECORD_MODULES=A,B` and `MU_RECORD_ORDER_BY='A=number_field&B=number_field'` for a stable native order; included in the e2e suites |
-| `task test:cloud-settings` | Stage 15 system settings: the catalog is the native settings menu (same items, URLs, summary), native search with an own empty state, keyboard, Back to CRM, side navigation and breadcrumb, seven inner pages with the same actions, drag and drop and switches as v7, dialogs, RU/EN/DE, widths, recovery; on the clean stand a restricted user and real changes (MU15 role, user, field, picklist value, workflow, deleted again); `MU_E2E_TARGET=dev|c81|c85` |
+| `task test:lists` | Stage 12 cloud lists: native filters, column search, sorting, pagination, selection, columns and tags compared with v7; cloud geometry, RU/EN/DE, keyboard, narrow screens and restricted user; `MU_E2E_TARGET=dev\|c81\|c85`, private screenshots via `MU_LIST_SHOTS_DIR`; included in the e2e suites |
+| `task test:cloud-records` | Stage 13 cloud records: native field/action contracts, inline saves and comments, related quick create/select/unlink, pagination and row actions, languages, widths, rights and failure fallback; synthetic MU13 records are deleted and settings restored; `MU_E2E_TARGET=dev\|c81\|c85`, optional `MU_RECORD_MODULES=A,B` and `MU_RECORD_ORDER_BY='A=number_field&B=number_field'` for a stable native order; included in the e2e suites |
+| `task test:cloud-settings` | Stage 15 system settings: the catalog is the native settings menu (same items, URLs, summary), native search with an own empty state, keyboard, Back to CRM, side navigation and breadcrumb, seven inner pages with the same actions, drag and drop and switches as v7, dialogs, RU/EN/DE, widths, recovery; on the clean stand a restricted user and real changes (MU15 role, user, field, picklist value, workflow, deleted again); `MU_E2E_TARGET=dev\|c81\|c85` |
 | `task test:settings-page` | Stage 16 page of ModernUI and personal preferences: one title and the sections in the order of the work, the scope shown before any change, inherited and own values, preview/cancel/reset, switching the scope with a draft, a conflict carried over to the current version, the draft of the tab kept over a reload, the menu editor (search, catalog, drag onto a group, keys, empty and unknown modules) checked in the real mega menu, preferences of the administrator and of a restricted user (clean stand), RU/EN/DE, 1440/1024/768/412 and 200 %, keyboard, no JavaScript; `MU_E2E_TARGET=dev\|c81\|c85` |
+| `task test:auth-pages` | Optional login and recovery design: installation/restore, branding, languages and native authentication; `MU_E2E_TARGET=dev\|c81\|c85`. `MU_AUTH_MAIL_URL` enables the full reset flow against the clean stand's mail trap; `MU_AUTH_SHOTS_DIR` selects screenshots (private on the dev instance). |
 | `task test:special-screens` | Stage 17 remaining screens against v7: calendar (each calendar keeps its colour, toolbar, views, the panel switch with the same request), home dashboard (tabs, More, Add widget), reports (folders, Add menu, the result with the same export request, the wizard to step 2 without saving), import up to the duplicate step (cancelled), recycle bin, find duplicates, email templates, mail manager; 1024/768/412 px and 200 % without covered controls, RU/EN/DE, no JavaScript; `MU_E2E_TARGET=dev\|c81\|c85` |
 | `task test:quality` | Stage 19 quality: POST + CSRF token + CRM Referer for every changing action of the module, errors without paths/SQL/stack traces, view parameter checks, logo uploads (clean stand), settings import, isolation of two users (clean stand), a strict Content-Security-Policy without `unsafe-eval`, failures and recovery, axe-core against the same CRM without the theme, keyboard, reduced motion, German texts; `MU_E2E_TARGET=dev\|c81\|c85` |
 | `task test:stability` | Stage 19: 40 cycles of list → record window → edit → cancel → related tab → close → Back/Forward → mega menu in one document with CDP metrics (heap, nodes, listeners, jQuery handlers, requests); AJAX list reloads against v7; `MU_STABILITY_CYCLES` |
 | `task test:browsers` | Stage 19: the core scenarios in Chromium, Firefox and WebKit of the pinned Playwright (run `npx playwright install firefox webkit` once); clean stand |
-| `task test:cloud-forms` | Stage 14 native create/edit/Quick Create: validation, pending save, retry, cancel, duplicate, native redirects, custom CRUD, rights and responsive layout; synthetic MU14 records, settings restored; `MU_E2E_TARGET=dev|c81|c85`, `MU_E2E_FORM_MODULES=A,B` on dev |
+| `task test:cloud-forms` | Stage 14 native create/edit/Quick Create: validation, pending save, retry, cancel, duplicate, native redirects, custom CRUD, rights and responsive layout; synthetic MU14 records, settings restored; `MU_E2E_TARGET=dev\|c81\|c85`, `MU_E2E_FORM_MODULES=A,B` on dev |
 | `task test:foundation` | Stage 10 visual foundation against the measured cloud reference (`docs/design.md` §13.4, values in `frontend/e2e/foundation-reference.ts`): tokens of the server equal the preview of the settings editor (defaults and changed settings), resetting the font returns to the cloud default, Poppins 400/600 and the pinned Cyrillic face (system Arial or the bundled Arimo) for RU/EN/DE text, fonts only from the CRM; normal/hover/active/focus/disabled/error/loading/empty states of buttons, fields, Select2, check boxes, rows, menus, tabs, dialogs and notifications of v7 and of the settings editor; densities and 200 %; read-only for the CRM; report `.local/e2e-reports/<stand>/foundation.json`; part of `task test:e2e` and `task test:e2e:clean` |
 | `task test:layout` | Stage 09 prototype of the cloud layout on Accounts (`docs/architecture.md` A15): no permanent module rail (every module since stage 11), the record and its edit form over the list (core overlay views), history, Escape/focus, double open, AJAX reload, direct link, validation/cancel/one save with the same form fields, failures; switches `layout.modules` on for the run and back, creates and deletes synthetic organizations `MU09-…` (`MU_LAYOUT_CLEANUP=<id,…>` deletes leftovers of an interrupted run); part of `task test:e2e` and `task test:e2e:clean` |
 | `task visual:pairs` | Screenshots (1440×1000) and element measurements of ModernUI for the states of `dev/visual/states.json` (override with `MU_VISUAL_STATES=dev/visual/lists.json` for stage 12) into `MU_VISUAL_DIR` (a private directory on `dev`; read-only) |
@@ -275,6 +353,8 @@ Passwords are generated into `.local/clean/` on the first run.
 
 Details: `docs/environments.md`.
 
+</details>
+
 ## Contribution guidelines
 
 - No core patches, no copies of core or third-party files in the package, no global CSS resets,
@@ -351,4 +431,13 @@ are deleted afterwards. See [Development](docs/DEVELOPMENT.md) and the
 
 ## License
 
-No license has been chosen yet.
+ModernUI's original code and documentation are distributed under the **[MIT License](LICENSE)**.
+You may use, modify and redistribute them, including commercially, while retaining the copyright
+and license notice. The software is provided without warranty. See the
+[MIT license text](https://opensource.org/license/mit) for the terms.
+
+Vtiger CRM remains under its [own license](https://www.vtiger.com/open-source-crm/vtiger-public-license/).
+Bundled libraries, icons and fonts retain their respective licenses; each frontend build includes
+their full notices in `layouts/v7/modules/ModernUI/resources/dist/THIRD_PARTY_LICENSES.txt`.
+See [dependencies](docs/dependencies.md) for details. This is an independent community project;
+Vtiger's name and logo belong to their respective owners.

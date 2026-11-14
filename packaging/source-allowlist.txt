@@ -5,11 +5,13 @@
 .gitignore
 AGENTS.md
 CLAUDE.md
+LICENSE
 README.md
 Taskfile.yml
 VERSION
 .github/workflows/*.yml
 docs/*.md
+docs/images/*.png
 dev/*.sh
 dev/*.py
 dev/*.php
