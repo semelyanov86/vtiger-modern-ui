@@ -41,6 +41,10 @@ tasks:
       - task: build
       - python3 packaging/build-zip.py {{if .MU_VERSION}}--version {{.MU_VERSION}}{{end}}
 
+  release:
+    desc: Build install and source ZIPs twice from allowlisted clean directories and verify byte-identical results
+    cmd: python3 packaging/build-release.py {{.CLI_ARGS}}
+
   lint:
     desc: php -l under PHP 8.5, 8.4 and 8.1 (Docker); vue-tsc, ESLint with zero warnings, ES5 syntax of loader.js
     cmds:
@@ -52,13 +56,13 @@ tasks:
     cmds:
       - for: [php8.5, php8.4]
         cmd: |
-          files=$(git ls-files --cached --others --exclude-standard '*.php')
+          files=$(find src tests dev -type f -name '*.php' | sort)
           [ -n "$files" ] || { echo "no PHP files"; exit 0; }
           errors=$(echo "$files" | xargs -n1 -P4 {{.ITEM}} -l 2>&1 | grep -v '^No syntax errors' || true)
           [ -z "$errors" ] || { echo "$errors"; exit 1; }
           echo "{{.ITEM}}: $(echo "$files" | wc -l) file(s) ok"
       - |
-        files=$(git ls-files --cached --others --exclude-standard '*.php')
+        files=$(find src tests dev -type f -name '*.php' | sort)
         errors=$(echo "$files" | docker run --rm -i -v "$PWD":/app:ro -w /app {{.PHP81_IMAGE}} xargs -n1 php -l 2>&1 | grep -v '^No syntax errors' || true)
         [ -z "$errors" ] || { echo "$errors"; exit 1; }
         echo "php 8.1 (Docker): $(echo "$files" | wc -l) file(s) ok"
@@ -115,6 +119,13 @@ tasks:
     cmds:
       - for: [c81, c85]
         cmd: MU_E2E_TARGET={{.ITEM}} npx playwright test --config e2e/playwright.config.ts --project clean --project modernui --project settings --project navigation --project records --project special --project layout --project foundation --project lists --project cloud-records --project cloud-forms --project cloud-settings --project settings-page --project auth-pages --project special-screens --project quality {{.CLI_ARGS}}
+
+  test:release:
+    desc: 'Release CRUD in RU/EN/DE against the same CRM OFF and ON'
+    deps: [fe:install]
+    dir: frontend
+    cmds:
+      - npx playwright test --config e2e/playwright.config.ts --project release {{.CLI_ARGS}}
 
   test:lifecycle:
     desc: 'Stage 20, clean stand only: real ZIP 0.6.0 to candidate, every settings scope, disable/enable, interrupted update, migration lock, recovery, missing asset, uninstall/reinstall; restores settings'

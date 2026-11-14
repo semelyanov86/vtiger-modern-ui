@@ -10,6 +10,7 @@
  *              custom entity module, English fallback; settings of users with different permissions — menu by
  *              permissions, role profiles, personal keys, role change, refused administrator actions (access.spec.ts);
  * - settings — the settings editor and the preferences editor as an administrator (stage 05, both stands);
+ * - release — persisted native CRUD in RU/EN/DE with the theme OFF and ON; removes its own MU21 records;
  * - auth-pages — opt-in public login/recovery, native authentication, branding, installation/restore, no JS and widths;
  * - navigation — the navigation shell (mega menu, favorites bar, module rail) and the list screens (stage 06, both stands);
  * - records  — record views, forms, line items, saving, errors and rights compared with v7 (stage 07, both stands; writes
@@ -69,6 +70,7 @@ export default defineConfig({
     { name: 'clean', testMatch: /(?:clean|access|extensions)\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'lifecycle', testMatch: /lifecycle\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'settings', testMatch: /(?:^|[\\/])settings\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
+    { name: 'release', testMatch: /release\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'navigation', testMatch: /navigation\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'records', testMatch: /records\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },
     { name: 'special', testMatch: /(?:^|[\\/])special\.spec\.ts$/, dependencies: ['auth'], use: { storageState: admin } },

@@ -11,11 +11,63 @@ Import*. Installation leaves the Vtiger core untouched and does not replace glob
 recovery design by wrapping two native templates, with backups and a restore button. The standard
 v7 interface remains available as a fallback. See [authentication pages](docs/auth-pages.md).
 
-> **Status:** early development, no release yet. The installable foundation is in place: the extension
-> module with its lifecycle, versioned settings storage and migrations, the classic loader and the Vue 3
-> shell, the settings page (*Settings → Other settings → ModernUI*: switch the new interface on for
-> yourself, standard view, safe mode, repair), personal preferences and the RU/EN/DE dictionaries. The
-> redesign of the CRM screens comes with the next stages (see `docs/PLAN.md`).
+**Version 1.0.0 passed release acceptance on Vtiger 8.4.0.** The same install ZIP was imported
+through Module Manager on two new official installations and the development instance, with
+separate visual and functional checks. Download the install ZIP, reproducible sources and
+SHA-256 files from this repository's **Releases**, tag **v1.0.0**.
+Evidence, supported versions and instructions are in [the release guide](docs/release.md).
+
+## Install and recover
+
+Download **ModernUI-1.0.0.zip** from this repository's **Releases**, together with
+`ModernUI-1.0.0.SHA256SUMS`. Verify downloaded archives with
+`sha256sum --ignore-missing -c ModernUI-1.0.0.SHA256SUMS`.
+The separately attached `ModernUI-source-1.0.0.zip` is for developers; GitHub's automatic
+source archives are also not installable CRM modules.
+
+Back up the CRM database and files. As an administrator, open *Settings → Module Manager →
+Import Module*, upload the install ZIP and confirm the name/version. No npm, Composer, Phinx
+or CLI is required. Open *Settings → Other settings → ModernUI* and enable the theme for
+yourself first. Installation leaves it off for everyone. Assets and all three theme languages
+load from your CRM, with no CDN or cloud-account dependency.
+
+Relative to your CRM base URL (including its subdirectory, if any):
+
+| Purpose | URL |
+|---|---|
+| Theme and menu editor | `index.php?module=ModernUI&parent=Settings&view=Index` |
+| Personal preferences | `index.php?module=ModernUI&view=Preferences` |
+| Standard interface for this session | `index.php?modernui=off` |
+| Leave safe mode | `index.php?modernui=on` |
+| Recovery without Vue | `index.php?module=ModernUI&parent=Settings&view=Index&editor=off&modernui=off` |
+
+The editor provides global/role scopes, inherited values, preview, appearance and menu changes,
+and versioned JSON import/export. Personal preferences affect only the current user. Theme
+language does not change CRM dates, currency or profile language, and does not translate core
+or extension strings without their language packs.
+
+Update through the same Module Manager with the new complete ZIP. Settings and favourites survive
+updates and disabling. Keep the previous ZIP, a consistent database/files backup, the two
+`vtiger_modernui_*` tables, `test/logo/modernui_*.png`, and optional `test/modernui-auth/state.php`
+with its two login templates. Configuration JSON does not back up personal settings or logos.
+For a broken update, enter safe mode, reimport the complete same ZIP, then use **Repair** on
+the server recovery page. Schema downgrades are not supported; restore a matched database/files
+backup in an isolated environment before considering a rollback.
+
+Disable ModernUI in Module Manager to keep the standard interface and all settings. Native 8.4
+removal uses `php -d auto_prepend_file=vendor/autoload.php vtlib/tools/console.php --remove=ModernUI`
+from the CRM root, followed by removing only the module paths listed in `dev/crm-mounts.txt`.
+Restore optional login templates first. Settings tables are retained; reinstall leaves the theme
+off. The development helper `task crm:uninstall -- --purge` also deletes the module's settings
+and logos. Full procedures and limits: [release guide](docs/release.md).
+
+## Reproduce the release
+
+Extract the attached source ZIP, enter `ModernUI-source-1.0.0`, then run `task release`
+(Node 24/npm, Python 3.10+, go-task 3). It builds twice in independent clean temporary directories
+using `npm ci --ignore-scripts`, compares both complete ZIPs, and writes SHA-256, file inventories
+and `ModernUI-1.0.0.build.json` to `dist/`. ZIP timestamps are pinned in `packaging/release.json`.
+Runtime allowlist: `packaging/allowlist.txt`; source allowlist: `packaging/source-allowlist.txt`.
 
 ## Goals
 
@@ -42,7 +94,7 @@ v7 interface remains available as a fallback. See [authentication pages](docs/au
 |---|---|
 | Vtiger CRM Open Source | 8.4 (standard `v7` layout) |
 | PHP | 8.1 – 8.5 |
-| Database | MySQL 8.x (others are not verified yet) |
+| Database | MySQL 8.4.13 verified; MySQL 8.0 and MariaDB not verified |
 
 For development additionally:
 
@@ -123,6 +175,7 @@ VERSION         version of the module written into manifest.xml
 | `task test:e2e` | Playwright scenarios on the instance from `.env` (signs in with `CRM_ADMIN_USER`/`CRM_ADMIN_PASS[_FILE]`): the module (`modernui`), the settings and preferences editors (`settings`) and the navigation shell and list screens (`navigation`: mega menu against the v7 app menu, history and new tabs, favorites bar without layout shift, the stage 11 cloud header — one main row and the page toolbar, the global search with the same request as v7, quick create, the user menu, icons and buttons extensions add later, no module rail on lists, records and forms, the calendar views in the context navigation, the settings menu kept — filter/sort/selection/mass action/search/popup of lists with the same requests and handlers as v7, RU/EN/DE, narrow screens) and the record views and forms (`records`: header actions, tabs, blocks, values and inline edit, create/edit/quick create forms, picklist-driven dynamic fields, line items with discounts, tax mode and moved rows, saving with the same request body and saved values as v7, one request per save, validation, refused and expired inline saves, cancel, RU/EN/DE, narrow screens, PDF of PDFMaker where active — each compared with the same page in safe mode; synthetic records `MU07-…` are created and deleted; `MU_E2E_FORM_MODULES=A,B` adds modules whose forms extensions change, `MU_E2E_LOCAL_BUILD=1` serves the local build to the browser) the stage 09 layout prototype (`layout`, see `task test:layout`) and the special screens and adapters (`special`: only the adapters of active extensions reach the page and an adapter switched off disappears, the adapters table of the settings editor, sign-in/installer/web forms/mobile/portal/web service entry points without the theme, printing without the shell, the same export request and file, CKEditor without theme styles, dashboard handles, draggable calendar events — on the clean stand a synthetic event `MU08-…` is dragged and compared, the core PDF) and the stage 10 visual foundation (`foundation`, see `task test:foundation`); every change of the settings is undone at the end |
 | `task test:e2e:clean` | The same plus pilot, restricted users, languages, Module Manager switch, and the settings of users with different permissions (menu by permissions, role profiles, personal keys, role change via `dev/clean/tools/set-role.php`, refused administrator actions, the navigation of a restricted user, hidden and read-only fields of a restricted user in forms, file upload and comments), and an unknown entity module installed after ModernUI (`tests/fixtures/gizmos`: menu by permissions also after a profile change, switched off and on, removed with `dev/clean/tools/remove-module.php`), on both clean instances; the list scenarios also star and unstar synthetic records there |
 | `task test:lifecycle` | Stage 20 on both clean instances: real 0.6.0 ZIP → candidate, all settings scopes, disable/enable, interrupted update, migration lock failure, recovery, missing asset, uninstall/reinstall; fields, forms, permissions and screenshots for default, upgraded and new-user profiles; restores settings; see [regression-lifecycle.md](docs/regression-lifecycle.md) |
+| `task test:release` | Stage 21: persisted native create/read/update/delete in RU/EN/DE, theme OFF and ON on the same CRM; synthetic MU21 records removed, personal preferences restored; `MU_E2E_TARGET=dev\|c81\|c85` |
 | `task test:lists` | Stage 12 cloud lists: native filters, column search, sorting, pagination, selection, columns and tags compared with v7; cloud geometry, RU/EN/DE, keyboard, narrow screens and restricted user; `MU_E2E_TARGET=dev|c81|c85`, private screenshots via `MU_LIST_SHOTS_DIR`; included in the e2e suites |
 | `task test:cloud-records` | Stage 13 cloud records: native field/action contracts, inline saves and comments, related quick create/select/unlink, pagination and row actions, languages, widths, rights and failure fallback; synthetic MU13 records are deleted and settings restored; `MU_E2E_TARGET=dev|c81|c85`, optional `MU_RECORD_MODULES=A,B` and `MU_RECORD_ORDER_BY='A=number_field&B=number_field'` for a stable native order; included in the e2e suites |
 | `task test:cloud-settings` | Stage 15 system settings: the catalog is the native settings menu (same items, URLs, summary), native search with an own empty state, keyboard, Back to CRM, side navigation and breadcrumb, seven inner pages with the same actions, drag and drop and switches as v7, dialogs, RU/EN/DE, widths, recovery; on the clean stand a restricted user and real changes (MU15 role, user, field, picklist value, workflow, deleted again); `MU_E2E_TARGET=dev|c81|c85` |

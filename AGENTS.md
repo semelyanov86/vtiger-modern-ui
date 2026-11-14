@@ -72,6 +72,7 @@ task crm:unlink    # отключить; база стенда и регистр
 task crm:smoke     # smoke-тест стенда, если у CRM есть `task smoke`
 task build         # production-сборка Vue/CSS в src/…/resources/dist (не в git); task dev — watch
 task package       # lint → build → dist/ModernUI-<VERSION>.zip + .sha256 + .files.txt
+task release       # два независимых clean build из lockfile; установочный/исходный ZIP, SHA-256, отчёт воспроизводимости
 task crm:install   # регистрация в базе стенда: Vtiger_Package::import() того же ZIP, затем снова link
 task crm:update    # то же через Vtiger_Package::update() (миграции); MU_VERSION=X.Y.Z — другая версия
 task crm:uninstall # Vtiger_Module::delete(); таблицы остаются, -- --purge удаляет; crm:enable/crm:disable
@@ -90,6 +91,7 @@ task test:special-screens # этап 17: календарь (цвета, вид�
 task test:quality  # этап 19: CSRF/метод/Referer всех изменяющих действий, ошибки без утечек, загрузки, импорт, изоляция пользователей, строгая CSP, сбои, axe-core, клавиатура, reduced motion, немецкий
 task test:stability # этап 19: 40 циклов окна записи в одном документе без роста узлов, слушателей и памяти; AJAX списка — против v7
 task test:lifecycle # этап 20: ZIP 0.6.0 → кандидат, сохранение настроек, сбои/восстановление, disable/uninstall/reinstall на обоих чистых стендах
+task test:release   # этап 21: сохранённый CRUD на RU/EN/DE с темой и без неё; синтетические MU21, восстановление предпочтений
 task test:browsers # этап 19: основные сценарии в Chromium, Firefox и WebKit на чистом стенде
 task visual:pairs  # снимки и замеры ModernUI по dev/visual/states.json в MU_VISUAL_DIR (dev — приватный каталог)
 task visual:compare # пары и таблица геометрии против закреплённого облачного эталона (MU_VISUAL_REFERENCE, приватный)
