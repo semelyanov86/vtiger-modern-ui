@@ -6,6 +6,7 @@ import RecordSections from './RecordSections.vue'
 import RecordControls from './RecordControls.vue'
 import RecordTabs, { type OverflowTab } from './RecordTabs.vue'
 import { scrollBehavior } from '../boot/motion'
+import { fitHeaderActions, holdHeaderActions } from './actions'
 
 export interface RecordTexts {
   readonly sections: string
@@ -45,9 +46,22 @@ export function presentRecord(scope: IslandScope, root: HTMLElement, texts: Reco
     header.appendChild(controls)
     const actionsOpen = ref(false)
     const contextOpen = ref(false)
+    let refit = (): void => { /* Assigned below, after the controls exist. */ }
+    let release = (): void => { /* Set while the actions menu is open. */ }
     const actions = (open: boolean): void => {
-      actionsOpen.value = open
-      root.classList.toggle('mu-record-actions-open', open)
+      if (open === actionsOpen.value) return
+      if (open) {
+        release = holdHeaderActions(header, () => {
+          actionsOpen.value = true
+          root.classList.add('mu-record-actions-open')
+        })
+        return
+      }
+      release()
+      release = (): void => { /* Released. */ }
+      actionsOpen.value = false
+      root.classList.remove('mu-record-actions-open')
+      refit()
     }
     const context = (open: boolean): void => {
       contextOpen.value = open
@@ -58,6 +72,16 @@ export function presentRecord(scope: IslandScope, root: HTMLElement, texts: Reco
       onActions: actions, onContext: context,
     }) })
     app.mount(controls)
+    refit = fitHeaderActions(scope, header, () => actionsOpen.value)
+    // Header buttons are held at their measured places while the menu is open; a new header width closes it instead.
+    let width = header.clientWidth
+    const resize = new ResizeObserver(() => {
+      if (header.clientWidth !== width && actionsOpen.value) actions(false)
+      width = header.clientWidth
+    })
+    resize.observe(header)
+    scope.onDispose(() => { resize.disconnect() })
+    scope.onDispose(() => { actions(false) })
     scope.listen(document, 'pointerdown', (event: Event) => {
       if (event.target instanceof Node && !header.contains(event.target)) { actions(false); context(false) }
     })

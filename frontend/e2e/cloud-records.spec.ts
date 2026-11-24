@@ -287,6 +287,124 @@ test('record action menu and nested More remain usable in full page and overlay'
   }
 })
 
+interface Box { x: number; y: number; w: number; h: number }
+interface HeaderState {
+  buttons: { id: string; folded: boolean; pinned: boolean; visible: boolean; box: Box }[]
+  toggle: Box; title: Box; right: number; panel: Box | null; hits: boolean[]; overflow: number; tag: boolean
+}
+
+async function headerState(page: Page): Promise<HeaderState> {
+  return page.locator('.mu-cloud-record .detailview-header').evaluate((header) => {
+    const box = (node: Element): Box => { const rect = node.getBoundingClientRect(); return { x: rect.x, y: rect.y, w: rect.width, h: rect.height } }
+    const basic = Array.from(header.querySelectorAll('.detailViewButtoncontainer button[id*="_detailView_basicAction_"]'))
+    const shown = basic.filter((node) => node.getClientRects().length > 0)
+    const panel = header.closest('.mu-record-actions-open') === null ? null : header.querySelector('.detailViewButtoncontainer > .btn-toolbar')
+    // Controls drawn at the right of the header: PDF Maker's group (if any) and the record's own menu toggles.
+    const right = Math.min(...Array.from(header.querySelectorAll('#PDFMakerContentDiv, .mu-record-context-toggle')).map((node) => node.getBoundingClientRect().left))
+    const tag = header.closest('.mu-cloud-record')?.querySelector('#addTagTriggerer')
+    return {
+      buttons: basic.map((node) => ({
+        id: node.id, folded: node.hasAttribute('data-mu-folded'), pinned: node.hasAttribute('data-mu-pinned'),
+        visible: node.getClientRects().length > 0, box: box(node),
+      })),
+      toggle: box(header.querySelector('.mu-record-actions-toggle') ?? header),
+      title: box(header.querySelector('.recordLabel') ?? header),
+      right, panel: panel === null ? null : box(panel),
+      hits: shown.map((node) => {
+        const rect = node.getBoundingClientRect()
+        return node.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2))
+      }),
+      overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      tag: tag !== null && tag !== undefined && tag.getClientRects().length > 0,
+    }
+  })
+}
+
+function samePlace(actual: Box, expected: Box, message: string): void {
+  for (const key of ['x', 'y', 'w', 'h'] as const) expect(Math.abs(actual[key] - expected[key]), `${message}: ${key}`).toBeLessThanOrEqual(1)
+}
+
+// The core decides the place of an action: DETAILVIEWBASIC links are header buttons, DETAILVIEW links its "More" menu.
+test('header buttons of DETAILVIEWBASIC links stay in the header, fold from the end and keep their places', async ({ page }) => {
+  test.setTimeout(240_000)
+  for (const overlay of [false, true]) {
+    for (const width of [1440, 1024, 768, 412]) {
+      const where = `${overlay ? 'overlay' : 'full page'} at ${String(width)}px`
+      await page.setViewportSize({ width, height: 1000 })
+      if (overlay) {
+        await openCloudRecord(page, 'Accounts', id, search)
+      } else {
+        await page.goto(`index.php?module=Accounts&view=Detail&record=${id}&modernui=on`)
+        await waitForShell(page)
+        await settle(page)
+      }
+      const closed = await headerState(page)
+      expect(closed.buttons.length, where).toBeGreaterThan(0)
+      // Folded buttons are the tail of the native order; every other one is drawn in the header.
+      const first = closed.buttons.findIndex((button) => button.folded)
+      if (first >= 0) expect(closed.buttons.slice(first).every((button) => button.folded), where).toBe(true)
+      // Extensions may add many buttons; a wide header still shows the first ones (the core's Edit comes first).
+      if (width >= 1024) expect(first, `${where}: a wide header shows buttons`).not.toBe(0)
+      const shown = closed.buttons.filter((button) => !button.folded)
+      for (const button of closed.buttons) expect(button.visible, `${where}: ${button.id}`).toBe(!button.folded)
+      for (const [index, button] of shown.entries()) {
+        // One row with the PDF and menu controls (top 16 px), right of the name, left of those controls, no overlaps.
+        expect(Math.abs(button.box.y - closed.toggle.y), `${where}: ${button.id} top`).toBeLessThanOrEqual(1)
+        expect(button.box.h, `${where}: ${button.id} height`).toBe(36)
+        expect(button.box.x, `${where}: ${button.id} after the name`).toBeGreaterThanOrEqual(closed.title.x + closed.title.w)
+        expect(button.box.x + button.box.w, `${where}: ${button.id} before the controls`).toBeLessThanOrEqual(closed.right)
+        const next = shown[index + 1]
+        if (next !== undefined) expect(next.box.x, `${where}: ${next.id} after ${button.id}`).toBeGreaterThanOrEqual(button.box.x + button.box.w)
+      }
+      expect(closed.hits.every(Boolean), `${where}: header buttons are not covered`).toBe(true)
+      expect(closed.overflow, `${where}: horizontal scroll`).toBe(0)
+      expect(closed.tag, `${where}: tags are with the header fields`).toBe(false)
+
+      // The menu is the same native toolbar: the header buttons stay where they were, folded ones are in the panel.
+      await page.locator('.mu-cloud-record .mu-record-actions-toggle').click()
+      const open = await headerState(page)
+      expect(open.panel, where).not.toBeNull()
+      const panel = open.panel ?? closed.toggle
+      for (const [index, button] of open.buttons.entries()) {
+        const before = closed.buttons[index]
+        if (before === undefined) continue
+        expect(button.visible, `${where}: ${button.id} with the menu open`).toBe(true)
+        if (before.folded) {
+          expect(button.box.x, `${where}: folded ${button.id} in the panel`).toBeGreaterThanOrEqual(panel.x)
+          expect(button.box.y, `${where}: folded ${button.id} in the panel`).toBeGreaterThanOrEqual(panel.y)
+        } else {
+          samePlace(button.box, before.box, `${where}: ${button.id} with the menu open`)
+        }
+      }
+      samePlace(open.title, closed.title, `${where}: record name with the menu open`)
+      expect(open.hits.every(Boolean), `${where}: buttons with the menu open are not covered`).toBe(true)
+      for (const button of shown) await page.locator(`[id="${button.id}"]`).click({ trial: true })
+      await page.keyboard.press('Escape')
+      const again = await headerState(page)
+      expect(again.panel, where).toBeNull()
+      for (const [index, button] of again.buttons.entries()) {
+        const before = closed.buttons[index]
+        if (before === undefined) continue
+        expect(button.folded, `${where}: ${button.id} folded again`).toBe(before.folded)
+        expect(button.pinned, `${where}: ${button.id} released`).toBe(false)
+        if (!before.folded) samePlace(button.box, before.box, `${where}: ${button.id} after the menu`)
+      }
+
+      // Header fields and tags (ⓘ) open below the name; the buttons keep their row.
+      await page.locator('.mu-cloud-record .mu-record-context-toggle').click()
+      const context = await headerState(page)
+      expect(context.tag, `${where}: tags with the header fields`).toBe(true)
+      for (const [index, button] of context.buttons.entries()) {
+        const before = closed.buttons[index]
+        if (before !== undefined && !before.folded) samePlace(button.box, before.box, `${where}: ${button.id} with the fields open`)
+      }
+      await page.locator('.mu-cloud-record .mu-record-context-toggle').click()
+      expect((await headerState(page)).tag, where).toBe(false)
+      if (overlay) await page.locator('.mu-record-back').click()
+    }
+  }
+})
+
 test('RU/EN/DE, widths, zoom, keyboard focus and overflow actions', async ({ page }) => {
   test.setTimeout(180_000)
   for (const locale of ['ru-RU', 'en-US', 'de-DE']) {

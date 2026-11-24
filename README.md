@@ -9,7 +9,7 @@ Install it through Vtiger's Module Manager, try it for yourself, then enable it 
 The theme runs on your CRM server, with bundled fonts and assets and no cloud account or CDN
 required. ModernUI's own interface is available in **English, German and Russian**.
 
-**[Download v1.0.0](../../releases/tag/v1.0.0)** ·
+**[Download v1.0.1](../../releases/tag/v1.0.1)** ·
 [Install](#installation) · [Features](#features) · [Screenshots](#screenshots) ·
 [Personalize](#make-it-your-own) · [Develop](#development) · [MIT license](LICENSE)
 
@@ -82,8 +82,8 @@ npm, Composer or a command line to install or use the theme.
 ## Installation
 
 1. Back up your CRM database and files.
-2. Open [Releases](../../releases/tag/v1.0.0) and download
-   **`ModernUI-1.0.0.zip`**. This is the installable module; `ModernUI-source-1.0.0.zip` and GitHub's
+2. Open [Releases](../../releases/tag/v1.0.1) and download
+   **`ModernUI-1.0.1.zip`**. This is the installable module; `ModernUI-source-1.0.1.zip` and GitHub's
    automatic source archives are for developers.
 3. Sign in to Vtiger as an administrator. Open **Settings → Module Manager → Import Module**,
    upload the ZIP and confirm the module name and version.
@@ -95,8 +95,8 @@ npm, Composer or a command line to install or use the theme.
 whole team to a new interface. Normal installation leaves Vtiger's core files and global libraries
 unchanged. The optional login design is a separate administrator action, described below.
 
-For download verification, the release includes `ModernUI-1.0.0.SHA256SUMS`. With both files in
-the same folder, run `sha256sum --ignore-missing -c ModernUI-1.0.0.SHA256SUMS`, or compare the ZIP's
+For download verification, the release includes `ModernUI-1.0.1.SHA256SUMS`. With both files in
+the same folder, run `sha256sum --ignore-missing -c ModernUI-1.0.1.SHA256SUMS`, or compare the ZIP's
 SHA-256 using your preferred checksum tool. Installation and acceptance evidence are in the
 [release guide](docs/release.md).
 
@@ -164,10 +164,10 @@ repository and can be reproduced independently.
 
 ### Reproduce the release
 
-Extract the attached source ZIP, enter `ModernUI-source-1.0.0`, then run `task release`
+Extract the attached source ZIP, enter `ModernUI-source-1.0.1`, then run `task release`
 (Node 24/npm, Python 3.10+, go-task 3). It builds twice in independent clean temporary directories
 using `npm ci --ignore-scripts`, compares both complete ZIPs, and writes SHA-256, file inventories
-and `ModernUI-1.0.0.build.json` to `dist/`. ZIP timestamps are pinned in `packaging/release.json`.
+and `ModernUI-1.0.1.build.json` to `dist/`. ZIP timestamps are pinned in `packaging/release.json`.
 Runtime allowlist: `packaging/allowlist.txt`; source allowlist: `packaging/source-allowlist.txt`.
 
 ### Development requirements

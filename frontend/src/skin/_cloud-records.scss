@@ -22,15 +22,19 @@
     background: #fff;
     border: 0;
     margin: 0;
-    > .row { display: flex; align-items: center; margin: 0; gap: 12px; }
+    // min-height: the core skin's `.main-container .row { min-height: inherit }` gives the row of a full-page record the
+    // header's 69 px, which centred the name and the buttons 17 px below the PDF and menu controls (top 16 px).
+    // flex-start: the header grows when its fields are shown (ⓘ); the name and the buttons keep their row.
+    > .row { display: flex; align-items: flex-start; margin: 0; gap: 12px; min-height: 0; }
     > .row::before, > .row::after { display: none; }
-    > .row > :first-child { flex: 1 1 auto; min-width: 0; width: auto; padding: 0; }
-    .record-header { display: flex; align-items: center; min-width: 0; min-height: 34px; padding: 0; width: auto; }
+    // 1 + 34 px and the 2 px of the 30 px label centre the name on the 36 px buttons.
+    > .row > :first-child { flex: 1 1 auto; min-width: 0; width: auto; padding: 1px 0 0; }
+    .record-header { display: flex; align-items: flex-start; min-width: 0; min-height: 34px; padding: 0; width: auto; }
     .recordImage { position: static; flex: 0 0 34px; width: 34px; height: 34px; border-radius: 6px; margin: 0 8px 0 0; }
     .recordImage .name { display: flex; align-items: center; justify-content: center; font-size: 20px; line-height: 34px; height: 34px; width: 34px; }
     .recordImage .name [class*='vicon-'] { font-size: 26px; line-height: 34px; }
     .recordImage img { max-width: 34px; max-height: 34px; object-fit: contain; }
-    .recordBasicInfo { position: relative; width: auto; max-width: calc(100% - 42px); padding: 0; min-width: 0; margin: 0; }
+    .recordBasicInfo { position: relative; width: auto; max-width: calc(100% - 42px); padding: 2px 0 0; min-width: 0; margin: 0; }
     .recordBasicInfo h4 { margin: 0; }
     // Match the label's 30 px line box; the native row plus its margin otherwise centers it at a half pixel.
     .recordBasicInfo > .info-row:first-child { height: 30px; margin-bottom: 0; }
@@ -40,9 +44,21 @@
     .detailViewButtoncontainer { position: static; flex: 0 0 auto; width: auto; padding: 0; }
     .btn-toolbar, .btn-group { margin: 0; float: none !important; vertical-align: middle; }
     .btn { border-radius: 4px; min-height: 36px; height: 36px; margin: 0; }
+    // The core renders DETAILVIEWBASIC links as header buttons and DETAILVIEW links in its "More" menu. The basic
+    // buttons stay in the header in native order; those that do not fit carry data-mu-folded and are listed in the
+    // actions menu (record/actions.ts). Follow, "More" and previous/next are always in that menu.
     .detailViewButtoncontainer .btn { display: none; }
-    .btn[id$='_LBL_EDIT'] { display: inline-flex; align-items: center; border-radius: 4px !important; }
+    // margin: the core skin sets `.detailViewButtoncontainer button.btn { margin: 1px !important }`, which put the
+    // buttons a pixel below the PDF and menu controls.
+    .btn[id*='_detailView_basicAction_']:not([data-mu-folded]) {
+      display: inline-flex; align-items: center; border-radius: 4px !important; white-space: nowrap; margin: 0 !important;
+    }
     .dropdown-menu { max-width: 100%; }
+  }
+  // Flex boxes, not inline ones: a line box would make the 36 px buttons a 38 px row and shift them by a pixel.
+  &:not(.mu-record-actions-open) .detailview-header .detailViewButtoncontainer > .btn-toolbar {
+    display: flex; align-items: center;
+    > .btn-group:first-child { display: flex; align-items: center; gap: 8px; }
   }
   .mu-record-back, .mu-record-open, .mu-record-actions-toggle, .mu-record-context-toggle {
     position: absolute; top: 16px; width: 36px; height: 36px;
@@ -60,7 +76,7 @@
     position: absolute; right: 56px; top: 58px; z-index: 6; width: 320px; max-width: calc(100vw - 100px);
     max-height: 65vh; overflow: auto; padding: 4px 0;
     .btn-group { display: block; width: 100%; }
-    .btn {
+    .btn:not([data-mu-pinned]) {
       @include menu-item;
       display: block; width: 100% !important; height: auto; min-height: 36px;
       float: none; margin: 0 !important;
@@ -76,13 +92,32 @@
     .dropdown-menu { position: static; float: none; box-shadow: none; width: 100%; border: 0; margin: 0; }
     .dropdown-menu a { white-space: normal; }
   }
+  // Core toolbar: the header buttons are the same nodes as the menu's. While it is open they stay at their header
+  // places (record/actions.ts holdHeaderActions) and the row keeps their width; the list scrolls, not the panel, so
+  // they are not clipped (their containing block is the panel, outside the scrolling group).
+  &.mu-record-actions-open .detailview-header .detailViewButtoncontainer {
+    flex-basis: var(--mu-actions-width, auto);
+    > .btn-toolbar {
+      max-height: none; overflow: visible;
+      > .btn-group:first-child { position: static; max-height: calc(65vh - 80px); overflow: auto; }
+      .btn[data-mu-pinned] { position: absolute !important; left: var(--mu-pin-x); top: var(--mu-pin-y); z-index: 1; }
+    }
+  }
   &.mu-record-context-open .recordBasicInfo {
     .info-row:not(:first-child) { display: block; padding: 8px 12px; background: #fff; border: 1px solid tok(divider); }
   }
   // Extra native header rows must take part in the layout before the tags below them.
   &.mu-record-context-open .detailview-header { height: auto; }
-  > .detailview-header-block > .tagContainer { display: none; margin: 0; padding: 0 24px 6px 56px; min-height: 0; font-size: 11px; }
-  &.mu-record-context-open > .detailview-header-block > .tagContainer { display: block; }
+  // Tags are shown with the other header fields (ⓘ), under the record name. The record window renders them in the header
+  // block, a full-page record in a `.row > .col-*` after the header (core DetailViewPreProcess.tpl) — the latter was not
+  // covered and stood on its own at the left edge.
+  .detailview-header-block > .row { margin: 0; }
+  .detailview-header-block > .row > [class*='col-'] { float: none; width: auto; min-height: 0; padding: 0; }
+  .detailview-header-block > .tagContainer, .detailview-header-block > .row > [class*='col-'] > .tagContainer {
+    display: none; margin: 0; padding: 0 24px 6px 56px; min-height: 0; font-size: 11px;
+  }
+  &.mu-record-context-open .detailview-header-block > .tagContainer,
+  &.mu-record-context-open .detailview-header-block > .row > [class*='col-'] > .tagContainer { display: block; }
   .tagContainer #addTagTriggerer { font-size: 11px; padding: 0; color: #7b7f85; background: transparent; }
   .detailview-content { margin: 0; padding: 0; }
   .related-tabs {
@@ -247,15 +282,14 @@
     .mu-record-sections { position: static; width: auto; display: flex; flex-wrap: wrap; padding: 0; margin-bottom: 12px; gap: 4px; }
     .mu-record-sections h2 { width: 100%; margin: 0; }
     .mu-record-sections button { width: auto; }
-    .detailview-header > .row { flex-wrap: wrap; }
+    // No wrapping: buttons that do not fit beside the name are folded into the actions menu (record/actions.ts).
     .detailview-header { height: auto; }
-    .detailview-header .detailViewButtoncontainer { max-width: 100%; }
     .related-tabs { padding: 0 8px; }
     .detailview-header { padding-left: 44px; padding-right: 128px; }
     .detailview-header .recordImage { display: none; }
     .detailview-header .recordBasicInfo { max-width: 100%; }
     .detailview-header .recordLabel { font-size: fs(16); }
-    .detailview-header .btn[id$='_LBL_EDIT'] { max-width: 90px; font-size: fs(12); }
+    .detailview-header .btn[id*='_detailView_basicAction_'] { font-size: fs(12); }
     .mu-record-open { right: 8px; }
     .mu-record-actions-toggle { right: 44px; }
     .mu-record-context-toggle { right: 80px; }

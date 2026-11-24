@@ -615,7 +615,7 @@ async function snapshot(page: Page, screen: Screen, mode: Mode): Promise<Snapsho
       ['.mu-list-filter', '#sidebar-essentials'],
       ['.mu-list-more', '[data-mu-list-import]'],
       ['.mu-record-actions-toggle', '.detailview-header .btn-toolbar, .detailview-header .detailViewButtoncontainer > .btn-group'],
-      ['.mu-record-context-toggle', '.recordBasicInfo, .detailview-header-block > .tagContainer'],
+      ['.mu-record-context-toggle', '.recordBasicInfo, .detailview-header-block .tagContainer'],
       ['.mu-record-tab-overflow > button', '.related-tabs'],
     ] as const) {
       const button = page.locator(trigger)

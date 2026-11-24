@@ -102,10 +102,10 @@
     "V05-details-fields.png": "01459cedcbd04138eb972102e690d31e1456591b68c75504bd3824f812002f5c",
     "V05-details.png": "4a28112ea83eeb8f0968b36f76d6bbc73a26e5971a7ef97f301dc08b062aa6e4",
     "V05-summary-fields.png": "d27f30d0cc4acec100869fea95c0412d6ed8072cf26e19f1ddc85e9e7b695217",
-    "V05-summary.png": "b1ef35656164fb3e7d83a77385976a710fc7adf5414b4d5720564307df82f4df",
-    "V06-direct.png": "38e92bb726f000acda3c9ad86318f724cad3c6666cad9d4a2e1eb688f2352ef0",
-    "V06-documents.png": "ad6f6d6e089b77546454127841bbd7b0b5d61f3689764293535b6c7a65216986",
-    "V06-updates.png": "7190273436600d663ff76f59a8d745e8ec3320996dcedb20e1296de02f233609",
+    "V05-summary.png": "eb048c1d6ecb0b24d7efb6ceef40f491b83860c2c43049040db207b9c697a83a",
+    "V06-direct.png": "4a28112ea83eeb8f0968b36f76d6bbc73a26e5971a7ef97f301dc08b062aa6e4",
+    "V06-documents.png": "99542764f786ce623be4d8f8f8e92c8919096e54ec95e3de551bc61ce003b001",
+    "V06-updates.png": "99542764f786ce623be4d8f8f8e92c8919096e54ec95e3de551bc61ce003b001",
     "V07-confirm.png": "e43aea212cd764722e6b213f0a35db4aaf6772985d21f1dfe1fe57694941f458",
     "V07-create.png": "4ec33612feffa944a73228c947533c00e87e692bf08586e0ff3de1782195dc8f",
     "V07-edit.png": "6c5d6431c8f52628080255c35e44a43296e698f78c7ec5f77cd496b45b75314f",
@@ -165,6 +165,35 @@
           "reason": "Manual stage 20 closure review: removing the native overlay fade changes only label/icon rasterization. Real old/new ZIP comparison: all 80 element rectangles, text ranges and computed styles match, except overlay transition-duration 0.3s to 0s. Live cloud labels retain Poppins 13px/400/19.5px. Full and isolated captures agree on both PHP instances."
         }
       ],
+      "unchanged": "All other PNG files, measured rectangles, masks, font inventory and calibrated thresholds."
+    },
+    {
+      "date": "2026-11-24",
+      "previousModuleVersion": "1.0.0",
+      "previousPackageSha256": "4c1d7ac97819802105229f9506a6a1abaf9c7517371bf7e9b2c7fecec3933dbb",
+      "changes": [
+        {
+          "file": "V05-summary.png",
+          "previousSha256": "b1ef35656164fb3e7d83a77385976a710fc7adf5414b4d5720564307df82f4df",
+          "reason": "1.0.1: DETAILVIEWBASIC links are header buttons in the core; Send Email now stays next to Edit as a 36 px secondary button instead of the actions menu. Name, icon, controls and row unchanged."
+        },
+        {
+          "file": "V06-documents.png",
+          "previousSha256": "ad6f6d6e089b77546454127841bbd7b0b5d61f3689764293535b6c7a65216986",
+          "reason": "1.0.1: the same record header as V05-summary (Edit and Send Email in the header); Documents tab content unchanged."
+        },
+        {
+          "file": "V06-updates.png",
+          "previousSha256": "7190273436600d663ff76f59a8d745e8ec3320996dcedb20e1296de02f233609",
+          "reason": "1.0.1: the same record header as V05-summary (Edit and Send Email in the header); Updates tab content unchanged."
+        },
+        {
+          "file": "V06-direct.png",
+          "previousSha256": "38e92bb726f000acda3c9ad86318f724cad3c6666cad9d4a2e1eb688f2352ef0",
+          "reason": "1.0.1: on the direct record page the tag row (Add Tag) no longer stands under the header at the left edge; like the record window it opens with the header fields (i). The section navigation moves up 19.5 px (y 288.5 to 269) to whole pixels; its content is unchanged."
+        }
+      ],
+      "review": "New official Vtiger 8.4.0 instances (native installer and seed, PHP 8.1 and 8.5) with the 1.0.1 package from Module Manager: 46 of 50 regions byte-equal to the accepted images, the four above differ only as described; their PHP 8.1 and 8.5 captures are byte-identical. Measured V06-direct box updated accordingly.",
       "unchanged": "All other PNG files, measured rectangles, masks, font inventory and calibrated thresholds."
     }
   ]
